@@ -2,7 +2,8 @@
 pragma solidity ^0.8.13;
 
 contract GigSecured {
-    struct Gig {
+    event GigContractCreated(string title, address creator, address freelancer);
+    struct GigContract {
         string title;
         string category;
         string clientName;
@@ -10,12 +11,15 @@ contract GigSecured {
         bytes clientSign;
         string freelancerName;
         string freelancerEmail;
+        address freeLancer;
         bytes freelancerSign;
         string description;
         uint deadline;
+        uint completedTime;
         string[] stages;
         Status _status;
         bool isAudit;
+        address auditor;
         uint price;
         address creator;
     }
@@ -31,22 +35,93 @@ contract GigSecured {
 
     uint _gigs;
 
-    address _gigsAdministrator;
+    address _gigSecuredAdministrator;
     address _auditContract;
 
-    mapping(uint256 => Gig) private _allGigs;
+    mapping(uint256 => GigContract) private _allGigs;
 
-    function addGig() public {}
+    error AtLeastAnHour(uint deadline);
+    error InvalidFreelancer(address freeLancer);
+    error MaxStagesOfDevelopment();
+    error NotAssignedFreeLancer();
 
-    function freeLancerSign() public {}
+    constructor(address auditContract, address gigSecuredAdministrator){
+        _gigSecuredAdministrator = gigSecuredAdministrator;
+        _auditContract = auditContract;
+    }
 
-    function editGig() public {}
+    function addGig(string memory _title, string memory _category, bytes _clientSign, string memory _clientName, string memory _clientEmail, string memory _description, uint _deadline, string[] memory _stages, uint _price, address _freelancer) public {
+        if(_deadline < (block.timestamp + 3600)) {
+            revert AtLeastAnHour(_deadline);
+        }
+        if(_freelancer == address(0)) {
+            revert InvalidFreelancer(_freelancer);
+        }
+        if(_stages.length > 4) {
+            revert MaxStagesOfDevelopment();
+        }
+        uint newGig = _gigs++;
+        GigContract storage _newGigContract = _allGigs[newGig];
+        _newGigContract.title = _title;
+        _newGigContract.category = _category;
+        _newGigContract.clientName = _clientName;
+        _newGigContract.clientEmail = _clientEmail;
+        _newGigContract.clientSign = _clientSign;
+        _newGigContract.description = _description;
+        _newGigContract.deadline = _deadline;
+        _newGigContract.deadline = _deadline;
+        _newGigContract.stages = _stages;
+        _newGigContract.price = _price;
+        _newGigContract.freeLancer = _freelancer;
 
-    function updateGig() public {}
+        emit GigContractCreated(_title, msg.sender, _freelancer);
+    }
+
+    function freeLancerSign(bytes freelancerSign) public {
+
+        NotAssignedFreeLancer()
+    }
+
+    function editGigDeadline() public {
+    }
+
+    function editGigTitle() public {
+    }
+    function editGigDescription() public {
+    }
+
+    function editGigCategory() public{}
+    function editGigFreeLancer() public{}
+
+    function updateGig(uint _id, Status _status) public {
+        GigContract storage _newGigContract = _allGigs[id];
+        if(_newGigContract.creator == msg.sender) {
+            clientUpdateGig(_status, _id );
+        }
+        if(_newGigContract.freeLancer == msg.sender) {
+            freeLancerUpdateGig(_status);
+        }
+
+    }
 
     function _sendPayment() internal {}
 
-    function _assignAuditor() internal {}
+    function _assignAuditor(string category) internal returns (address auditor) {
+        auditor = IAuditor(_auditContract).assignAuditor(category);
+    }
+
+    function clientUpdateGig(Status _status, uint _id) internal {
+             GigContract storage _gigContract = _allGigs[_id];
+            string memory _category = _gigContract.category;
+        if(_status === Dispute){
+            require((_gigContract._status === UnderReview && _gigContract.completedTime > (block.timestamp + 259200)),  "Contract Settlement Time not exceeded")
+            address _auditor = _assignAuditor(_category);
+            _gigContract.auditor = _auditor;
+            _gigContract.isAudit = true;
+            _gigContract._status = _status;
+        }
+    }
+    function freeLancerUpdateGig() internal {}
 
     function getGig() public {}
 }
