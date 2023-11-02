@@ -4,6 +4,14 @@ import {EscrowUtils} from "./library/EscrowLibrary.sol";
 
 contract GigSecured {
     event GigContractCreated(string title, address creator, address freelancer);
+    event GigStatusUpdated(uint gigId, Status newStatus);
+    event GigDeadlineUpdated(uint gigId, uint newDeadline);
+    event GigFreelancerUpdated(
+        uint gigId,
+        string newFreelancerName,
+        string newFreelancerEmail,
+        address newFreelancerAddress
+    );
     struct GigContract {
         string title;
         string category;
@@ -51,10 +59,22 @@ contract GigSecured {
         _auditContract = auditContract;
     }
 
+    modifier onlyClient(uint gigId) {
+        GigContract storage _newGigContract = _allGigs[gigId];
+        require(msg.sender == _newGigContract.creator, "Not Client");
+        _;
+    }
+
+    modifier onlyFreelancer(uint gigId) {
+        GigContract storage _newGigContract = _allGigs[gigId];
+        require(msg.sender == _newGigContract.freeLancer, "Not Freelancer");
+        _;
+    }
+
     function addGig(
         string memory _title,
         string memory _category,
-        bytes _clientSign,
+        bytes memory _clientSign,
         string memory _clientName,
         string memory _clientEmail,
         string memory _description,
@@ -90,7 +110,7 @@ contract GigSecured {
     }
 
     function freeLancerSign(
-        bytes _freelancerSign,
+        bytes memory _freelancerSign,
         uint _gigContract
     ) external returns (bool success) {
         GigContract storage gigContract = _allGigs[_gigContract];
@@ -110,15 +130,83 @@ contract GigSecured {
         }
     }
 
-    function editGigDeadline() public {}
+    function editGigDeadline(
+        uint256 gigId,
+        uint256 newDeadline
+    ) public onlyClient(gigId) {
+        GigContract storage gig = _allGigs[gigId];
+        require(
+            gig._status == Status.Pending,
+            "Cannot edit deadline if not Pending"
+        );
+        if (newDeadline < (block.timestamp + 3600)) {
+            revert AtLeastAnHour(newDeadline);
+        }
 
-    function editGigTitle() public {}
+        gig.deadline = newDeadline;
 
-    function editGigDescription() public {}
+        emit GigDeadlineUpdated(gigId, newDeadline);
+    }
 
-    function editGigCategory() public {}
+    function editGigTitle(
+        uint gigId,
+        string memory newTitle
+    ) public onlyClient(gigId) {
+        GigContract storage gig = _allGigs[gigId];
+        require(
+            gig._status == Status.Pending,
+            "Cannot edit title if not Pending"
+        );
+        gig.title = newTitle;
+    }
 
-    function editGigFreeLancer() public {}
+    function editGigDescription(
+        uint gigId,
+        string memory newDescription
+    ) public onlyClient(gigId) {
+        GigContract storage gig = _allGigs[gigId];
+        require(
+            gig._status == Status.Pending,
+            "Cannot edit title if not Pending"
+        );
+
+        gig.description = newDescription;
+    }
+
+    function editGigCategory(
+        uint gigId,
+        string memory newCategory
+    ) public onlyClient(gigId) {
+        GigContract storage gig = _allGigs[gigId];
+        require(
+            gig._status == Status.Pending,
+            "Cannot edit category if not Pending"
+        );
+
+        gig.category = newCategory;
+    }
+
+    function editGigFreelancer(
+        uint256 gigId,
+        string memory newFreelancerName,
+        string memory newFreelancerEmail,
+        address newFreelancerAddress
+    ) public onlyClient(gigId) {
+        GigContract storage gig = _allGigs[gigId];
+        require(
+            gig._status == Status.Pending,
+            "Cannot change freelancer once contract commences"
+        );
+        gig.freelancerName = newFreelancerName;
+        gig.freelancerEmail = newFreelancerEmail;
+        gig.freeLancer = newFreelancerAddress;
+        emit GigFreelancerUpdated(
+            gigId,
+            newFreelancerName,
+            newFreelancerEmail,
+            newFreelancerAddress
+        );
+    }
 
     function updateGig(uint _id, Status _status) public {
         GigContract storage _newGigContract = _allGigs[_id];
@@ -126,26 +214,52 @@ contract GigSecured {
             _clientUpdateGig(_status, _id);
         }
         if (_newGigContract.freeLancer == msg.sender) {
-            _freeLancerUpdateGig(_status);
+            _freeLancerUpdateGig(_status, _id);
         }
     }
 
-    function _sendPayment() internal {}
+    function _sendPayment(uint gig) internal {}
 
     function _assignAuditor(
-        string category
+        string memory category
     ) internal returns (address auditor) {
         auditor = IAuditor(_auditContract).assignAuditor(category);
     }
 
-    function _clientUpdateGig(Status _status, uint _id) internal {
-        GigContract storage _gigContract = _allGigs[_id];
+    function _clientUpdateGig(
+        Status _status,
+        uint gigId
+    ) internal onlyClient(gigId) {
+        GigContract storage _gigContract = _allGigs[gigId];
+        _gigContract._status = _status;
         string memory _category = _gigContract.category;
         if (_status == Status.Dispute) {
             require(
-                (_gigContract._status == Status.UnderReview &&
+                (_status == Status.UnderReview &&
                     _gigContract.completedTime > (block.timestamp + 259200)),
-                "Contract Settlement Time not exceeded"
+                "Contract Settlement Time Not Active"
+            );
+            address _auditor = _assignAuditor(_category);
+            _gigContract.auditor = _auditor;
+            _gigContract.isAudit = true;
+            _gigContract._status = _status;
+        }
+
+        emit GigStatusUpdated(gigId, _status);
+    }
+
+    function _freeLancerUpdateGig(
+        Status _status,
+        uint gigId
+    ) internal onlyFreelancer(gigId) {
+        GigContract storage _gigContract = _allGigs[gigId];
+        _gigContract._status = _status;
+        string memory _category = _gigContract.category;
+        if (_status == Status.Completed) {
+            require(
+                (_status == Status.Building &&
+                    _gigContract.completedTime < (block.timestamp + 259200)),
+                "Contract Settlement Time Not Active"
             );
             address _auditor = _assignAuditor(_category);
             _gigContract.auditor = _auditor;
@@ -154,7 +268,9 @@ contract GigSecured {
         }
     }
 
-    function _freeLancerUpdateGig() internal {}
-
-    function getGig() public {}
+    function getGig(
+        uint _gigId
+    ) external returns (GigContract memory gigContract) {
+        gigContract = _allGigs[_gigId];
+    }
 }
