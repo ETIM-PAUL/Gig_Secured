@@ -6,21 +6,35 @@ library EscrowUtils {
     // when there is no conflict
 
     // function to calculate non-audit fees, calculate 7% of the total price for the gig for the platorm
-    function NonAuditFees() internal {}
+    function nonAuditFees(uint256 totalAmount) internal pure returns (uint256) {
+        return (totalAmount * 7) / 100;
+    }
 
     //function to calculate 10 percent that will be returned to Client if no audit is involved
-    function ClientNoAudit() internal {}
+    function cientNoAudit(uint256 totalAmount) internal pure returns (uint256) {
+        return (totalAmount * 10) / 100;
+    }
 
     //function to calculate 95% of the total price and pay it to the frrelancer
-    function FreeLancerNoAudit() internal {}
+    function freeLancerNoAudit(
+        uint256 totalAmount
+    ) internal pure returns (uint256) {
+        return (totalAmount * 95) / 100;
+    }
 
     /// Functions to calculate
     // when audit is involved)
     // function to calculate audit fees, calculate 10% of the total price for the gig
-    function AuditFees() internal {}
+    function auditFees(uint256 totalAmount) internal pure returns (uint256) {
+        return (totalAmount * 10) / 100;
+    }
 
     //function to calculate 92% of the total price and pay it to the freelancer when auditing is done
-    function FreeLancerAudit() internal {}
+    function freeLancerAudit(
+        uint256 totalAmount
+    ) internal pure returns (uint256) {
+        return (totalAmount * 92) / 100;
+    }
 
     function getOrderHash(
         address freeLancer,
