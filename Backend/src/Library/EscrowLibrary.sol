@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-library EscrowCalculations {
+library EscrowUtils {
     // Functions to calculate
     // when there is no conflict
 
