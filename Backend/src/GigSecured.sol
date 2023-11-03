@@ -44,7 +44,8 @@ contract GigSecured {
 
     uint _gigs;
 
-    address _gigSecuredAdministrator;
+    address _governanceAddress;
+    address _usdcAddress;
     address _auditContract;
 
     mapping(uint256 => GigContract) private _allGigs;
@@ -53,15 +54,26 @@ contract GigSecured {
     error InvalidFreelancer(address freeLancer);
     error MaxStagesOfDevelopment();
     error NotAssignedFreeLancer();
+    error NotPermitted();
 
-    constructor(address auditContract, address gigSecuredAdministrator) {
-        _gigSecuredAdministrator = gigSecuredAdministrator;
+    constructor(
+        address auditContract,
+        address governance,
+        address usdcAddress
+    ) {
+        _governanceAddress = governance;
         _auditContract = auditContract;
+        _usdcAddress = usdcAddress;
     }
 
     modifier onlyClient(uint gigId) {
         GigContract storage _newGigContract = _allGigs[gigId];
         require(msg.sender == _newGigContract.creator, "Not Client");
+        _;
+    }
+
+    modifier onlyGovernance() {
+        require(msg.sender == _governanceAddress, "Only Governance");
         _;
     }
 
@@ -211,10 +223,10 @@ contract GigSecured {
     function updateGig(uint _id, Status _status) public {
         GigContract storage _newGigContract = _allGigs[_id];
         if (_newGigContract.creator == msg.sender) {
-            _clientUpdateGig(_status, _id);
+            clientUpdateGig(_status, _id);
         }
         if (_newGigContract.freeLancer == msg.sender) {
-            _freeLancerUpdateGig(_status, _id);
+            freeLancerUpdateGig(_status, _id);
         }
     }
 
@@ -226,45 +238,57 @@ contract GigSecured {
         auditor = IAuditor(_auditContract).assignAuditor(category);
     }
 
-    function _clientUpdateGig(
-        Status _status,
-        uint gigId
-    ) internal onlyClient(gigId) {
-        GigContract storage _gigContract = _allGigs[gigId];
-        _gigContract._status = _status;
-        string memory _category = _gigContract.category;
-        if (_status == Status.Dispute) {
-            require(
-                (_status == Status.UnderReview &&
-                    _gigContract.completedTime > (block.timestamp + 259200)),
-                "Contract Settlement Time Not Active"
-            );
-            address _auditor = _assignAuditor(_category);
-            _gigContract.auditor = _auditor;
-            _gigContract.isAudit = true;
-            _gigContract._status = _status;
-        }
+    function clientUpdateGig(
+        uint256 gigId,
+        Status newStatus
+    ) public onlyClient(gigId) {
+        GigContract storage gig = _allGigs[gigId];
+        if (
+            gig._status == Status.Completed && newStatus == Status.UnderReview
+        ) {
+            gig._status = newStatus;
+        } else if (gig._status == Status.UnderReview) {
+            if (newStatus == Status.Closed) {
+                _sendPayment(gigId);
+                gig._status = newStatus;
+            } else if (newStatus == Status.Dispute) {
+                require(
+                    gig.completedTime > (block.timestamp + 259200),
+                    "Contract Settlement Time Not Active"
+                );
 
-        emit GigStatusUpdated(gigId, _status);
+                address _auditor = _assignAuditor(gig._category);
+                gig.auditor = _auditor;
+                gig.isAudit = true;
+
+                gig._status = newStatus;
+            } else {
+                revert("Invalid status change");
+            }
+        } else {
+            revert("Invalid status change");
+        }
     }
 
-    function _freeLancerUpdateGig(
-        Status _status,
+    function freeLancerUpdateGig() public {}
+
+    function forceClosure(
         uint gigId
-    ) internal onlyFreelancer(gigId) {
-        GigContract storage _gigContract = _allGigs[gigId];
-        _gigContract._status = _status;
-        string memory _category = _gigContract.category;
-        if (_status == Status.Completed) {
-            require(
-                (_status == Status.Building &&
-                    _gigContract.completedTime < (block.timestamp + 259200)),
-                "Contract Settlement Time Not Active"
+    ) external onlyClient(gigId) onlyGovernance {
+        GigContract storage gig = _allGigs[gigId];
+        if (
+            (gig._status != Status.Building &&
+                gig.deadline < block.timestamp) ||
+            (gig._status != Status.Pending && gig.deadline < block.timestamp)
+        ) {
+            uint priceMinusFee = EscrowUtils.nonAuditFees(gig.price);
+
+            IERC20(_usdcAddress).transfer(
+                gig.creator,
+                (gig.price - priceMinusFee)
             );
-            address _auditor = _assignAuditor(_category);
-            _gigContract.auditor = _auditor;
-            _gigContract.isAudit = true;
-            _gigContract._status = _status;
+        } else {
+            revert NotPermitted();
         }
     }
 
