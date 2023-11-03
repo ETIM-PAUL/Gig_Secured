@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 interface IAudit {
-    function getAuditorByCategories()external view returns(address);
-    
+    function getAuditorByCategory(
+        string memory category
+    ) external view returns (address);
 }

@@ -31,10 +31,9 @@ library EscrowUtils {
 
     // function to calculate non-audit fees, calculate % of the total price for the gig for the platorm
     function systemAuditFees(
-        uint256 totalAmount,
-        uint systemPercent
+        uint256 totalAmount
     ) internal pure returns (uint256) {
-        return (totalAmount * systemPercent) / 100;
+        return (totalAmount * 10) / 100;
     }
 
     //function to calculate 92% of the total price and pay it to the freelancer when auditing is done

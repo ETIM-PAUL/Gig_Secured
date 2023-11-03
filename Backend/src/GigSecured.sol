@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 import {EscrowUtils} from "./library/EscrowLibrary.sol";
+import {IAudit} from "./interface/IAudit.sol";
+import {IERC20} from "./interface/IERC20.sol";
 
 contract GigSecured {
     event GigContractCreated(string title, address creator, address freelancer);
@@ -110,7 +112,7 @@ contract GigSecured {
         if (_stages.length > 4) {
             revert MaxStagesOfDevelopment();
         }
-        (bool success, ) = IERC20(_usdcAddress).transferFrom(
+        bool success = IERC20(_usdcAddress).transferFrom(
             msg.sender,
             address(this),
             _price
@@ -247,11 +249,11 @@ contract GigSecured {
         uint clientPaybackFee = EscrowUtils.cientNoAudit(gig.price);
         uint freelancerPaybackFee = EscrowUtils.freeLancerNoAudit(gig.price);
 
-        (bool successRemitClient, ) = IERC20(_usdcAddress).transfer(
+        bool successRemitClient = IERC20(_usdcAddress).transfer(
             gig.creator,
             clientPaybackFee
         );
-        (bool successPayFreelancer, ) = IERC20(_usdcAddress).transfer(
+        bool successPayFreelancer = IERC20(_usdcAddress).transfer(
             gig.freeLancer,
             freelancerPaybackFee
         );
@@ -274,11 +276,11 @@ contract GigSecured {
             freelancerPercent
         );
 
-        (bool successPayAuditor, ) = IERC20(_usdcAddress).transfer(
+        bool successPayAuditor = IERC20(_usdcAddress).transfer(
             gig.auditor,
             auditPaymentFee
         );
-        (bool successPayFreelancer, ) = IERC20(_usdcAddress).transfer(
+        bool successPayFreelancer = IERC20(_usdcAddress).transfer(
             gig.freeLancer,
             freelancerPaymentFee
         );
@@ -286,10 +288,7 @@ contract GigSecured {
         uint clientPaybackFee = gig.price -
             (auditPaymentFee + freelancerPaymentFee + systemPaymentFee);
         if (clientPaybackFee > 0) {
-            (bool successRemitClient, ) = IERC20(_usdcAddress).transfer(
-                gig.creator,
-                clientPaybackFee
-            );
+            IERC20(_usdcAddress).transfer(gig.creator, clientPaybackFee);
         }
         require(successPayAuditor && successPayFreelancer, "Payment Failed");
     }
@@ -297,12 +296,12 @@ contract GigSecured {
     function _assignAuditor(
         string memory category
     ) internal returns (address auditor) {
-        auditor = IAuditor(_auditContract).assignAuditor(category);
+        auditor = IAudit(_auditContract).getAuditorByCategory(category);
     }
 
     function clientUpdateGig(
-        uint256 gigId,
-        Status newStatus
+        Status newStatus,
+        uint256 gigId
     ) public onlyClient(gigId) returns (bool success) {
         GigContract storage gig = _allGigs[gigId];
         if (
@@ -320,7 +319,7 @@ contract GigSecured {
                     "Contract Settlement Time Not Active"
                 );
 
-                address _auditor = _assignAuditor(gig._category);
+                address _auditor = _assignAuditor(gig.category);
                 gig.auditor = _auditor;
                 gig.isAudit = true;
 
