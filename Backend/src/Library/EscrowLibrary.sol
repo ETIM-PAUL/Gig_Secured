@@ -29,11 +29,20 @@ library EscrowUtils {
         return (totalAmount * 10) / 100;
     }
 
+    // function to calculate non-audit fees, calculate % of the total price for the gig for the platorm
+    function systemAuditFees(
+        uint256 totalAmount,
+        uint systemPercent
+    ) internal pure returns (uint256) {
+        return (totalAmount * systemPercent) / 100;
+    }
+
     //function to calculate 92% of the total price and pay it to the freelancer when auditing is done
     function freeLancerAudit(
-        uint256 totalAmount
+        uint256 totalAmount,
+        uint freelancerPercent
     ) internal pure returns (uint256) {
-        return (totalAmount * 92) / 100;
+        return (totalAmount * freelancerPercent) / 100;
     }
 
     function getOrderHash(

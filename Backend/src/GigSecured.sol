@@ -55,6 +55,7 @@ contract GigSecured {
     error MaxStagesOfDevelopment();
     error NotAssignedFreeLancer();
     error NotPermitted();
+    error RemissionFailed();
 
     constructor(
         address auditContract,
@@ -82,6 +83,11 @@ contract GigSecured {
         require(msg.sender == _newGigContract.freeLancer, "Not Freelancer");
         _;
     }
+    modifier onlyAuditor(uint gigId) {
+        GigContract storage _newGigContract = _allGigs[gigId];
+        require(msg.sender == _newGigContract.auditor, "Not Auditor");
+        _;
+    }
 
     function addGig(
         string memory _title,
@@ -104,6 +110,14 @@ contract GigSecured {
         if (_stages.length > 4) {
             revert MaxStagesOfDevelopment();
         }
+        (bool success, ) = IERC20(_usdcAddress).transferFrom(
+            msg.sender,
+            address(this),
+            _price
+        );
+        if (!success) {
+            revert RemissionFailed();
+        }
         uint newGig = _gigs++;
         GigContract storage _newGigContract = _allGigs[newGig];
         _newGigContract.title = _title;
@@ -112,7 +126,6 @@ contract GigSecured {
         _newGigContract.clientEmail = _clientEmail;
         _newGigContract.clientSign = _clientSign;
         _newGigContract.description = _description;
-        _newGigContract.deadline = _deadline;
         _newGigContract.deadline = _deadline;
         _newGigContract.stages = _stages;
         _newGigContract.price = _price;
@@ -156,7 +169,6 @@ contract GigSecured {
         }
 
         gig.deadline = newDeadline;
-
         emit GigDeadlineUpdated(gigId, newDeadline);
     }
 
@@ -230,7 +242,57 @@ contract GigSecured {
         }
     }
 
-    function _sendPayment(uint gig) internal {}
+    function _sendPaymentClosed(uint gigId) internal {
+        GigContract storage gig = _allGigs[gigId];
+        uint clientPaybackFee = EscrowUtils.cientNoAudit(gig.price);
+        uint freelancerPaybackFee = EscrowUtils.freeLancerNoAudit(gig.price);
+
+        (bool successRemitClient, ) = IERC20(_usdcAddress).transfer(
+            gig.creator,
+            clientPaybackFee
+        );
+        (bool successPayFreelancer, ) = IERC20(_usdcAddress).transfer(
+            gig.freeLancer,
+            freelancerPaybackFee
+        );
+        require(successRemitClient && successPayFreelancer, "Payment Failed");
+    }
+
+    function sendPaymentAfterAuditorSettle(
+        uint gigId,
+        uint freelancerPercent
+    ) external onlyAuditor(gigId) onlyGovernance {
+        GigContract storage gig = _allGigs[gigId];
+        require(
+            freelancerPercent > 0 && freelancerPercent <= 92,
+            "Out of bounds"
+        );
+        uint auditPaymentFee = EscrowUtils.auditFees(gig.price);
+        uint systemPaymentFee = EscrowUtils.systemAuditFees(gig.price);
+        uint freelancerPaymentFee = EscrowUtils.freeLancerAudit(
+            gig.price,
+            freelancerPercent
+        );
+
+        (bool successPayAuditor, ) = IERC20(_usdcAddress).transfer(
+            gig.auditor,
+            auditPaymentFee
+        );
+        (bool successPayFreelancer, ) = IERC20(_usdcAddress).transfer(
+            gig.freeLancer,
+            freelancerPaymentFee
+        );
+
+        uint clientPaybackFee = gig.price -
+            (auditPaymentFee + freelancerPaymentFee + systemPaymentFee);
+        if (clientPaybackFee > 0) {
+            (bool successRemitClient, ) = IERC20(_usdcAddress).transfer(
+                gig.creator,
+                clientPaybackFee
+            );
+        }
+        require(successPayAuditor && successPayFreelancer, "Payment Failed");
+    }
 
     function _assignAuditor(
         string memory category
@@ -241,16 +303,17 @@ contract GigSecured {
     function clientUpdateGig(
         uint256 gigId,
         Status newStatus
-    ) public onlyClient(gigId) {
+    ) public onlyClient(gigId) returns (bool success) {
         GigContract storage gig = _allGigs[gigId];
         if (
             gig._status == Status.Completed && newStatus == Status.UnderReview
         ) {
             gig._status = newStatus;
+            success = true;
         } else if (gig._status == Status.UnderReview) {
             if (newStatus == Status.Closed) {
-                _sendPayment(gigId);
                 gig._status = newStatus;
+                _sendPaymentClosed(gigId);
             } else if (newStatus == Status.Dispute) {
                 require(
                     gig.completedTime > (block.timestamp + 259200),
@@ -262,9 +325,8 @@ contract GigSecured {
                 gig.isAudit = true;
 
                 gig._status = newStatus;
-            } else {
-                revert("Invalid status change");
             }
+            success = true;
         } else {
             revert("Invalid status change");
         }
@@ -281,11 +343,11 @@ contract GigSecured {
                 gig.deadline < block.timestamp) ||
             (gig._status != Status.Pending && gig.deadline < block.timestamp)
         ) {
-            uint priceMinusFee = EscrowUtils.nonAuditFees(gig.price);
+            uint systemPaymentFee = EscrowUtils.nonAuditFees(gig.price);
 
             IERC20(_usdcAddress).transfer(
                 gig.creator,
-                (gig.price - priceMinusFee)
+                (gig.price - systemPaymentFee)
             );
         } else {
             revert NotPermitted();
