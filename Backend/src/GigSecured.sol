@@ -62,7 +62,7 @@ contract GigSecured {
     error DeadlineInPast(uint newDeadline);
     error NotPendingStatus(Status currentStatus);
     error EmptyTitle();
-    error EmptyDescription():
+    error EmptyDescription();
     error EmptyCategory();
     error InvalidStatusChange(Status currentStatus, Status newStatus);
     error ContractSettlementTimeNotActive(uint contractSettlementTime);
@@ -171,25 +171,25 @@ contract GigSecured {
 
     function editGigDeadline(
         uint256 gigId,
-        uint256 newDeadline  
+        uint256 newDeadline
     ) public onlyClient(gigId) {
         if (gigId >= _allGigs.length) {
-        revert InvalidGigId(gigId);
-    }
+            revert InvalidGigId(gigId);
+        }
         GigContract storage gig = _allGigs[gigId];
         if (newDeadline < block.timestamp) {
-        revert DeadlineInPast(newDeadline);
-    }
+            revert DeadlineInPast(newDeadline);
+        }
         if (gig._status != Status.Pending) {
-        revert NotPendingStatus(gig._status);
-    }
+            revert NotPendingStatus(gig._status);
+        }
         if (newDeadline < (block.timestamp + 3600)) {
-        revert AtLeastAnHour(newDeadline);
-    }
+            revert AtLeastAnHour(newDeadline);
+        }
 
-    gig.deadline = newDeadline;
+        gig.deadline = newDeadline;
 
-    emit GigDeadlineUpdated(gigId, newDeadline);
+        emit GigDeadlineUpdated(gigId, newDeadline);
     }
 
     function editGigTitle(
@@ -197,33 +197,33 @@ contract GigSecured {
         string memory newTitle
     ) public onlyClient(gigId) {
         if (gigId >= _allGigs.length) {
-        revert InvalidGigId(gigId);
-    }
-      GigContract storage gig = _allGigs[gigId];
+            revert InvalidGigId(gigId);
+        }
+        GigContract storage gig = _allGigs[gigId];
 
         if (gig._status != Status.Pending) {
-        revert NotPendingStatus(gig._status);
-    }
+            revert NotPendingStatus(gig._status);
+        }
         if (bytes(newTitle).length == 0) {
-        revert EmptyTitle(); 
-    }
+            revert EmptyTitle();
+        }
         gig.title = newTitle;
-}
+    }
 
     function editGigDescription(
         uint gigId,
-        string memory newDescription  
+        string memory newDescription
     ) public onlyClient(gigId) {
         if (gigId >= _allGigs.length) {
-        revert InvalidGigId(gigId);
-    }
-    GigContract storage gig = _allGigs[gigId];
+            revert InvalidGigId(gigId);
+        }
+        GigContract storage gig = _allGigs[gigId];
         if (gig._status != Status.Pending) {
-        revert NotPendingStatus(gig._status);
-    }
+            revert NotPendingStatus(gig._status);
+        }
         if (bytes(newDescription).length == 0) {
-        revert EmptyDescription();
-    }
+            revert EmptyDescription();
+        }
         gig.description = newDescription;
     }
 
@@ -232,33 +232,33 @@ contract GigSecured {
         string memory newCategory
     ) public onlyClient(gigId) {
         if (gigId >= _allGigs.length) {
-        revert InvalidGigId(gigId);
-    }
-    GigContract storage gig = _allGigs[gigId];
+            revert InvalidGigId(gigId);
+        }
+        GigContract storage gig = _allGigs[gigId];
 
         if (gig._status != Status.Pending) {
-        revert NotPendingStatus(gig._status);
-    }
+            revert NotPendingStatus(gig._status);
+        }
         if (bytes(newCategory).length == 0) {
-        revert EmptyCategory();
-    }
-      gig.category = newCategory;
+            revert EmptyCategory();
+        }
+        gig.category = newCategory;
     }
 
     function editGigFreelancer(
         uint256 gigId,
         string memory newFreelancerName,
         string memory newFreelancerEmail,
-        address newFreelancerAddress  
+        address newFreelancerAddress
     ) public onlyClient(gigId) {
         if (gigId >= _allGigs.length) {
-        revert InvalidGigId(gigId);
-    }
-    GigContract storage gig = _allGigs[gigId];
+            revert InvalidGigId(gigId);
+        }
+        GigContract storage gig = _allGigs[gigId];
 
         if (gig._status != Status.Pending) {
-        revert NotPendingStatus(gig._status);
-    }
+            revert NotPendingStatus(gig._status);
+        }
         gig.freelancerName = newFreelancerName;
         gig.freelancerEmail = newFreelancerEmail;
         gig.freeLancer = newFreelancerAddress;
@@ -342,12 +342,17 @@ contract GigSecured {
         GigContract storage gig = _allGigs[gigId];
 
         if (
-            gig._status == Status.Completed && newStatus != Status.UnderReview ||
-            gig._status == Status.UnderReview && (newStatus != Status.Closed && newStatus != Status.Dispute)
+            (gig._status == Status.Completed &&
+                newStatus != Status.UnderReview) ||
+            (gig._status == Status.UnderReview &&
+                (newStatus != Status.Closed && newStatus != Status.Dispute))
         ) {
             revert InvalidStatusChange(gig._status, newStatus);
         }
-        if (newStatus == Status.Dispute && gig.completedTime <= block.timestamp + 259200) {
+        if (
+            newStatus == Status.Dispute &&
+            gig.completedTime <= block.timestamp + 259200
+        ) {
             revert ContractSettlementTimeNotActive(gig.completedTime);
         }
         gig._status = newStatus;
@@ -363,7 +368,10 @@ contract GigSecured {
         success = true;
     }
 
-    function freeLancerUpdateGig(uint256 gigId, Status newStatus) public onlyFreelancer(gigId) {
+    function freeLancerUpdateGig(
+        uint256 gigId,
+        Status newStatus
+    ) public onlyFreelancer(gigId) {
         GigContract storage gig = _allGigs[gigId];
 
         if (newStatus == Status.Building && (gig.freelancerSign).length == 0) {
@@ -375,7 +383,10 @@ contract GigSecured {
         if (newStatus == Status.Completed && block.timestamp > gig.deadline) {
             revert DeadlineHasPassedForCompletion();
         }
-        if (newStatus == Status.Dispute && gig.completedTime < block.timestamp + 259200) {
+        if (
+            newStatus == Status.Dispute &&
+            gig.completedTime < block.timestamp + 259200
+        ) {
             revert TooSoonToDispute(gig.completedTime);
         }
         gig._status = newStatus;
@@ -389,7 +400,7 @@ contract GigSecured {
         emit GigStatusUpdated(gigId, newStatus);
     }
 
-    function freeLancerAudit(uint256 gigId) internal{
+    function freeLancerAudit(uint256 gigId) internal {
         GigContract storage gig = _allGigs[gigId];
         address _auditor = _assignAuditor(gig._category);
         gig.auditor = _auditor;
@@ -401,3 +412,4 @@ contract GigSecured {
     function getGig(uint256 _gigId) public view returns (Gig memory) {
         return Gigs[_gigId];
     }
+}
