@@ -266,17 +266,12 @@ contract GigSecured {
     ) public onlyFreelancer(gigId) {
         GigContract storage gig = _allGigs[gigId];
 
-        // Building
         if (newStatus == Status.Building) {
             require(gig.freeLancerSigned, "Must sign before start building");
-
-            // Completed
         } else if (newStatus == Status.Completed) {
             require(block.timestamp < gig.deadline, "Deadline has passed");
 
             gig.completedTime = block.timestamp;
-
-            // Dispute
         } else if (newStatus == Status.Dispute) {
             require(gig.completedTime > 0, "Must complete gig first");
 
@@ -284,8 +279,6 @@ contract GigSecured {
                 gig.completedTime > (block.timestamp + 259200),
                 "Too soon to dispute"
             );
-
-            // Invalid
         } else {
             revert("Invalid status");
         }
@@ -295,7 +288,6 @@ contract GigSecured {
         emit GigStatusUpdated(gigId, newStatus);
     }
 
-    // New function
     function freeLancerAudit(uint256 gigId) public onlyFreelancer(gigId) {
         GigContract storage gig = _allGigs[gigId];
 
@@ -305,7 +297,14 @@ contract GigSecured {
             gig.completedTime > (block.timestamp + 259200),
             "Too soon to audit"
         );
+
+        address _auditor = _assignAuditor(gig._category);
+        gig.auditor = _auditor;
+        gig.isAudit = true;
+
+        gig._status = Status.Audit;
     }
 
-    function getGig() public {}
+function getGig(uint256 _gigId) public view returns (Gig memory) {
+  return Gigs[_gigId];
 }
