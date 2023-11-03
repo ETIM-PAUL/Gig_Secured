@@ -152,7 +152,7 @@ contract GigSecured {
     function editGigDescription(
         uint gigId,
         string memory newDescription
-    ) public onlyClient {
+    ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
         require(
             gig._status == Status.Pending,
@@ -167,7 +167,7 @@ contract GigSecured {
     function editGigCategory(
         uint gigId,
         string memory newCategory
-    ) public onlyClient {
+    ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
         require(
             gig._status == Status.Pending,
@@ -222,44 +222,45 @@ contract GigSecured {
         auditor = IAuditor(_auditContract).assignAuditor(category);
     }
 
-    function clientUpdateGig(Status _status, uint gigId) internal onlyClient {
-        GigContract storage _gigContract = _allGigs[gigId];
-        _gigContract._status = _status;
-        string memory _category = _gigContract.category;
-        if (_status == Status.Dispute) {
-            require(
-                (_status == Status.UnderReview &&
-                    _gigContract.completedTime > (block.timestamp + 259200)),
-                "Contract Settlement Time Not Active"
-            );
-            address _auditor = _assignAuditor(_category);
-            _gigContract.auditor = _auditor;
-            _gigContract.isAudit = true;
-            _gigContract._status = _status;
-        }
+    function clientUpdateGig(
+        uint256 gigId,
+        Status newStatus
+    ) public onlyClient(gigId) {
+        GigContract storage gig = _allGigs[gigId];
 
-        emit GigStatusUpdated(gigId, _status);
+        if (
+            gig._status == Status.Completed &&
+            (newStatus == Status.UnderReview || newStatus == Status.Dispute)
+        ) {
+            require(
+                block.timestamp <= gig.completedTime + 259200,
+                "Too late to update"
+            );
+            gig._status = newStatus;
+        } else if (gig._status == Status.UnderReview) {
+            if (newStatus == Status.Closed) {
+                _sendPayment(gigId);
+                gig._status = newStatus;
+            } else if (newStatus == Status.Dispute) {
+                require(
+                    gig.completedTime > (block.timestamp + 259200),
+                    "Contract Settlement Time Not Active"
+                );
+
+                address _auditor = _assignAuditor(gig._category);
+                gig.auditor = _auditor;
+                gig.isAudit = true;
+
+                gig._status = newStatus;
+            } else {
+                revert("Invalid status change");
+            }
+        } else {
+            revert("Invalid status change");
+        }
     }
 
-    function freeLancerUpdateGig(
-        Status _status,
-        uint gigId
-    ) internal onlyFreelancer {
-        GigContract storage _gigContract = _allGigs[gigId];
-        _gigContract._status = _status;
-        string memory _category = _gigContract.category;
-        if (_status == Status.Completed) {
-            require(
-                (_status == Status.Building &&
-                    _gigContract.completedTime < (block.timestamp + 259200)),
-                "Contract Settlement Time Not Active"
-            );
-            address _auditor = _assignAuditor(_category);
-            _gigContract.auditor = _auditor;
-            _gigContract.isAudit = true;
-            _gigContract._status = _status;
-        }
-    }
+    function freeLancerUpdateGig() public {}
 
     function getGig() public {}
 }
