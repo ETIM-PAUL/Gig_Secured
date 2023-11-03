@@ -373,3 +373,4 @@ contract GigSecured {
 function getGig(uint256 _gigId) public view returns (Gig memory) {
   return Gigs[_gigId];
 }
+}
