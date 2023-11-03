@@ -260,7 +260,52 @@ contract GigSecured {
         }
     }
 
-    function freeLancerUpdateGig() public {}
+    function freeLancerUpdateGig(
+        uint256 gigId,
+        Status newStatus
+    ) public onlyFreelancer(gigId) {
+        GigContract storage gig = _allGigs[gigId];
+
+        // Building
+        if (newStatus == Status.Building) {
+            require(gig.freeLancerSigned, "Must sign before start building");
+
+            // Completed
+        } else if (newStatus == Status.Completed) {
+            require(block.timestamp < gig.deadline, "Deadline has passed");
+
+            gig.completedTime = block.timestamp;
+
+            // Dispute
+        } else if (newStatus == Status.Dispute) {
+            require(gig.completedTime > 0, "Must complete gig first");
+
+            require(
+                gig.completedTime > (block.timestamp + 259200),
+                "Too soon to dispute"
+            );
+
+            // Invalid
+        } else {
+            revert("Invalid status");
+        }
+
+        gig._status = newStatus;
+
+        emit GigStatusUpdated(gigId, newStatus);
+    }
+
+    // New function
+    function freeLancerAudit(uint256 gigId) public onlyFreelancer(gigId) {
+        GigContract storage gig = _allGigs[gigId];
+
+        require(gig._status == Status.Completed, "Gig not completed");
+        require(gig.completedTime > 0, "Must have completed time");
+        require(
+            gig.completedTime > (block.timestamp + 259200),
+            "Too soon to audit"
+        );
+    }
 
     function getGig() public {}
 }
