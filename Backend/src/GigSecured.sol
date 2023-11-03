@@ -331,31 +331,45 @@ contract GigSecured {
         }
     }
 
-    function freeLancerUpdateGig() public {}
-
-    function forceClosure(
-        uint gigId
-    ) external onlyClient(gigId) onlyGovernance {
+    function freeLancerUpdateGig(
+        uint256 gigId,
+        Status newStatus
+    ) public onlyFreelancer(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (
-            (gig._status != Status.Building &&
-                gig.deadline < block.timestamp) ||
-            (gig._status != Status.Pending && gig.deadline < block.timestamp)
-        ) {
-            uint systemPaymentFee = EscrowUtils.nonAuditFees(gig.price);
 
-            IERC20(_usdcAddress).transfer(
-                gig.creator,
-                (gig.price - systemPaymentFee)
+        if (newStatus == Status.Building) {
+            require((gig.freelancerSign).length > 0, "Must sign before start building");
+            require(block.timestamp < gig.deadline, "Deadline has passed");
+        gig._status = Status.Building;
+        } else if (newStatus == Status.Completed) {
+            require(block.timestamp < gig.deadline, "Deadline has passed");
+            gig.completedTime = block.timestamp;
+        gig._status = Status.Completed;
+
+        } else if (newStatus == Status.Dispute) {
+            require(
+                gig.completedTime > (block.timestamp + 259200),
+                "Too soon to dispute"
             );
+            freeLancerAudit(gigId)
         } else {
-            revert NotPermitted();
+            revert("Invalid status");
         }
+
+        gig._status = newStatus;
+
+        emit GigStatusUpdated(gigId, newStatus);
     }
 
-    function getGig(
-        uint _gigId
-    ) external returns (GigContract memory gigContract) {
-        gigContract = _allGigs[_gigId];
+    function freeLancerAudit(uint256 gigId) internal{
+        GigContract storage gig = _allGigs[gigId];
+        address _auditor = _assignAuditor(gig._category);
+        gig.auditor = _auditor;
+        gig.isAudit = true;
+
+        gig._status = Status.Audit;
     }
+
+function getGig(uint256 _gigId) public view returns (Gig memory) {
+  return Gigs[_gigId];
 }
