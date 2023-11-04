@@ -18,6 +18,9 @@ contract GigSecuredTest is Helpers {
     uint256 _privKeyClient;
     uint256 _privKeyFreelancer;
 
+    GigSecured.GigContract _newGigContract;
+    uint _gigs;
+
     enum Status {
         Pending,
         Building,
@@ -35,7 +38,7 @@ contract GigSecuredTest is Helpers {
         (_freelancerAddress, _privKeyFreelancer) = mkaddr("Freelancer");
         (_auditor) = mkaddr("Freelancer");
 
-        newGigContract = GigSecured.GigContract({
+        _newGigContract = GigSecured.GigContract({
             title: "Natachi White Paper Contract",
             category: "Copy Writing",
             clientName: "Natachi",
@@ -55,6 +58,5 @@ contract GigSecuredTest is Helpers {
             price: 100000000,
             creator: _clientAddress
         });
-        nft.mintTo(accountA);
     }
 }

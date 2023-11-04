@@ -240,7 +240,7 @@ contract GigSecured {
             clientUpdateGig(_status, _id);
         }
         if (_newGigContract.freeLancer == msg.sender) {
-            freeLancerUpdateGig(_status, _id);
+            freeLancerUpdateGig(_id, _status);
         }
     }
 
@@ -295,7 +295,7 @@ contract GigSecured {
 
     function _assignAuditor(
         string memory category
-    ) internal returns (address auditor) {
+    ) internal view returns (address auditor) {
         auditor = IAudit(_auditContract).getAuditorByCategory(category);
     }
 
@@ -338,20 +338,22 @@ contract GigSecured {
         GigContract storage gig = _allGigs[gigId];
 
         if (newStatus == Status.Building) {
-            require((gig.freelancerSign).length > 0, "Must sign before start building");
+            require(
+                (gig.freelancerSign).length > 0,
+                "Must sign before start building"
+            );
             require(block.timestamp < gig.deadline, "Deadline has passed");
-        gig._status = Status.Building;
+            gig._status = Status.Building;
         } else if (newStatus == Status.Completed) {
             require(block.timestamp < gig.deadline, "Deadline has passed");
             gig.completedTime = block.timestamp;
-        gig._status = Status.Completed;
-
+            gig._status = Status.Completed;
         } else if (newStatus == Status.Dispute) {
             require(
                 gig.completedTime > (block.timestamp + 259200),
                 "Too soon to dispute"
             );
-            freeLancerAudit(gigId)
+            _freeLancerAudit(gigId);
         } else {
             revert("Invalid status");
         }
@@ -361,16 +363,16 @@ contract GigSecured {
         emit GigStatusUpdated(gigId, newStatus);
     }
 
-    function freeLancerAudit(uint256 gigId) internal{
+    function _freeLancerAudit(uint256 gigId) internal {
         GigContract storage gig = _allGigs[gigId];
-        address _auditor = _assignAuditor(gig._category);
+        address _auditor = _assignAuditor(gig.category);
         gig.auditor = _auditor;
         gig.isAudit = true;
 
-        gig._status = Status.Audit;
+        gig._status = Status.Dispute;
     }
 
-function getGig(uint256 _gigId) public view returns (Gig memory) {
-  return Gigs[_gigId];
-}
+    function getGig(uint256 _gigId) public view returns (GigContract memory) {
+        return _allGigs[_gigId];
+    }
 }

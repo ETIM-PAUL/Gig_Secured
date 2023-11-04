@@ -71,9 +71,7 @@ contract Audit {
         //create an array of child contract, then each time, a child contract is created, we push the child contract address
     }
 
-    function confirmAuditor(
-        address _auditorAddr
-    ) external onlyOwner onlyGovernance {
+    function confirmAuditor(address _auditorAddr) external onlyGovernance {
         // if (_auditorAddr == tx.origin) {
         //     revert OnlyEoa();
         // }
@@ -184,7 +182,7 @@ contract Audit {
     function editCurrentGigs(
         address _auditor,
         uint _newCurrentGigs
-    ) external onlyGovernance onlyGigContract {
+    ) external onlyGovernance {
         if (_auditor == address(0)) {
             revert ZeroAddress();
         }
