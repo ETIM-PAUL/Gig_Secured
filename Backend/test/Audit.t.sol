@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {Audit} from "../src/Audit.sol";
 
 contract CounterTest is Test {
