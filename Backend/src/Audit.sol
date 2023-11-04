@@ -212,8 +212,7 @@ contract Audit {
             revert ZeroAddress();
         }
 
-        Auditor storage auditorToEdit = auditor_[_auditor];
-
+       Auditor storage auditorToEdit = auditor_[_auditor];
         auditorToEdit.currentGigs += 1;
     }
 

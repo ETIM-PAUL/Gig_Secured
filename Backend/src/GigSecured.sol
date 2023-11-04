@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
-import {EscrowUtils} from "./Library/EscrowLibrary.sol";
-import {IAudit} from "./Interface/IAudit.sol";
-import {IERC20} from "./Interface/IERC20.sol";
+import {EscrowUtils} from "./library/EscrowLibrary.sol";
+import {IAudit} from "./interface/IAudit.sol";
+import {IERC20} from "./interface/IERC20.sol";
 
 contract GigSecured {
     event GigContractCreated(string title, address creator, address freelancer);
@@ -262,6 +262,7 @@ contract GigSecured {
         }
     }
 
+
     function _sendPaymentClosed(uint gigId) internal {
         GigContract storage gig = _allGigs[gigId];
         uint clientPaybackFee = EscrowUtils.cientNoAudit(gig.price);
@@ -379,7 +380,9 @@ contract GigSecured {
                 gig.completedTime > (block.timestamp + 259200),
                 "Too soon to dispute"
             );
+
             _freeLancerAudit(gigId);
+
         } else {
             revert("Invalid status");
         }
@@ -399,4 +402,5 @@ contract GigSecured {
     function getGig(uint256 _gigId) public view returns (GigContract memory) {
         return _allGigs[_gigId];
     }
+
 }
