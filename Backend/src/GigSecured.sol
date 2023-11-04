@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
-import {EscrowUtils} from "./library/EscrowLibrary.sol";
-import {IAudit} from "./interface/IAudit.sol";
-import {IERC20} from "./interface/IERC20.sol";
+import {EscrowUtils} from "./Library/EscrowLibrary.sol";
+import {IAudit} from "./Interface/IAudit.sol";
+import {IERC20} from "./Interface/IERC20.sol";
 
 contract GigSecured {
     event GigContractCreated(string title, address creator, address freelancer);
@@ -173,9 +173,6 @@ contract GigSecured {
         uint256 gigId,
         uint256 newDeadline
     ) public onlyClient(gigId) {
-        if (gigId >= _allGigs.length) {
-            revert InvalidGigId(gigId);
-        }
         GigContract storage gig = _allGigs[gigId];
         if (newDeadline < block.timestamp) {
             revert DeadlineInPast(newDeadline);
@@ -196,9 +193,6 @@ contract GigSecured {
         uint gigId,
         string memory newTitle
     ) public onlyClient(gigId) {
-        if (gigId >= _allGigs.length) {
-            revert InvalidGigId(gigId);
-        }
         GigContract storage gig = _allGigs[gigId];
 
         if (gig._status != Status.Pending) {
@@ -214,9 +208,6 @@ contract GigSecured {
         uint gigId,
         string memory newDescription
     ) public onlyClient(gigId) {
-        if (gigId >= _allGigs.length) {
-            revert InvalidGigId(gigId);
-        }
         GigContract storage gig = _allGigs[gigId];
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
@@ -231,9 +222,6 @@ contract GigSecured {
         uint gigId,
         string memory newCategory
     ) public onlyClient(gigId) {
-        if (gigId >= _allGigs.length) {
-            revert InvalidGigId(gigId);
-        }
         GigContract storage gig = _allGigs[gigId];
 
         if (gig._status != Status.Pending) {
@@ -251,9 +239,6 @@ contract GigSecured {
         string memory newFreelancerEmail,
         address newFreelancerAddress
     ) public onlyClient(gigId) {
-        if (gigId >= _allGigs.length) {
-            revert InvalidGigId(gigId);
-        }
         GigContract storage gig = _allGigs[gigId];
 
         if (gig._status != Status.Pending) {
@@ -276,7 +261,7 @@ contract GigSecured {
             clientUpdateGig(_status, _id);
         }
         if (_newGigContract.freeLancer == msg.sender) {
-            freeLancerUpdateGig(_status, _id);
+            freeLancerUpdateGig(_id, _status);
         }
     }
 
@@ -402,14 +387,14 @@ contract GigSecured {
 
     function freeLancerAudit(uint256 gigId) internal {
         GigContract storage gig = _allGigs[gigId];
-        address _auditor = _assignAuditor(gig._category);
+        address _auditor = _assignAuditor(gig.category);
         gig.auditor = _auditor;
         gig.isAudit = true;
 
-        gig._status = Status.Audit;
+        gig._status = Status.Dispute;
     }
 
-    function getGig(uint256 _gigId) public view returns (Gig memory) {
-        return Gigs[_gigId];
+    function getGig(uint256 _gigId) public view returns (GigContract memory) {
+        return _allGigs[_gigId];
     }
 }
