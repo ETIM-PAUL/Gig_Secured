@@ -138,6 +138,7 @@ contract GigSecured {
         _newGigContract.deadline = _deadline;
         _newGigContract._status = Status.Pending;
         _newGigContract.price = _price;
+        _newGigContract.creator = msg.sender;
         _newGigContract.freeLancer = _freelancer;
 
         gigContract = true;
@@ -169,7 +170,7 @@ contract GigSecured {
     function editGigDeadline(
         uint256 gigId,
         uint256 newDeadline
-    ) public onlyClient(gigId) {
+    ) external onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
         if (newDeadline < block.timestamp) {
             revert DeadlineInPast(newDeadline);

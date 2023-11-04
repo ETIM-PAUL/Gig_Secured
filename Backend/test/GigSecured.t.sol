@@ -116,7 +116,6 @@ contract GigSecuredTest is Helpers {
 
     function testFreelancerSign() external {
         testAddGigContract();
-
         vm.startPrank(_freelancerAddress);
         _newGigContract.freelancerSign = constructSig(
             _freelancerAddress,
@@ -131,5 +130,11 @@ contract GigSecuredTest is Helpers {
             1
         );
         assertTrue(freelancerAssign);
+    }
+
+    function testEditGigDeadline() external {
+        testAddGigContract();
+        vm.startPrank(_clientAddress);
+        _gigSecured.editGigDeadline(1, 3601);
     }
 }
