@@ -12,5 +12,12 @@ contract CounterTest is Test {
         audit = new Audit(_governance);
     }
 
-    function test_Increment() public {}
+    function testIncreaseAuditorCurrentGigs() {
+        vm.prank(_governance);
+        address auditor = address(0x0);
+        address gigContract = address(0x123);
+        audit.addGigContractAddresses(gigContract);
+        audit.increaseAuditorCurrentGigs(auditor, gigContract);
+    }
+
 }
