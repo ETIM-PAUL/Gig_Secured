@@ -21,16 +21,18 @@ contract GigSecuredTest is Helpers {
     uint256 _privKeyFreelancer;
 
     GigSecured.GigContract _newGigContract;
+    GigSecured.Status _status;
+
     uint _gigs;
 
-    enum Status {
-        Pending,
-        Building,
-        Completed,
-        UnderReview,
-        Dispute,
-        Closed
-    }
+    // enum Status {
+    //     Pending,
+    //     Building,
+    //     Completed,
+    //     UnderReview,
+    //     Dispute,
+    //     Closed
+    // }
 
     function setUp() public {
         _gigSecured = new GigSecured(
@@ -60,7 +62,7 @@ contract GigSecuredTest is Helpers {
             description: "",
             deadline: 0,
             completedTime: 0,
-            _status: Status.Pending,
+            _status: _status,
             isAudit: false,
             auditor: _auditor,
             price: 100000000,

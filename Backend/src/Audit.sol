@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 contract Audit {
+    //states
     struct Auditor {
         string category;
         string email;
@@ -32,9 +33,21 @@ contract Audit {
     error AuditorHasCurrentTasks();
     error OnlyGovernanceAllowed();
     error OnlyEoa();
+    error NotOwner();
 
     // Address of the governance contract
     address private _governanceContract;
+    address private _gigContract;
+
+    constructor(address _governance) {
+        if (_governance == address(0)) {
+            revert ZeroAddress();
+        }
+        _governanceContract = _governance;
+        _owner = msg.sender;
+    }
+
+    //modifiers
 
     modifier onlyGovernance() {
         if (msg.sender != _governanceContract) {
@@ -43,11 +56,18 @@ contract Audit {
         _;
     }
 
-    constructor(address _governance) {
-        if (_governance == address(0)) {
-            revert ZeroAddress();
+    modifier onlyOwner() {
+        if (msg.sender != _owner) {
+            revert NotOwner();
         }
-        _governanceContract = _governance;
+        _;
+    }
+
+    modifier onlyGigContract() {
+        if (msg.sender != _gigContract) {
+            revert OnlyGovernanceAllowed();
+        }
+        _;
     }
 
     function becomeAuditor(
@@ -67,15 +87,28 @@ contract Audit {
         auditor_[msg.sender] = newAuditor;
     }
 
-    function addGigContractAddresses() external onlyGovernance {
-        //create an array of child contract, then each time, a child contract is created, we push the child contract address
+    //create an array of child contract, then each time, a child contract is created, we push the child contract address
+    function addGigContractAddresses(
+        address childContractAddress
+    ) external onlyGovernance {
+        if (childContractAddress == address(0)) {
+            revert ZeroAddress();
+        }
+
+        // Check if the child contract address is not already added
+        for (uint i = 0; i < gigContractAddresses.length; i++) {
+            if (gigContractAddresses[i] == childContractAddress) {
+                revert("Child contract address already added");
+            }
+        }
+
+        // Add the child contract address to the array
+        gigContractAddresses.push(childContractAddress);
     }
 
-    function confirmAuditor(address _auditorAddr) external onlyGovernance {
-        // if (_auditorAddr == tx.origin) {
-        //     revert OnlyEoa();
-        // }
-
+    function confirmAuditor(
+        address _auditorAddr
+    ) external onlyOwner onlyGovernance {
         if (auditor_[_auditorAddr].isConfirmed == true) {
             revert AlreadyConfirmed();
         }
@@ -111,12 +144,11 @@ contract Audit {
         }
 
         if (!foundCategory) {
-            revert CategoryNotFound();
-        }
-
-        if (earliestConfirmationTime == type(uint32).max) {
-            // if no auditor is found, assign governance
-            revert NoConfirmedAuditors();
+            // If no auditor is found, assign governance
+            selectedAuditor = _governanceContract;
+        } else if (earliestConfirmationTime == type(uint32).max) {
+            // If foundCategory is true but no confirmed auditor is found, assign it to governance
+            selectedAuditor = _governanceContract;
         }
 
         return selectedAuditor;
@@ -131,11 +163,6 @@ contract Audit {
 
         if (auditorToRemove.currentGigs > 0) {
             Auditor memory replacementAuditor = _findAvailableAuditor();
-
-            // if (replacementAuditor._auditor == address(0)) {
-            //     //assign to governance
-            //     revert NoAvailableAuditor();
-            // }
 
             replacementAuditor.currentGigs += auditorToRemove.currentGigs;
         }
