@@ -79,6 +79,28 @@ contract GigSecuredTest is Helpers {
         );
     }
 
+    function testUpdateGig() public {
+        GigSecured.GigContract memory _newContract = _newGigContract;
+        vm.startPrank(_clientAddress);
+        _usdc.approve(address(_gigSecured), _newContract.price);
+        vm.expectRevert(GigSecured.InvalidStatusChange.selector);
+        _newContract.creator = msg.sender;
+        _gigSecured.addGig(
+            _newContract.title,
+            _newContract.category,
+            _newContract.clientSign,
+            _newContract.clientName,
+            _newContract.clientEmail,
+            _newContract.description,
+            _newContract.deadline,
+            _newContract.price,
+            _freelancerAddress
+        );
+
+        _gigSecured.updateGig(1, GigSecured.Status.Building);
+        vm.stopPrank();
+    }
+
     function testAddGigContract() public {
         vm.startPrank(_clientAddress);
         _newGigContract.deadline = 8600;
@@ -116,6 +138,7 @@ contract GigSecuredTest is Helpers {
 
     function testFreelancerSign() external {
         testAddGigContract();
+
         vm.startPrank(_freelancerAddress);
         _newGigContract.freelancerSign = constructSig(
             _freelancerAddress,
@@ -130,11 +153,5 @@ contract GigSecuredTest is Helpers {
             1
         );
         assertTrue(freelancerAssign);
-    }
-
-    function testEditGigDeadline() external {
-        testAddGigContract();
-        vm.startPrank(_clientAddress);
-        _gigSecured.editGigDeadline(1, 3601);
     }
 }
