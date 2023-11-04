@@ -15,6 +15,7 @@ contract Audit {
     address private _owner;
     Auditor[] private _auditors;
     mapping(address => Auditor) public auditor_;
+    mapping(address => bool) public gigContractAddresses;
 
     //events
     event AuditorRemoved(address indexed removedAuditor);
@@ -32,8 +33,10 @@ contract Audit {
     error NoAvailableAuditor();
     error AuditorHasCurrentTasks();
     error OnlyGovernanceAllowed();
+    error onlyGigContractAllowed();
     error OnlyEoa();
     error NotOwner();
+    error NoGigForAuditor();
 
     // Address of the governance contract
     address private _governanceContract;
@@ -63,9 +66,10 @@ contract Audit {
         _;
     }
 
-    modifier onlyGigContract() {
-        if (msg.sender != _gigContract) {
-            revert OnlyGovernanceAllowed();
+    modifier onlyGigContract(address childGigContract) {
+        bool isGigContract = gigContractAddresses[childGigContract];
+        if (!isGigContract) {
+            revert onlyGigContractAllowed();
         }
         _;
     }
@@ -94,16 +98,7 @@ contract Audit {
         if (childContractAddress == address(0)) {
             revert ZeroAddress();
         }
-
-        // Check if the child contract address is not already added
-        for (uint i = 0; i < gigContractAddresses.length; i++) {
-            if (gigContractAddresses[i] == childContractAddress) {
-                revert("Child contract address already added");
-            }
-        }
-
-        // Add the child contract address to the array
-        gigContractAddresses.push(childContractAddress);
+        gigContractAddresses[childContractAddress] = true;
     }
 
     function confirmAuditor(
@@ -206,20 +201,38 @@ contract Audit {
         return selectedAuditor;
     }
 
-    function editCurrentGigs(
+    function increaseAuditorCurrentGigs(
         address _auditor,
-        uint _newCurrentGigs
-    ) external onlyGovernance {
+        address gigContract
+    ) external onlyGovernance onlyGigContract(gigContract) {
         if (_auditor == address(0)) {
+            revert ZeroAddress();
+        }
+        if (gigContract == address(0)) {
             revert ZeroAddress();
         }
 
         Auditor storage auditorToEdit = auditor_[_auditor];
 
-        if (_newCurrentGigs > 2) {
-            revert GigsExceeded();
+        auditorToEdit.currentGigs += 1;
+    }
+
+    function decreaseAuditorCurrentGigs(
+        address _auditor,
+        address gigContract
+    ) external onlyGovernance onlyGigContract(gigContract) {
+        if (_auditor == address(0)) {
+            revert ZeroAddress();
+        }
+        if (gigContract == address(0)) {
+            revert ZeroAddress();
         }
 
-        auditorToEdit.currentGigs = _newCurrentGigs;
+        Auditor storage auditorToEdit = auditor_[_auditor];
+        if (auditorToEdit.currentGigs == 0) {
+            revert NoGigForAuditor();
+        }
+
+        auditorToEdit.currentGigs -= 1;
     }
 }
