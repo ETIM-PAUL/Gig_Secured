@@ -127,8 +127,8 @@ contract GigSecured {
         if (!success) {
             revert RemissionFailed();
         }
-        uint newGig = _gigs++;
-        GigContract storage _newGigContract = _allGigs[newGig];
+        _gigs++;
+        GigContract storage _newGigContract = _allGigs[_gigs];
         _newGigContract.title = _title;
         _newGigContract.category = _category;
         _newGigContract.clientName = _clientName;

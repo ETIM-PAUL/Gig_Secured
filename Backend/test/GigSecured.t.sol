@@ -25,15 +25,6 @@ contract GigSecuredTest is Helpers {
 
     uint _gigs;
 
-    // enum Status {
-    //     Pending,
-    //     Building,
-    //     Completed,
-    //     UnderReview,
-    //     Dispute,
-    //     Closed
-    // }
-
     function setUp() public {
         _audit = new Audit(_governance);
         _usdc = new USDC();
@@ -88,7 +79,7 @@ contract GigSecuredTest is Helpers {
         );
     }
 
-    function testAddGigContract() external {
+    function testAddGigContract() public {
         vm.startPrank(_clientAddress);
         _newGigContract.deadline = 8600;
         _usdc.approve(address(_gigSecured), _newGigContract.price);
@@ -103,6 +94,42 @@ contract GigSecuredTest is Helpers {
             _newGigContract.price,
             _freelancerAddress
         );
+        vm.stopPrank();
         assertTrue(gigAdded);
+    }
+
+    function testWrongFreelancerSign() external {
+        testAddGigContract();
+
+        vm.startPrank(_clientAddress);
+        _newGigContract.freelancerSign = constructSig(
+            _freelancerAddress,
+            _newGigContract.title,
+            1,
+            _newGigContract.price,
+            _newGigContract.deadline,
+            _privKeyFreelancer
+        );
+        vm.expectRevert(GigSecured.NotAssignedFreeLancer.selector);
+        _gigSecured.freeLancerSign(_newGigContract.freelancerSign, 1);
+    }
+
+    function testFreelancerSign() external {
+        testAddGigContract();
+
+        vm.startPrank(_freelancerAddress);
+        _newGigContract.freelancerSign = constructSig(
+            _freelancerAddress,
+            _newGigContract.title,
+            1,
+            _newGigContract.price,
+            _newGigContract.deadline,
+            _privKeyFreelancer
+        );
+        bool freelancerAssign = _gigSecured.freeLancerSign(
+            _newGigContract.freelancerSign,
+            1
+        );
+        assertTrue(freelancerAssign);
     }
 }
