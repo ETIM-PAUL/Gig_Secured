@@ -35,19 +35,19 @@ contract GigSecuredTest is Helpers {
     // }
 
     function setUp() public {
+        _audit = new Audit(_governance);
+        _usdc = new USDC();
         _gigSecured = new GigSecured(
             address(_audit),
             _governance,
-            address(_governance)
+            address(_usdc)
         );
-        _audit = new Audit(_governance);
-        _usdc = new USDC();
 
         (_clientAddress, _privKeyClient) = mkaddr("Client");
         (_freelancerAddress, _privKeyFreelancer) = mkaddr("Freelancer");
         (_auditor, ) = mkaddr("Freelancer");
 
-        // _usdc._mint(_clientAddress, 1000);
+        _usdc.mint(_clientAddress, 100000000);
 
         _newGigContract = GigSecured.GigContract({
             title: "Natachi White Paper Contract",
@@ -68,5 +68,41 @@ contract GigSecuredTest is Helpers {
             price: 100000000,
             creator: _clientAddress
         });
+    }
+
+    function testDeadlineGigContract() external {
+        GigSecured.GigContract memory _newContract = _newGigContract;
+        vm.startPrank(_clientAddress);
+        _usdc.approve(address(_gigSecured), _newContract.price);
+        vm.expectRevert(GigSecured.AtLeastAnHour.selector);
+        _gigSecured.addGig(
+            _newContract.title,
+            _newContract.category,
+            _newContract.clientSign,
+            _newContract.clientName,
+            _newContract.clientEmail,
+            _newContract.description,
+            _newContract.deadline,
+            _newContract.price,
+            _freelancerAddress
+        );
+    }
+
+    function testAddGigContract() external {
+        vm.startPrank(_clientAddress);
+        _newGigContract.deadline = 8600;
+        _usdc.approve(address(_gigSecured), _newGigContract.price);
+        bool gigAdded = _gigSecured.addGig(
+            _newGigContract.title,
+            _newGigContract.category,
+            _newGigContract.clientSign,
+            _newGigContract.clientName,
+            _newGigContract.clientEmail,
+            _newGigContract.description,
+            _newGigContract.deadline,
+            _newGigContract.price,
+            _freelancerAddress
+        );
+        assertTrue(gigAdded);
     }
 }

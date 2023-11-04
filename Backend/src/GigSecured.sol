@@ -51,7 +51,7 @@ contract GigSecured {
 
     mapping(uint256 => GigContract) private _allGigs;
 
-    error AtLeastAnHour(uint deadline);
+    error AtLeastAnHour();
     error InvalidFreelancer(address freeLancer);
     error MaxStagesOfDevelopment();
     error NotAssignedFreeLancer();
@@ -112,9 +112,9 @@ contract GigSecured {
         uint _deadline,
         uint _price,
         address _freelancer
-    ) public {
+    ) public returns (bool gigContract) {
         if (_deadline < (block.timestamp + 3600)) {
-            revert AtLeastAnHour(_deadline);
+            revert AtLeastAnHour();
         }
         if (_freelancer == address(0)) {
             revert InvalidFreelancer(_freelancer);
@@ -139,6 +139,8 @@ contract GigSecured {
         _newGigContract._status = Status.Pending;
         _newGigContract.price = _price;
         _newGigContract.freeLancer = _freelancer;
+
+        gigContract = true;
 
         emit GigContractCreated(_title, msg.sender, _freelancer);
     }
@@ -176,7 +178,7 @@ contract GigSecured {
             revert NotPendingStatus(gig._status);
         }
         if (newDeadline < (block.timestamp + 3600)) {
-            revert AtLeastAnHour(newDeadline);
+            revert AtLeastAnHour();
         }
 
         gig.deadline = newDeadline;
