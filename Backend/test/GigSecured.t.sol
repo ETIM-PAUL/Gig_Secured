@@ -100,7 +100,6 @@ contract GigSecuredTest is Helpers {
 
     function testWrongFreelancerSign() external {
         testAddGigContract();
-
         vm.startPrank(_clientAddress);
         _newGigContract.freelancerSign = constructSig(
             _freelancerAddress,
@@ -140,75 +139,92 @@ contract GigSecuredTest is Helpers {
 
     function testEditGigTitle() public {
         vm.startPrank(_clientAddress);
-        _usdc.approve(address(_gigSecured),100000000);
-        _gigSecured.addGig(_newGigContract.title,
-        _newGigContract.category,
-        _newGigContract.clientSign,
-        _newGigContract.clientName,
-        _newGigContract.clientEmail,
-        _newGigContract.description,
-        block.timestamp + 120 minutes,
-        _newGigContract.price,
-        _newGigContract.freeLancer);
+        _usdc.approve(address(_gigSecured), 100000000);
+        _gigSecured.addGig(
+            _newGigContract.title,
+            _newGigContract.category,
+            _newGigContract.clientSign,
+            _newGigContract.clientName,
+            _newGigContract.clientEmail,
+            _newGigContract.description,
+            block.timestamp + 120 minutes,
+            _newGigContract.price,
+            _newGigContract.freeLancer
+        );
         _gigSecured.editGigTitle(1, "Tola");
         vm.stopPrank();
         assertEq(_gigSecured.getGig(1).title, "Tola");
     }
 
     function testEditGigCategory() public {
-          vm.startPrank(_clientAddress);
-        _usdc.approve(address(_gigSecured),100000000);
-        _gigSecured.addGig(_newGigContract.title,
-        _newGigContract.category,
-        _newGigContract.clientSign,
-        _newGigContract.clientName,
-        _newGigContract.clientEmail,
-        _newGigContract.description,
-        block.timestamp + 120 minutes,
-        _newGigContract.price,
-        _newGigContract.freeLancer);
+        vm.startPrank(_clientAddress);
+        _usdc.approve(address(_gigSecured), 100000000);
+        _gigSecured.addGig(
+            _newGigContract.title,
+            _newGigContract.category,
+            _newGigContract.clientSign,
+            _newGigContract.clientName,
+            _newGigContract.clientEmail,
+            _newGigContract.description,
+            block.timestamp + 120 minutes,
+            _newGigContract.price,
+            _newGigContract.freeLancer
+        );
         _gigSecured.editGigCategory(1, "software");
         vm.stopPrank();
         assertEq(_gigSecured.getGig(1).category, "software");
     }
 
     function testEditGigDescription() public {
-          vm.startPrank(_clientAddress);
-        _usdc.approve(address(_gigSecured),100000000);
-        _gigSecured.addGig(_newGigContract.title,
-        _newGigContract.category,
-        _newGigContract.clientSign,
-        _newGigContract.clientName,
-        _newGigContract.clientEmail,
-        _newGigContract.description,
-        block.timestamp + 120 minutes,
-        _newGigContract.price,
-        _newGigContract.freeLancer);
-        _gigSecured.editGigDescription(1,"free");
+        vm.startPrank(_clientAddress);
+        _usdc.approve(address(_gigSecured), 100000000);
+        _gigSecured.addGig(
+            _newGigContract.title,
+            _newGigContract.category,
+            _newGigContract.clientSign,
+            _newGigContract.clientName,
+            _newGigContract.clientEmail,
+            _newGigContract.description,
+            block.timestamp + 120 minutes,
+            _newGigContract.price,
+            _newGigContract.freeLancer
+        );
+        _gigSecured.editGigDescription(1, "free");
         vm.stopPrank();
         assertEq(_gigSecured.getGig(1).description, "free");
     }
 
     function testEditGigFreelancer() public {
-          vm.startPrank(_clientAddress);
-        _usdc.approve(address(_gigSecured),100000000);
-        _gigSecured.addGig(_newGigContract.title,
-        _newGigContract.category,
-        _newGigContract.clientSign,
-        _newGigContract.clientName,
-        _newGigContract.clientEmail,
-        _newGigContract.description,
-        block.timestamp + 120 minutes,
-        _newGigContract.price,
-        _newGigContract.freeLancer);
-        _gigSecured.editGigFreelancer(1, "Tola", "adetolakemi97@gmail.com", address(0x32));
+        vm.startPrank(_clientAddress);
+        _usdc.approve(address(_gigSecured), 100000000);
+        _gigSecured.addGig(
+            _newGigContract.title,
+            _newGigContract.category,
+            _newGigContract.clientSign,
+            _newGigContract.clientName,
+            _newGigContract.clientEmail,
+            _newGigContract.description,
+            block.timestamp + 120 minutes,
+            _newGigContract.price,
+            _newGigContract.freeLancer
+        );
+        _gigSecured.editGigFreelancer(
+            1,
+            "Tola",
+            "adetolakemi97@gmail.com",
+            address(0x32)
+        );
         vm.stopPrank();
         assertEq(_gigSecured.getGig(1).freelancerName, "Tola");
-        assertEq(_gigSecured.getGig(1).freelancerEmail, "adetolakemi97@gmail.com");
+        assertEq(
+            _gigSecured.getGig(1).freelancerEmail,
+            "adetolakemi97@gmail.com"
+        );
         assertEq(_gigSecured.getGig(1).freeLancer, address(0x32));
     }
 
-    function testGetGig()public {
-        assertEq(_gigSecured.getGig(1).title, "");
+    function testGetGig() public {
+        testAddGigContract();
+        assertEq(_gigSecured.getGig(1).title, "Natachi White Paper Contract");
     }
 }
