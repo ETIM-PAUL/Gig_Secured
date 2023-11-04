@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 import {EscrowUtils} from "./library/EscrowLibrary.sol";
 import {IAudit} from "./interface/IAudit.sol";
 import {IERC20} from "./interface/IERC20.sol";
@@ -58,6 +58,18 @@ contract GigSecured {
     error NotAssignedFreeLancer();
     error NotPermitted();
     error RemissionFailed();
+    error InvalidGigId(uint256 gigId);
+    error DeadlineInPast(uint newDeadline);
+    error NotPendingStatus(Status currentStatus);
+    error EmptyTitle();
+    error EmptyDescription();
+    error EmptyCategory();
+    error InvalidStatusChange(Status currentStatus, Status newStatus);
+    error ContractSettlementTimeNotActive(uint contractSettlementTime);
+    error MustSignBeforeStartBuilding();
+    error DeadlineHasPassedForBuilding();
+    error DeadlineHasPassedForCompletion();
+    error TooSoonToDispute(uint256 contractSettlementTime);
 
     constructor(
         address auditContract,
@@ -162,10 +174,12 @@ contract GigSecured {
         uint256 newDeadline
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        require(
-            gig._status == Status.Pending,
-            "Cannot edit deadline if not Pending"
-        );
+        if (newDeadline < block.timestamp) {
+            revert DeadlineInPast(newDeadline);
+        }
+        if (gig._status != Status.Pending) {
+            revert NotPendingStatus(gig._status);
+        }
         if (newDeadline < (block.timestamp + 3600)) {
             revert AtLeastAnHour(newDeadline);
         }
@@ -179,10 +193,13 @@ contract GigSecured {
         string memory newTitle
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        require(
-            gig._status == Status.Pending,
-            "Cannot edit title if not Pending"
-        );
+
+        if (gig._status != Status.Pending) {
+            revert NotPendingStatus(gig._status);
+        }
+        if (bytes(newTitle).length == 0) {
+            revert EmptyTitle();
+        }
         gig.title = newTitle;
     }
 
@@ -191,11 +208,12 @@ contract GigSecured {
         string memory newDescription
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        require(
-            gig._status == Status.Pending,
-            "Cannot edit title if not Pending"
-        );
-
+        if (gig._status != Status.Pending) {
+            revert NotPendingStatus(gig._status);
+        }
+        if (bytes(newDescription).length == 0) {
+            revert EmptyDescription();
+        }
         gig.description = newDescription;
     }
 
@@ -204,11 +222,13 @@ contract GigSecured {
         string memory newCategory
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        require(
-            gig._status == Status.Pending,
-            "Cannot edit category if not Pending"
-        );
 
+        if (gig._status != Status.Pending) {
+            revert NotPendingStatus(gig._status);
+        }
+        if (bytes(newCategory).length == 0) {
+            revert EmptyCategory();
+        }
         gig.category = newCategory;
     }
 
@@ -219,10 +239,10 @@ contract GigSecured {
         address newFreelancerAddress
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        require(
-            gig._status == Status.Pending,
-            "Cannot change freelancer once contract commences"
-        );
+
+        if (gig._status != Status.Pending) {
+            revert NotPendingStatus(gig._status);
+        }
         gig.freelancerName = newFreelancerName;
         gig.freelancerEmail = newFreelancerEmail;
         gig.freeLancer = newFreelancerAddress;
@@ -305,30 +325,30 @@ contract GigSecured {
     ) public onlyClient(gigId) returns (bool success) {
         GigContract storage gig = _allGigs[gigId];
         if (
-            gig._status == Status.Completed && newStatus == Status.UnderReview
+            (gig._status == Status.Completed &&
+                newStatus != Status.UnderReview) ||
+            (gig._status == Status.UnderReview &&
+                (newStatus != Status.Closed && newStatus != Status.Dispute))
         ) {
-            gig._status = newStatus;
-            success = true;
-        } else if (gig._status == Status.UnderReview) {
-            if (newStatus == Status.Closed) {
-                gig._status = newStatus;
-                _sendPaymentClosed(gigId);
-            } else if (newStatus == Status.Dispute) {
-                require(
-                    gig.completedTime > (block.timestamp + 259200),
-                    "Contract Settlement Time Not Active"
-                );
-
-                address _auditor = _assignAuditor(gig.category);
-                gig.auditor = _auditor;
-                gig.isAudit = true;
-
-                gig._status = newStatus;
-            }
-            success = true;
-        } else {
-            revert("Invalid status change");
+            revert InvalidStatusChange(gig._status, newStatus);
         }
+        if (
+            newStatus == Status.Dispute &&
+            gig.completedTime <= block.timestamp + 259200
+        ) {
+            revert ContractSettlementTimeNotActive(gig.completedTime);
+        }
+        gig._status = newStatus;
+        if (newStatus == Status.Closed) {
+            _sendPaymentClosed(gigId);
+        }
+        if (newStatus == Status.Dispute) {
+            address _auditor = _assignAuditor(gig.category);
+            gig.auditor = _auditor;
+            gig.isAudit = true;
+        }
+
+        success = true;
     }
 
     function freeLancerUpdateGig(
@@ -337,15 +357,23 @@ contract GigSecured {
     ) public onlyFreelancer(gigId) {
         GigContract storage gig = _allGigs[gigId];
 
-        if (newStatus == Status.Building) {
-            require(
-                (gig.freelancerSign).length > 0,
-                "Must sign before start building"
-            );
-            require(block.timestamp < gig.deadline, "Deadline has passed");
-            gig._status = Status.Building;
-        } else if (newStatus == Status.Completed) {
-            require(block.timestamp < gig.deadline, "Deadline has passed");
+        if (newStatus == Status.Building && (gig.freelancerSign).length == 0) {
+            revert MustSignBeforeStartBuilding();
+        }
+        if (newStatus == Status.Building && block.timestamp > gig.deadline) {
+            revert DeadlineHasPassedForBuilding();
+        }
+        if (newStatus == Status.Completed && block.timestamp > gig.deadline) {
+            revert DeadlineHasPassedForCompletion();
+        }
+        if (
+            newStatus == Status.Dispute &&
+            gig.completedTime < block.timestamp + 259200
+        ) {
+            revert TooSoonToDispute(gig.completedTime);
+        }
+        gig._status = newStatus;
+        if (newStatus == Status.Completed) {
             gig.completedTime = block.timestamp;
             gig._status = Status.Completed;
         } else if (newStatus == Status.Dispute) {
@@ -357,8 +385,6 @@ contract GigSecured {
         } else {
             revert("Invalid status");
         }
-
-        gig._status = newStatus;
 
         emit GigStatusUpdated(gigId, newStatus);
     }
