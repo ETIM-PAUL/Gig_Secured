@@ -45,7 +45,7 @@ contract GigSecuredTest is Helpers {
         (_freelancerAddress, _privKeyFreelancer) = mkaddr("Freelancer");
         (_auditor, ) = mkaddr("Freelancer");
 
-        _usdc._mint(_clientAddress, 1000);
+        // _usdc._mint(_clientAddress, 1000);
 
         _newGigContract = GigSecured.GigContract({
             title: "Natachi White Paper Contract",
@@ -60,8 +60,7 @@ contract GigSecuredTest is Helpers {
             description: "",
             deadline: 0,
             completedTime: 0,
-            stages: [],
-            _status: Status,
+            _status: Status.Pending,
             isAudit: false,
             auditor: _auditor,
             price: 100000000,

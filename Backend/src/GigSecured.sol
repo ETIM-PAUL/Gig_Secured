@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
-import {EscrowUtils} from "./library/EscrowLibrary.sol";
-import {IAudit} from "./interface/IAudit.sol";
-import {IERC20} from "./interface/IERC20.sol";
+import {EscrowUtils} from "./Library/EscrowLibrary.sol";
+import {IAudit} from "./Interface/IAudit.sol";
+import {IERC20} from "./Interface/IERC20.sol";
 
 contract GigSecured {
     event GigContractCreated(string title, address creator, address freelancer);
@@ -27,7 +27,6 @@ contract GigSecured {
         string description;
         uint deadline;
         uint completedTime;
-        string[] stages;
         Status _status;
         bool isAudit;
         address auditor;
@@ -111,7 +110,6 @@ contract GigSecured {
         string memory _clientEmail,
         string memory _description,
         uint _deadline,
-        string[] memory _stages,
         uint _price,
         address _freelancer
     ) public {
@@ -120,9 +118,6 @@ contract GigSecured {
         }
         if (_freelancer == address(0)) {
             revert InvalidFreelancer(_freelancer);
-        }
-        if (_stages.length > 4) {
-            revert MaxStagesOfDevelopment();
         }
         bool success = IERC20(_usdcAddress).transferFrom(
             msg.sender,
@@ -141,7 +136,7 @@ contract GigSecured {
         _newGigContract.clientSign = _clientSign;
         _newGigContract.description = _description;
         _newGigContract.deadline = _deadline;
-        _newGigContract.stages = _stages;
+        _newGigContract._status = Status.Pending;
         _newGigContract.price = _price;
         _newGigContract.freeLancer = _freelancer;
 
