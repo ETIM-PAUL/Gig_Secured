@@ -57,18 +57,17 @@ contract GigSecured {
     error NotAssignedFreeLancer();
     error NotPermitted();
     error RemissionFailed();
-    error InvalidGigId(uint256 gigId);
     error DeadlineInPast(uint newDeadline);
     error NotPendingStatus(Status currentStatus);
     error EmptyTitle();
     error EmptyDescription();
     error EmptyCategory();
-    error InvalidStatusChange(Status currentStatus, Status newStatus);
-    error ContractSettlementTimeNotActive(uint contractSettlementTime);
+    error InvalidStatusChange();
+    error ContractSettlementTimeNotActive();
     error MustSignBeforeStartBuilding();
     error DeadlineHasPassedForBuilding();
     error DeadlineHasPassedForCompletion();
-    error TooSoonToDispute(uint256 contractSettlementTime);
+    error TooSoonToDispute();
 
     constructor(
         address auditContract,
@@ -262,7 +261,6 @@ contract GigSecured {
         }
     }
 
-
     function _sendPaymentClosed(uint gigId) internal {
         GigContract storage gig = _allGigs[gigId];
         uint clientPaybackFee = EscrowUtils.cientNoAudit(gig.price);
@@ -324,20 +322,18 @@ contract GigSecured {
     ) public onlyClient(gigId) returns (bool success) {
         GigContract storage gig = _allGigs[gigId];
         if (
-            (gig._status == Status.Completed &&
-                newStatus != Status.UnderReview) ||
-            (gig._status == Status.UnderReview &&
-                (newStatus != Status.Closed && newStatus != Status.Dispute))
+            newStatus != Status.UnderReview &&
+            newStatus != Status.Closed &&
+            newStatus != Status.Dispute
         ) {
-            revert InvalidStatusChange(gig._status, newStatus);
+            revert InvalidStatusChange();
         }
         if (
             newStatus == Status.Dispute &&
-            gig.completedTime <= block.timestamp + 259200
+            block.timestamp <= gig.completedTime + 259200
         ) {
-            revert ContractSettlementTimeNotActive(gig.completedTime);
+            revert ContractSettlementTimeNotActive();
         }
-        gig._status = newStatus;
         if (newStatus == Status.Closed) {
             _sendPaymentClosed(gigId);
         }
@@ -347,6 +343,7 @@ contract GigSecured {
             gig.isAudit = true;
         }
 
+        gig._status = newStatus;
         success = true;
     }
 
@@ -369,20 +366,14 @@ contract GigSecured {
             newStatus == Status.Dispute &&
             gig.completedTime < block.timestamp + 259200
         ) {
-            revert TooSoonToDispute(gig.completedTime);
+            revert TooSoonToDispute();
         }
         gig._status = newStatus;
         if (newStatus == Status.Completed) {
             gig.completedTime = block.timestamp;
             gig._status = Status.Completed;
         } else if (newStatus == Status.Dispute) {
-            require(
-                gig.completedTime > (block.timestamp + 259200),
-                "Too soon to dispute"
-            );
-
             _freeLancerAudit(gigId);
-
         } else {
             revert("Invalid status");
         }
@@ -399,8 +390,27 @@ contract GigSecured {
         gig._status = Status.Dispute;
     }
 
+    function forceClosure(
+        uint gigId
+    ) external onlyClient(gigId) onlyGovernance {
+        GigContract storage gig = _allGigs[gigId];
+        if (
+            (gig._status != Status.Building &&
+                gig.deadline < block.timestamp) ||
+            (gig._status != Status.Pending && gig.deadline < block.timestamp)
+        ) {
+            uint priceMinusFee = EscrowUtils.nonAuditFees(gig.price);
+
+            IERC20(_usdcAddress).transfer(
+                gig.creator,
+                (gig.price - priceMinusFee)
+            );
+        } else {
+            revert NotPermitted();
+        }
+    }
+
     function getGig(uint256 _gigId) public view returns (GigContract memory) {
         return _allGigs[_gigId];
     }
-
 }

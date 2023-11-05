@@ -79,6 +79,41 @@ contract GigSecuredTest is Helpers {
         );
     }
 
+    function testWrongUpdateGigStatus() external {
+        testAddGigContract();
+        vm.startPrank(_clientAddress);
+        vm.expectRevert(GigSecured.InvalidStatusChange.selector);
+        _gigSecured.updateGig(1, GigSecured.Status.Building);
+        vm.stopPrank();
+    }
+
+    function testNotYetTimeToDispute() external {
+        testAddGigContract();
+        vm.startPrank(_freelancerAddress);
+        _gigSecured.updateGig(1, GigSecured.Status.Completed);
+        vm.stopPrank();
+
+        vm.startPrank(_clientAddress);
+        vm.expectRevert(GigSecured.ContractSettlementTimeNotActive.selector);
+        vm.warp(259000);
+        _gigSecured.updateGig(1, GigSecured.Status.Dispute);
+        vm.stopPrank();
+    }
+
+    function testAssignAuditorInDispute() external {
+        testAddGigContract();
+        vm.startPrank(_freelancerAddress);
+        _gigSecured.updateGig(1, GigSecured.Status.Completed);
+        vm.stopPrank();
+
+        vm.startPrank(_clientAddress);
+        vm.warp(259300);
+        _gigSecured.updateGig(1, GigSecured.Status.Dispute);
+        vm.stopPrank();
+
+        assertEq(_gigSecured.getGig(1).auditor, _governance);
+    }
+
     function testAddGigContract() public {
         vm.startPrank(_clientAddress);
         _newGigContract.deadline = 8600;
@@ -115,6 +150,7 @@ contract GigSecuredTest is Helpers {
 
     function testFreelancerSign() external {
         testAddGigContract();
+
         vm.startPrank(_freelancerAddress);
         _newGigContract.freelancerSign = constructSig(
             _freelancerAddress,
