@@ -364,7 +364,7 @@ contract GigSecured {
         }
         if (
             newStatus == Status.Dispute &&
-            gig.completedTime < block.timestamp + 259200
+            block.timestamp <= gig.completedTime + 259200
         ) {
             revert TooSoonToDispute();
         }
