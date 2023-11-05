@@ -375,7 +375,7 @@ contract GigSecured {
         } else if (newStatus == Status.Dispute) {
             _freeLancerAudit(gigId);
         } else {
-            revert("Invalid status");
+            revert InvalidStatusChange();
         }
 
         emit GigStatusUpdated(gigId, newStatus);

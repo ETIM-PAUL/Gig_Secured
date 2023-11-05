@@ -281,22 +281,29 @@ contract GigSecuredTest is Helpers {
         vm.stopPrank();
     }
 
-    // function testFreelancerAuditCall() external {
-    //     testAddGigContract();
-    //     vm.startPrank(_freelancerAddress);
-    //     _gigSecured.updateGig(1, GigSecured.Status.Completed);
-    //     assertEq(
-    //         uint256(_newGigContract._status),
-    //         uint256(GigSecured.Status.Completed)
-    //     );
-    //            assertEq(_newGigContract.completedTime, block.timestamp);
+    function testFreelancerAuditCall() external {
+        vm.startPrank(_freelancerAddress);
+        _gigSecured.updateGig(1, GigSecured.Status.Completed);
+        vm.warp(259300);
+        _gigSecured.updateGig(1, GigSecured.Status.Dispute);
+        vm.stopPrank();
 
-    //     _gigSecured.updateGig(1, GigSecured.Status.Dispute);
-    //     vm.expectCall(address(_auditor), GigSecured._freeLancerAudit(1));
+        assertEq(_gigSecured.getGig(1).auditor, _governance);
+        //     testAddGigContract();
+        //     vm.startPrank(_freelancerAddress);
+        //     _gigSecured.updateGig(1, GigSecured.Status.Completed);
+        //     assertEq(
+        //         uint256(_newGigContract._status),
+        //         uint256(GigSecured.Status.Completed)
+        //     );
+        //            assertEq(_newGigContract.completedTime, block.timestamp);
 
-    //     vm.expectRevert("Invalid status");
-    //     _gigSecured.updateGig(1, GigSecured.Status.Closed);
-    // }
+        //     _gigSecured.updateGig(1, GigSecured.Status.Dispute);
+        //     vm.expectCall(address(_auditor), GigSecured._freeLancerAudit(1));
+
+        //vm.expectRevert(GigSecured.InvalidStatusChange.selector);
+        //     _gigSecured.updateGig(1, GigSecured.Status.Closed);
+    }
 
     function testAssignAuditorInDispute() external {
         testAddGigContract();
