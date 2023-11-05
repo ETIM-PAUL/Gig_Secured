@@ -90,6 +90,26 @@ contract GigSecured {
         _;
     }
 
+    modifier onlyPermittedAccounts(uint gigId) {
+        GigContract storage gigContract = _allGigs[gigId];
+        require(
+            msg.sender == _governanceAddress ||
+                gigContract.creator == msg.sender,
+            "Only Governance or Client"
+        );
+        _;
+    }
+
+    modifier onlyPermittedAdmin(uint gigId) {
+        GigContract storage gigContract = _allGigs[gigId];
+        require(
+            msg.sender == _governanceAddress ||
+                gigContract.auditor == msg.sender,
+            "Only Governance or Auditor"
+        );
+        _;
+    }
+
     modifier onlyFreelancer(uint gigId) {
         GigContract storage _newGigContract = _allGigs[gigId];
         require(msg.sender == _newGigContract.freeLancer, "Not Freelancer");
@@ -284,18 +304,23 @@ contract GigSecured {
     function sendPaymentAfterAuditorSettle(
         uint gigId,
         uint freelancerPercent
-    ) external onlyAuditor(gigId) onlyGovernance {
+    ) external onlyPermittedAdmin(gigId) {
         GigContract storage gig = _allGigs[gigId];
         require(
             freelancerPercent > 0 && freelancerPercent <= 92,
             "Out of bounds"
         );
+        gig.price = 0;
         uint auditPaymentFee = EscrowUtils.auditFees(gig.price);
         uint systemPaymentFee = EscrowUtils.systemAuditFees(gig.price);
         uint freelancerPaymentFee = EscrowUtils.freeLancerAudit(
             gig.price,
             freelancerPercent
         );
+        uint clientPaybackFee = gig.price -
+            (auditPaymentFee + freelancerPaymentFee + systemPaymentFee);
+
+        gig.price = 0;
 
         bool successPayAuditor = IERC20(_usdcAddress).transfer(
             gig.auditor,
@@ -306,18 +331,18 @@ contract GigSecured {
             freelancerPaymentFee
         );
 
-        uint clientPaybackFee = gig.price -
-            (auditPaymentFee + freelancerPaymentFee + systemPaymentFee);
         if (clientPaybackFee > 0) {
             IERC20(_usdcAddress).transfer(gig.creator, clientPaybackFee);
         }
+        IAudit(_auditContract).decreaseAuditorCurrentGigs(gig.auditor);
         require(successPayAuditor && successPayFreelancer, "Payment Failed");
     }
 
     function _assignAuditor(
         string memory category
-    ) internal view returns (address auditor) {
+    ) internal returns (address auditor) {
         auditor = IAudit(_auditContract).getAuditorByCategory(category);
+        IAudit(_auditContract).increaseAuditorCurrentGigs(auditor);
     }
 
     function clientUpdateGig(
@@ -342,9 +367,9 @@ contract GigSecured {
             _sendPaymentClosed(gigId);
         }
         if (newStatus == Status.Dispute) {
+            gig.isAudit = true;
             address _auditor = _assignAuditor(gig.category);
             gig.auditor = _auditor;
-            gig.isAudit = true;
         }
 
         gig._status = newStatus;
@@ -394,9 +419,7 @@ contract GigSecured {
         gig._status = Status.Dispute;
     }
 
-    function forceClosure(
-        uint gigId
-    ) external onlyClient(gigId) onlyGovernance {
+    function forceClosure(uint gigId) external onlyPermittedAccounts(gigId) {
         GigContract storage gig = _allGigs[gigId];
         if (
             (gig._status != Status.Building &&
@@ -404,10 +427,14 @@ contract GigSecured {
             (gig._status != Status.Pending && gig.deadline < block.timestamp)
         ) {
             uint priceMinusFee = EscrowUtils.nonAuditFees(gig.price);
+            uint gigContractPrice = gig.price;
+
+            gig.price = 0;
+            gig._status = Status.Closed;
 
             IERC20(_usdcAddress).transfer(
                 gig.creator,
-                (gig.price - priceMinusFee)
+                (gigContractPrice - priceMinusFee)
             );
         } else {
             revert NotPermitted();

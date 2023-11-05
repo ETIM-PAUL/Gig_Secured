@@ -61,24 +61,6 @@ contract GigSecuredTest is Helpers {
         });
     }
 
-    function testDeadlineGigContract() external {
-        GigSecured.GigContract memory _newContract = _newGigContract;
-        vm.startPrank(_clientAddress);
-        _usdc.approve(address(_gigSecured), _newContract.price);
-        vm.expectRevert(GigSecured.AtLeastAnHour.selector);
-        _gigSecured.addGig(
-            _newContract.title,
-            _newContract.category,
-            _newContract.clientSign,
-            _newContract.clientName,
-            _newContract.clientEmail,
-            _newContract.description,
-            _newContract.deadline,
-            _newContract.price,
-            _freelancerAddress
-        );
-    }
-
     function testAddGigContract() public {
         vm.startPrank(_clientAddress);
         _newGigContract.deadline = 8600;
@@ -96,6 +78,24 @@ contract GigSecuredTest is Helpers {
         );
         vm.stopPrank();
         assertTrue(gigAdded);
+    }
+
+    function testDeadlineGigContract() external {
+        GigSecured.GigContract memory _newContract = _newGigContract;
+        vm.startPrank(_clientAddress);
+        _usdc.approve(address(_gigSecured), _newContract.price);
+        vm.expectRevert(GigSecured.AtLeastAnHour.selector);
+        _gigSecured.addGig(
+            _newContract.title,
+            _newContract.category,
+            _newContract.clientSign,
+            _newContract.clientName,
+            _newContract.clientEmail,
+            _newContract.description,
+            _newContract.deadline,
+            _newContract.price,
+            _freelancerAddress
+        );
     }
 
     function testWrongUpdateGigStatus() external {
@@ -116,6 +116,22 @@ contract GigSecuredTest is Helpers {
         vm.expectRevert(GigSecured.ContractSettlementTimeNotActive.selector);
         vm.warp(259000);
         _gigSecured.updateGig(1, GigSecured.Status.Dispute);
+        vm.stopPrank();
+    }
+
+    function testForceClosureByClient() external {
+        testAddGigContract();
+        vm.startPrank(_clientAddress);
+        vm.warp(200300);
+        _gigSecured.forceClosure(1);
+        vm.stopPrank();
+    }
+
+    function testForceClosureByGovernance() external {
+        testAddGigContract();
+        vm.startPrank(_governance);
+        vm.warp(200300);
+        _gigSecured.forceClosure(1);
         vm.stopPrank();
     }
 

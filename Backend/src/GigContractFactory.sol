@@ -40,7 +40,26 @@ contract GigContractFactory {
         );
         _gigSecuredContracts.push(address(newGigSecuredContract));
         _gigContractExist[address(newGigSecuredContract)] = true;
+        IAudit(_auditorsContract).addGigContractAddresses(
+            address(newGigSecuredContract)
+        );
         emit GigContractCreated(_owner, address(newGigSecuredContract));
+    }
+
+    function confirmAnAuditor(address _auditor) external {
+        IAudit(_auditorsContract).confirmAuditor(_auditor);
+    }
+
+    function removeAnAuditor(address _auditor) external {
+        IAudit(_auditorsContract).removeAuditor(_auditor);
+    }
+
+    function increaseAnAuditorGigs(address _auditor) external {
+        IAudit(_auditorsContract).removeAuditor(_auditor);
+    }
+
+    function decreaseAnAuditorGigs(address _auditor) external {
+        IAudit(_auditorsContract).removeAuditor(_auditor);
     }
 
     function forceClosureByGovernance(

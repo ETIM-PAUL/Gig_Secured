@@ -13,7 +13,7 @@ contract Audit {
     }
 
     address private _owner;
-    Auditor[] private _auditors;
+    Auditor[] public auditors;
     mapping(address => Auditor) public auditor_;
     mapping(address => bool) public gigContractAddresses;
 
@@ -59,17 +59,18 @@ contract Audit {
         _;
     }
 
-    modifier onlyOwner() {
-        if (msg.sender != _owner) {
-            revert NotOwner();
-        }
+    modifier onlyPermittedAccounts() {
+        bool isGigContract = gigContractAddresses[msg.sender];
+        require(
+            msg.sender == _governanceContract || isGigContract,
+            "Only Governance or Gig Contract Owner"
+        );
         _;
     }
 
-    modifier onlyGigContract(address childGigContract) {
-        bool isGigContract = gigContractAddresses[childGigContract];
-        if (!isGigContract) {
-            revert onlyGigContractAllowed();
+    modifier onlyOwner() {
+        if (msg.sender != _owner) {
+            revert NotOwner();
         }
         _;
     }
@@ -87,7 +88,7 @@ contract Audit {
             confirmationTime: uint32(block.timestamp)
         });
 
-        _auditors.push(newAuditor);
+        auditors.push(newAuditor);
         auditor_[msg.sender] = newAuditor;
     }
 
@@ -122,18 +123,18 @@ contract Audit {
         uint32 earliestConfirmationTime = type(uint32).max;
         bool foundCategory = false;
 
-        for (uint i = 0; i < _auditors.length; i++) {
+        for (uint i = 0; i < auditors.length; i++) {
             if (
-                keccak256(abi.encodePacked(_auditors[i].category)) ==
+                keccak256(abi.encodePacked(auditors[i].category)) ==
                 keccak256(abi.encodePacked(_category))
             ) {
                 foundCategory = true;
                 if (
-                    _auditors[i].isConfirmed &&
-                    _auditors[i].confirmationTime < earliestConfirmationTime
+                    auditors[i].isConfirmed &&
+                    auditors[i].confirmationTime < earliestConfirmationTime
                 ) {
-                    selectedAuditor = _auditors[i]._auditor;
-                    earliestConfirmationTime = _auditors[i].confirmationTime;
+                    selectedAuditor = auditors[i]._auditor;
+                    earliestConfirmationTime = auditors[i].confirmationTime;
                 }
             }
         }
@@ -162,21 +163,21 @@ contract Audit {
             replacementAuditor.currentGigs += auditorToRemove.currentGigs;
         }
 
-        // Find the index of the auditor to remove in the _auditors array
+        // Find the index of the auditor to remove in the auditors array
         uint indexToRemove;
-        for (uint i = 0; i < _auditors.length; i++) {
-            if (_auditors[i]._auditor == _auditor) {
+        for (uint i = 0; i < auditors.length; i++) {
+            if (auditors[i]._auditor == _auditor) {
                 indexToRemove = i;
                 break;
             }
         }
 
-        // Remove the auditor from the _auditors array
-        if (indexToRemove < _auditors.length - 1) {
-            _auditors[indexToRemove] = _auditors[_auditors.length - 1];
+        // Remove the auditor from the auditors array
+        if (indexToRemove < auditors.length - 1) {
+            auditors[indexToRemove] = auditors[auditors.length - 1];
         }
         //add index to pop
-        _auditors.pop();
+        auditors.pop();
 
         delete auditor_[_auditor];
         emit AuditorRemoved(_auditor);
@@ -187,14 +188,14 @@ contract Audit {
         Auditor memory selectedAuditor;
         uint32 earliestConfirmationTime = type(uint32).max;
 
-        for (uint i = 0; i < _auditors.length; i++) {
+        for (uint i = 0; i < auditors.length; i++) {
             if (
-                _auditors[i].isConfirmed &&
-                _auditors[i].currentGigs == 0 &&
-                _auditors[i].confirmationTime < earliestConfirmationTime
+                auditors[i].isConfirmed &&
+                auditors[i].currentGigs == 0 &&
+                auditors[i].confirmationTime < earliestConfirmationTime
             ) {
-                selectedAuditor = _auditors[i];
-                earliestConfirmationTime = _auditors[i].confirmationTime;
+                selectedAuditor = auditors[i];
+                earliestConfirmationTime = auditors[i].confirmationTime;
             }
         }
 
@@ -202,31 +203,22 @@ contract Audit {
     }
 
     function increaseAuditorCurrentGigs(
-        address _auditor,
-        address gigContract
-    ) external onlyGovernance onlyGigContract(gigContract) {
+        address _auditor
+    ) external onlyPermittedAccounts {
         if (_auditor == address(0)) {
             revert ZeroAddress();
         }
-        if (gigContract == address(0)) {
-            revert ZeroAddress();
-        }
 
-       Auditor storage auditorToEdit = auditor_[_auditor];
+        Auditor storage auditorToEdit = auditor_[_auditor];
         auditorToEdit.currentGigs += 1;
     }
 
     function decreaseAuditorCurrentGigs(
-        address _auditor,
-        address gigContract
-    ) external onlyGovernance onlyGigContract(gigContract) {
+        address _auditor
+    ) external onlyPermittedAccounts {
         if (_auditor == address(0)) {
             revert ZeroAddress();
         }
-        if (gigContract == address(0)) {
-            revert ZeroAddress();
-        }
-
         Auditor storage auditorToEdit = auditor_[_auditor];
         if (auditorToEdit.currentGigs == 0) {
             revert NoGigForAuditor();
