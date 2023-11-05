@@ -226,4 +226,8 @@ contract Audit {
 
         auditorToEdit.currentGigs -= 1;
     }
+
+    function getAuditors(address _auditor) external view returns (Auditor memory) {
+        return auditor_[_auditor];
+    }
 }
