@@ -7,19 +7,19 @@ library EscrowUtils {
 
     // function to calculate non-audit fees, calculate 7% of the total price for the gig for the platorm
     function nonAuditFees(uint256 totalAmount) internal pure returns (uint256) {
-        return (totalAmount * 7) / 100;
+        return (totalAmount * 7) / 112;
     }
 
     //function to calculate 10 percent that will be returned to Client if no audit is involved
     function cientNoAudit(uint256 totalAmount) internal pure returns (uint256) {
-        return (totalAmount * 10) / 100;
+        return (totalAmount * 10) / 112;
     }
 
     //function to calculate 95% of the total price and pay it to the frrelancer
     function freeLancerNoAudit(
         uint256 totalAmount
     ) internal pure returns (uint256) {
-        return (totalAmount * 95) / 100;
+        return (totalAmount * 95) / 112;
     }
 
     /// Functions to calculate

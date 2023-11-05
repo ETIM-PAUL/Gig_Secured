@@ -53,7 +53,7 @@ contract GigSecuredTest is Helpers {
             description: "",
             deadline: 0,
             completedTime: 0,
-            _status: _status,
+            _status: GigSecured.Status.Pending,
             isAudit: false,
             auditor: _auditor,
             price: 100000000,
@@ -77,6 +77,25 @@ contract GigSecuredTest is Helpers {
             _newContract.price,
             _freelancerAddress
         );
+    }
+
+    function testAddGigContract() public {
+        vm.startPrank(_clientAddress);
+        _newGigContract.deadline = 8600;
+        _usdc.approve(address(_gigSecured), _newGigContract.price);
+        bool gigAdded = _gigSecured.addGig(
+            _newGigContract.title,
+            _newGigContract.category,
+            _newGigContract.clientSign,
+            _newGigContract.clientName,
+            _newGigContract.clientEmail,
+            _newGigContract.description,
+            _newGigContract.deadline,
+            _newGigContract.price,
+            _freelancerAddress
+        );
+        vm.stopPrank();
+        assertTrue(gigAdded);
     }
 
     function testWrongUpdateGigStatus() external {
@@ -110,27 +129,23 @@ contract GigSecuredTest is Helpers {
         vm.warp(259300);
         _gigSecured.updateGig(1, GigSecured.Status.Dispute);
         vm.stopPrank();
-
         assertEq(_gigSecured.getGig(1).auditor, _governance);
     }
 
-    function testAddGigContract() public {
-        vm.startPrank(_clientAddress);
-        _newGigContract.deadline = 8600;
-        _usdc.approve(address(_gigSecured), _newGigContract.price);
-        bool gigAdded = _gigSecured.addGig(
-            _newGigContract.title,
-            _newGigContract.category,
-            _newGigContract.clientSign,
-            _newGigContract.clientName,
-            _newGigContract.clientEmail,
-            _newGigContract.description,
-            _newGigContract.deadline,
-            _newGigContract.price,
-            _freelancerAddress
-        );
+    function testCloseContractAndPay() external {
+        testAddGigContract();
+        vm.startPrank(_freelancerAddress);
+        _gigSecured.updateGig(1, GigSecured.Status.Completed);
         vm.stopPrank();
-        assertTrue(gigAdded);
+
+        vm.startPrank(_clientAddress);
+        _gigSecured.updateGig(1, GigSecured.Status.UnderReview);
+        vm.warp(200300);
+        _gigSecured.updateGig(1, GigSecured.Status.Closed);
+        vm.stopPrank();
+        assertEq(_usdc.balanceOf(_clientAddress), 8928571);
+        assertEq(_usdc.balanceOf(_freelancerAddress), 84821428);
+        assertEq(_usdc.balanceOf(_governance), 6250000);
     }
 
     function testWrongFreelancerSign() external {

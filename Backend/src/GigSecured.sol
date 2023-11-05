@@ -264,7 +264,10 @@ contract GigSecured {
     function _sendPaymentClosed(uint gigId) internal {
         GigContract storage gig = _allGigs[gigId];
         uint clientPaybackFee = EscrowUtils.cientNoAudit(gig.price);
+        uint ourFee = EscrowUtils.nonAuditFees(gig.price);
         uint freelancerPaybackFee = EscrowUtils.freeLancerNoAudit(gig.price);
+
+        gig.price = 0;
 
         bool successRemitClient = IERC20(_usdcAddress).transfer(
             gig.creator,
@@ -274,6 +277,7 @@ contract GigSecured {
             gig.freeLancer,
             freelancerPaybackFee
         );
+        IERC20(_usdcAddress).transfer(_governanceAddress, ourFee);
         require(successRemitClient && successPayFreelancer, "Payment Failed");
     }
 
