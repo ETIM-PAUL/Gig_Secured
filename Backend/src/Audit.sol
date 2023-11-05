@@ -13,9 +13,10 @@ contract Audit {
     }
 
     address private _owner;
-    Auditor[] private _auditors;
+    Auditor[] public _auditors;
     mapping(address => Auditor) public auditor_;
     mapping(address => bool) public gigContractAddresses;
+    mapping(string => Auditor[]) public _auditorsByCategory;
 
     //events
     event AuditorRemoved(address indexed removedAuditor);
@@ -89,6 +90,8 @@ contract Audit {
 
         _auditors.push(newAuditor);
         auditor_[msg.sender] = newAuditor;
+        // update the auditorsByCategory mapping with each _category
+        _auditorsByCategory[_category].push(newAuditor);
     }
 
     //create an array of child contract, then each time, a child contract is created, we push the child contract address
@@ -102,8 +105,9 @@ contract Audit {
     }
 
     function confirmAuditor(
-        address _auditorAddr
-    ) external onlyOwner onlyGovernance {
+        address _auditorAddr,
+        string memory _category
+    ) external onlyGovernance {
         if (auditor_[_auditorAddr].isConfirmed == true) {
             revert AlreadyConfirmed();
         }
@@ -113,37 +117,41 @@ contract Audit {
         }
 
         auditor_[_auditorAddr].isConfirmed = true;
+
+        // update auditorsByCategory
+        Auditor[] storage auditorsCategory = _auditorsByCategory[_category];
+        for (uint i = 0; i < auditorsCategory.length; i++) {
+            auditorsCategory[i].isConfirmed = true;
+        }
         emit AuditorConfirmed(_auditorAddr);
+    }
+
+    function checkAuditorStatus(
+        address _auditor
+    ) external view returns (bool isAuditorConfirmed) {
+        isAuditorConfirmed = auditor_[_auditor].isConfirmed;
     }
 
     function getAuditorByCategory(
         string memory _category
     ) external view returns (address selectedAuditor) {
-        uint32 earliestConfirmationTime = type(uint32).max;
-        bool foundCategory = false;
+        selectedAuditor = address(0); // Initialize selectedAuditor to address(0)
+        uint256 earliestConfirmationTime = type(uint256).max; // Initialize earliestConfirmationTime to the maximum value of uint256
 
-        for (uint i = 0; i < _auditors.length; i++) {
-            if (
-                keccak256(abi.encodePacked(_auditors[i].category)) ==
-                keccak256(abi.encodePacked(_category))
-            ) {
-                foundCategory = true;
-                if (
-                    _auditors[i].isConfirmed &&
-                    _auditors[i].confirmationTime < earliestConfirmationTime
-                ) {
-                    selectedAuditor = _auditors[i]._auditor;
-                    earliestConfirmationTime = _auditors[i].confirmationTime;
-                }
-            }
+        Auditor[] storage auditors = _auditorsByCategory[_category];
+
+        if (auditors.length == 0) {
+            revert CategoryNotFound(); // Check if the category exists before proceeding
         }
 
-        if (!foundCategory) {
-            // If no auditor is found, assign governance
-            selectedAuditor = _governanceContract;
-        } else if (earliestConfirmationTime == type(uint32).max) {
-            // If foundCategory is true but no confirmed auditor is found, assign it to governance
-            selectedAuditor = _governanceContract;
+        for (uint i = 0; i < auditors.length; i++) {
+            if (
+                auditors[i].isConfirmed &&
+                auditors[i].confirmationTime < earliestConfirmationTime
+            ) {
+                selectedAuditor = auditors[i]._auditor; // Update selectedAuditor with the auditor address
+                earliestConfirmationTime = auditors[i].confirmationTime; // Update earliestConfirmationTime with the new minimum confirmation time
+            }
         }
 
         return selectedAuditor;
@@ -204,7 +212,7 @@ contract Audit {
     function increaseAuditorCurrentGigs(
         address _auditor,
         address gigContract
-    ) external onlyGovernance onlyGigContract(gigContract) {
+    ) external onlyGigContract(gigContract) {
         if (_auditor == address(0)) {
             revert ZeroAddress();
         }
@@ -220,7 +228,7 @@ contract Audit {
     function decreaseAuditorCurrentGigs(
         address _auditor,
         address gigContract
-    ) external onlyGovernance onlyGigContract(gigContract) {
+    ) external onlyGigContract(gigContract) {
         if (_auditor == address(0)) {
             revert ZeroAddress();
         }
@@ -234,5 +242,12 @@ contract Audit {
         }
 
         auditorToEdit.currentGigs -= 1;
+    }
+
+    function getAuditorByAddress(
+        address _auditor
+    ) external view returns (uint currentGigs) {
+        Auditor memory auditor = auditor_[_auditor];
+        return auditor.currentGigs;
     }
 }
