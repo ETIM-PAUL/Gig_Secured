@@ -11,8 +11,8 @@ contract GigContractFactory {
      * @dev STATE VARIABLE
      */
     address[] _gigSecuredContracts;
-    address _auditorsContract = address(new Audit(address(this)));
-    address _usdcContract = address(new USDC());
+    address _auditorsContract;
+    address _usdcContract;
     address _owner;
     mapping(address => bool) _gigContractExist;
 
@@ -21,8 +21,10 @@ contract GigContractFactory {
     error NotOwner();
     error InvalidContract();
 
-    constructor() {
+    constructor(address auditorsContractAddress, address usdcContractAddress) {
         _owner = msg.sender;
+        _usdcContract = usdcContractAddress;
+        _auditorsContract = auditorsContractAddress;
     }
 
     modifier onlyOwner() {
@@ -32,8 +34,11 @@ contract GigContractFactory {
         _;
     }
 
-    function createGigSecuredContract() external {
-        GigSecured newGigSecuredContract = new GigSecured(
+    function createGigSecuredContractInstance()
+        external
+        returns (GigSecured newGigSecuredContract)
+    {
+        newGigSecuredContract = new GigSecured(
             _auditorsContract,
             address(this),
             _usdcContract
@@ -46,19 +51,19 @@ contract GigContractFactory {
         emit GigContractCreated(_owner, address(newGigSecuredContract));
     }
 
-    function confirmAnAuditor(address _auditor) external {
+    function confirmAnAuditor(address _auditor) external onlyOwner {
         IAudit(_auditorsContract).confirmAuditor(_auditor);
     }
 
-    function removeAnAuditor(address _auditor) external {
+    function removeAnAuditor(address _auditor) external onlyOwner {
         IAudit(_auditorsContract).removeAuditor(_auditor);
     }
 
-    function increaseAnAuditorGigs(address _auditor) external {
+    function increaseAnAuditorGigs(address _auditor) external onlyOwner {
         IAudit(_auditorsContract).removeAuditor(_auditor);
     }
 
-    function decreaseAnAuditorGigs(address _auditor) external {
+    function decreaseAnAuditorGigs(address _auditor) external onlyOwner {
         IAudit(_auditorsContract).removeAuditor(_auditor);
     }
 

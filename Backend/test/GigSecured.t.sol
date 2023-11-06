@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
+import {GigContractFactory} from "../src/GigContractFactory.sol";
 import {GigSecured} from "../src/GigSecured.sol";
 import {Audit} from "../src/Audit.sol";
 import {USDC} from "../src/USDC.sol";
 import "./Helper.sol";
 
 contract GigSecuredTest is Helpers {
+    GigContractFactory private _gigContractFactory;
     GigSecured private _gigSecured;
     Audit private _audit;
     USDC private _usdc;
@@ -26,8 +28,12 @@ contract GigSecuredTest is Helpers {
     uint _gigs;
 
     function setUp() public {
-        _audit = new Audit(_governance);
+        _audit = new Audit();
         _usdc = new USDC();
+        _gigContractFactory = new GigContractFactory(
+            address(_audit),
+            address(_usdc)
+        );
         _gigSecured = new GigSecured(
             address(_audit),
             _governance,
@@ -65,6 +71,7 @@ contract GigSecuredTest is Helpers {
         vm.startPrank(_clientAddress);
         _newGigContract.deadline = 8600;
         _usdc.approve(address(_gigSecured), _newGigContract.price);
+        _usdc.balanceOf(_clientAddress);
         bool gigAdded = _gigSecured.addGig(
             _newGigContract.title,
             _newGigContract.category,
@@ -78,45 +85,6 @@ contract GigSecuredTest is Helpers {
         );
         vm.stopPrank();
         assertTrue(gigAdded);
-    }
-
-    function testDeadlineGigContract() external {
-        GigSecured.GigContract memory _newContract = _newGigContract;
-        vm.startPrank(_clientAddress);
-        _usdc.approve(address(_gigSecured), _newContract.price);
-        vm.expectRevert(GigSecured.AtLeastAnHour.selector);
-        _gigSecured.addGig(
-            _newContract.title,
-            _newContract.category,
-            _newContract.clientSign,
-            _newContract.clientName,
-            _newContract.clientEmail,
-            _newContract.description,
-            _newContract.deadline,
-            _newContract.price,
-            _freelancerAddress
-        );
-    }
-
-    function testWrongUpdateGigStatus() external {
-        testAddGigContract();
-        vm.startPrank(_clientAddress);
-        vm.expectRevert(GigSecured.InvalidStatusChange.selector);
-        _gigSecured.updateGig(1, GigSecured.Status.Building);
-        vm.stopPrank();
-    }
-
-    function testNotYetTimeToDispute() external {
-        testAddGigContract();
-        vm.startPrank(_freelancerAddress);
-        _gigSecured.updateGig(1, GigSecured.Status.Completed);
-        vm.stopPrank();
-
-        vm.startPrank(_clientAddress);
-        vm.expectRevert(GigSecured.ContractSettlementTimeNotActive.selector);
-        vm.warp(259000);
-        _gigSecured.updateGig(1, GigSecured.Status.Dispute);
-        vm.stopPrank();
     }
 
     function testForceClosureByClient() external {
@@ -133,19 +101,6 @@ contract GigSecuredTest is Helpers {
         vm.warp(200300);
         _gigSecured.forceClosure(1);
         vm.stopPrank();
-    }
-
-    function testAssignAuditorInDispute() external {
-        testAddGigContract();
-        vm.startPrank(_freelancerAddress);
-        _gigSecured.updateGig(1, GigSecured.Status.Completed);
-        vm.stopPrank();
-
-        vm.startPrank(_clientAddress);
-        vm.warp(259300);
-        _gigSecured.updateGig(1, GigSecured.Status.Dispute);
-        vm.stopPrank();
-        assertEq(_gigSecured.getGig(1).auditor, _governance);
     }
 
     function testCloseContractAndPay() external {
@@ -179,7 +134,7 @@ contract GigSecuredTest is Helpers {
         _gigSecured.freeLancerSign(_newGigContract.freelancerSign, 1);
     }
 
-    function testFreelancerSign() external {
+    function testFreelancerSign() public {
         testAddGigContract();
 
         vm.startPrank(_freelancerAddress);
@@ -196,6 +151,24 @@ contract GigSecuredTest is Helpers {
             1
         );
         assertTrue(freelancerAssign);
+    }
+
+    function testDeadlineGigContract() external {
+        GigSecured.GigContract memory _newContract = _newGigContract;
+        vm.startPrank(_clientAddress);
+        _usdc.approve(address(_gigSecured), _newContract.price);
+        vm.expectRevert(GigSecured.AtLeastAnHour.selector);
+        _gigSecured.addGig(
+            _newContract.title,
+            _newContract.category,
+            _newContract.clientSign,
+            _newContract.clientName,
+            _newContract.clientEmail,
+            _newContract.description,
+            _newContract.deadline,
+            _newContract.price,
+            _freelancerAddress
+        );
     }
 
     function testEditGigDeadline() external {
@@ -288,6 +261,134 @@ contract GigSecuredTest is Helpers {
             "adetolakemi97@gmail.com"
         );
         assertEq(_gigSecured.getGig(1).freeLancer, address(0x32));
+    }
+
+    function testClientWrongUpdateGigStatus() external {
+        testAddGigContract();
+        vm.startPrank(_clientAddress);
+        vm.expectRevert(GigSecured.InvalidStatusChange.selector);
+        _gigSecured.updateGig(1, GigSecured.Status.Building);
+        vm.stopPrank();
+    }
+
+    function testNotYetTimeToDispute() external {
+        testAddGigContract();
+        vm.startPrank(_freelancerAddress);
+        _gigSecured.updateGig(1, GigSecured.Status.Completed);
+        vm.stopPrank();
+
+        vm.startPrank(_clientAddress);
+        vm.expectRevert(GigSecured.ContractSettlementTimeNotActive.selector);
+        vm.warp(259000);
+        _gigSecured.updateGig(1, GigSecured.Status.Dispute);
+        vm.stopPrank();
+    }
+
+    function testSignBeforeBuilding() external {
+        testAddGigContract();
+        vm.startPrank(_freelancerAddress);
+        vm.expectRevert(GigSecured.MustSignBeforeStartBuilding.selector);
+        _gigSecured.updateGig(1, GigSecured.Status.Building);
+        vm.stopPrank();
+    }
+
+    function testDeadlinePassedForBuilding() external {
+        // testAddGigContract();
+        // vm.startPrank(_freelancerAddress);
+        testFreelancerSign();
+        vm.expectRevert(GigSecured.DeadlineHasPassedForBuilding.selector);
+        vm.warp(550000);
+        _gigSecured.updateGig(1, GigSecured.Status.Building);
+        vm.stopPrank();
+    }
+
+    function testDeadlinePassedForCompletion() external {
+        testAddGigContract();
+        vm.startPrank(_freelancerAddress);
+        vm.warp(550000);
+        vm.expectRevert(GigSecured.DeadlineHasPassedForCompletion.selector);
+        _gigSecured.updateGig(1, GigSecured.Status.Completed);
+        vm.stopPrank();
+    }
+
+    function testTooSoonToDispute() external {
+        testAddGigContract();
+        vm.startPrank(_freelancerAddress);
+        vm.expectRevert(GigSecured.TooSoonToDispute.selector);
+        vm.warp(259000);
+        _gigSecured.updateGig(1, GigSecured.Status.Dispute);
+        vm.stopPrank();
+    }
+
+    function testFreeLancerWrongUpdateGigStatus() external {
+        testAddGigContract();
+        vm.startPrank(_freelancerAddress);
+        vm.expectRevert(GigSecured.InvalidStatusChange.selector);
+        _gigSecured.updateGig(1, GigSecured.Status.Closed);
+        vm.stopPrank();
+    }
+
+    function testFreelancerAuditCall() external {
+        _audit.setGovernanceContract(address(_gigContractFactory));
+        vm.startPrank(_clientAddress);
+        GigSecured gigContractInstance = _gigContractFactory
+            .createGigSecuredContractInstance();
+
+        _newGigContract.deadline = 8600;
+        _usdc.approve(address(gigContractInstance), _newGigContract.price);
+        _usdc.allowance(_clientAddress, address(gigContractInstance));
+        gigContractInstance.addGig(
+            _newGigContract.title,
+            _newGigContract.category,
+            _newGigContract.clientSign,
+            _newGigContract.clientName,
+            _newGigContract.clientEmail,
+            _newGigContract.description,
+            _newGigContract.deadline,
+            _newGigContract.price,
+            _freelancerAddress
+        );
+        vm.stopPrank();
+
+        vm.startPrank(_freelancerAddress);
+        gigContractInstance.updateGig(1, GigSecured.Status.Completed);
+        vm.warp(259300);
+        gigContractInstance.updateGig(1, GigSecured.Status.Dispute);
+        vm.stopPrank();
+
+        assertNotEq(gigContractInstance.getGig(1).auditor, _governance);
+    }
+
+    function testAssignAuditorInDispute() external {
+        _audit.setGovernanceContract(address(_gigContractFactory));
+        vm.startPrank(_clientAddress);
+        GigSecured gigContractInstance = _gigContractFactory
+            .createGigSecuredContractInstance();
+
+        _newGigContract.deadline = 8600;
+        _usdc.approve(address(gigContractInstance), _newGigContract.price);
+        _usdc.allowance(_clientAddress, address(gigContractInstance));
+        gigContractInstance.addGig(
+            _newGigContract.title,
+            _newGigContract.category,
+            _newGigContract.clientSign,
+            _newGigContract.clientName,
+            _newGigContract.clientEmail,
+            _newGigContract.description,
+            _newGigContract.deadline,
+            _newGigContract.price,
+            _freelancerAddress
+        );
+        vm.stopPrank();
+
+        vm.startPrank(_freelancerAddress);
+        _gigSecured.updateGig(1, GigSecured.Status.Completed);
+        vm.stopPrank();
+
+        vm.startPrank(_clientAddress);
+        vm.warp(259300);
+        _gigSecured.updateGig(1, GigSecured.Status.Dispute);
+        vm.stopPrank();
     }
 
     function testGetGig() public {

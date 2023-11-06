@@ -393,7 +393,7 @@ contract GigSecured {
         }
         if (
             newStatus == Status.Dispute &&
-            gig.completedTime < block.timestamp + 259200
+            block.timestamp <= gig.completedTime + 259200
         ) {
             revert TooSoonToDispute();
         }
@@ -404,7 +404,7 @@ contract GigSecured {
         } else if (newStatus == Status.Dispute) {
             _freeLancerAudit(gigId);
         } else {
-            revert("Invalid status");
+            revert InvalidStatusChange();
         }
 
         emit GigStatusUpdated(gigId, newStatus);

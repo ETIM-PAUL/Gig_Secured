@@ -9,7 +9,7 @@ contract CounterTest is Test {
     address _governance = address(0x124);
 
     function setUp() public {
-        audit = new Audit(_governance);
+        audit = new Audit();
     }
 
     function test_Increment() public {}

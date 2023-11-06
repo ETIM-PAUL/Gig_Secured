@@ -12,10 +12,12 @@ contract Audit {
         uint32 confirmationTime;
     }
 
-    address private _owner;
     Auditor[] public auditors;
     mapping(address => Auditor) public auditor_;
+    mapping(address => bool) private _auditorAdmins;
     mapping(address => bool) public gigContractAddresses;
+
+    address private _governanceContract;
 
     //events
     event AuditorRemoved(address indexed removedAuditor);
@@ -38,40 +40,26 @@ contract Audit {
     error NotOwner();
     error NoGigForAuditor();
 
-    // Address of the governance contract
-    address private _governanceContract;
-    address private _gigContract;
-
-    constructor(address _governance) {
-        if (_governance == address(0)) {
-            revert ZeroAddress();
-        }
-        _governanceContract = _governance;
-        _owner = msg.sender;
+    constructor() {
+        _auditorAdmins[msg.sender] = true;
     }
 
     //modifiers
 
     modifier onlyGovernance() {
-        if (msg.sender != _governanceContract) {
-            revert OnlyGovernanceAllowed();
-        }
+        require(
+            _auditorAdmins[msg.sender] || _governanceContract == msg.sender,
+            "Only Governance or An Admin"
+        );
         _;
     }
 
     modifier onlyPermittedAccounts() {
         bool isGigContract = gigContractAddresses[msg.sender];
         require(
-            msg.sender == _governanceContract || isGigContract,
+            _auditorAdmins[msg.sender] || isGigContract,
             "Only Governance or Gig Contract Owner"
         );
-        _;
-    }
-
-    modifier onlyOwner() {
-        if (msg.sender != _owner) {
-            revert NotOwner();
-        }
         _;
     }
 
@@ -102,9 +90,7 @@ contract Audit {
         gigContractAddresses[childContractAddress] = true;
     }
 
-    function confirmAuditor(
-        address _auditorAddr
-    ) external onlyOwner onlyGovernance {
+    function confirmAuditor(address _auditorAddr) external onlyGovernance {
         if (auditor_[_auditorAddr].isConfirmed == true) {
             revert AlreadyConfirmed();
         }
@@ -225,5 +211,15 @@ contract Audit {
         }
 
         auditorToEdit.currentGigs -= 1;
+    }
+
+    function addAuditorAdmin(address _auditorAdmin) external onlyGovernance {
+        _auditorAdmins[_auditorAdmin] = true;
+    }
+
+    function setGovernanceContract(
+        address _governance
+    ) external onlyPermittedAccounts {
+        _governanceContract = _governance;
     }
 }
