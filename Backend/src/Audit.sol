@@ -17,7 +17,13 @@ contract Audit {
     mapping(address => bool) private _auditorAdmins;
     mapping(address => bool) public gigContractAddresses;
 
-    address private _governanceContract;
+    uint256 public auditorsCount;
+
+    Auditor[] private _auditorsTobeSelected;
+
+    mapping(string => Auditor[]) public auditorsByCategory;
+
+    address _governanceContract;
 
     //events
     event AuditorRemoved(address indexed removedAuditor);
@@ -73,7 +79,7 @@ contract Audit {
             _auditor: msg.sender,
             currentGigs: 0,
             isConfirmed: false,
-            confirmationTime: uint32(block.timestamp)
+            confirmationTime: 0
         });
 
         auditors.push(newAuditor);
@@ -99,41 +105,47 @@ contract Audit {
             revert ZeroAddress();
         }
 
+        auditorsCount++;
         auditor_[_auditorAddr].isConfirmed = true;
+        auditor_[_auditorAddr].confirmationTime = uint32(block.timestamp);
+
         emit AuditorConfirmed(_auditorAddr);
+    }
+
+    function checkAuditorStatus(
+        address _auditor
+    ) external view returns (bool isAuditorConfirmed) {
+        isAuditorConfirmed = auditor_[_auditor].isConfirmed;
     }
 
     function getAuditorByCategory(
         string memory _category
-    ) external view returns (address selectedAuditor) {
-        uint32 earliestConfirmationTime = type(uint32).max;
-        bool foundCategory = false;
+    ) external returns (address selectedAuditor) {
+        uint256 earliestConfirmationTime = type(uint32).max; // Initialize earliestConfirmationTime to the maximum value of uint256
+        bool notFound = true;
 
-        for (uint i = 0; i < auditors.length; i++) {
+        for (uint256 i = 0; i < auditorsCount; ++i) {
             if (
-                keccak256(abi.encodePacked(auditors[i].category)) ==
-                keccak256(abi.encodePacked(_category))
+                keccak256(abi.encode(auditors[i].category)) ==
+                keccak256(abi.encode(_category))
             ) {
-                foundCategory = true;
-                if (
-                    auditors[i].isConfirmed &&
-                    auditors[i].confirmationTime < earliestConfirmationTime
-                ) {
-                    selectedAuditor = auditors[i]._auditor;
-                    earliestConfirmationTime = auditors[i].confirmationTime;
-                }
+                _auditorsTobeSelected.push(auditor_[auditors[i]._auditor]);
             }
         }
 
-        if (!foundCategory) {
-            // If no auditor is found, assign governance
-            selectedAuditor = _governanceContract;
-        } else if (earliestConfirmationTime == type(uint32).max) {
-            // If foundCategory is true but no confirmed auditor is found, assign it to governance
-            selectedAuditor = _governanceContract;
+        for (uint i = 0; i < _auditorsTobeSelected.length; ++i) {
+            if (
+                _auditorsTobeSelected[i].isConfirmed &&
+                _auditorsTobeSelected[i].currentGigs == 0 &&
+                _auditorsTobeSelected[i].confirmationTime <
+                earliestConfirmationTime
+            ) {
+                selectedAuditor = _auditorsTobeSelected[i]._auditor; // Update selectedAuditor with the auditor address
+                notFound = true;
+                earliestConfirmationTime = _auditorsTobeSelected[i]
+                    .confirmationTime; // Update earliestConfirmationTime with the new minimum confirmation time
+            }
         }
-
-        return selectedAuditor;
     }
 
     function removeAuditor(address _auditor) external onlyGovernance {
@@ -211,6 +223,13 @@ contract Audit {
         }
 
         auditorToEdit.currentGigs -= 1;
+    }
+
+    function getAuditorByAddress(
+        address _auditor
+    ) external view returns (uint currentGigs) {
+        Auditor memory auditor = auditor_[_auditor];
+        return auditor.currentGigs;
     }
 
     function addAuditorAdmin(address _auditorAdmin) external onlyGovernance {
