@@ -34,6 +34,11 @@ contract GigSecured {
         address creator;
     }
 
+    struct AuditorContracts {
+        address contractInstance;
+        uint id;
+    }
+
     enum Status {
         Pending,
         Building,
@@ -49,7 +54,7 @@ contract GigSecured {
     address _usdcAddress;
     address _auditContract;
 
-    mapping(uint256 => GigContract) private _allGigs;
+    mapping(uint256 => GigContract) public _allGigs;
 
     error AtLeastAnHour();
     error InvalidFreelancer(address freeLancer);
@@ -339,10 +344,14 @@ contract GigSecured {
     }
 
     function _assignAuditor(
-        string memory category
+        string memory category,
+        uint gigId
     ) internal returns (address auditor) {
+        AuditorContracts memory _aud;
+        _aud.contractInstance = address(this);
+        _aud.id = gigId;
         auditor = IAudit(_auditContract).getAuditorByCategory(category);
-        IAudit(_auditContract).increaseAuditorCurrentGigs(auditor);
+        IAudit(_auditContract).increaseAuditorCurrentGigs(auditor, _aud);
     }
 
     function clientUpdateGig(
@@ -368,7 +377,7 @@ contract GigSecured {
         }
         if (newStatus == Status.Dispute) {
             gig.isAudit = true;
-            address _auditor = _assignAuditor(gig.category);
+            address _auditor = _assignAuditor(gig.category, gigId);
             gig.auditor = _auditor;
         }
 
@@ -412,7 +421,7 @@ contract GigSecured {
 
     function _freeLancerAudit(uint256 gigId) internal {
         GigContract storage gig = _allGigs[gigId];
-        address _auditor = _assignAuditor(gig.category);
+        address _auditor = _assignAuditor(gig.category, gigId);
         gig.auditor = _auditor;
         gig.isAudit = true;
 

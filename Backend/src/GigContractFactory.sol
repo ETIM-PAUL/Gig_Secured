@@ -10,11 +10,16 @@ contract GigContractFactory {
     /**
      * @dev STATE VARIABLE
      */
+    struct GigContracts {
+        address creator;
+    }
     address[] _gigSecuredContracts;
     address _auditorsContract;
     address _usdcContract;
     address _owner;
     mapping(address => bool) _gigContractExist;
+    mapping(address => bool) private _haveCreated;
+    mapping(address => address) private _creatorContractAddress;
 
     event GigContractCreated(address indexed creator, address indexed factory);
 
@@ -38,11 +43,14 @@ contract GigContractFactory {
         external
         returns (GigSecured newGigSecuredContract)
     {
+        require(_haveCreated[msg.sender] == false, "Already Created");
         newGigSecuredContract = new GigSecured(
             _auditorsContract,
             address(this),
             _usdcContract
         );
+        _haveCreated[msg.sender] = true;
+        _creatorContractAddress[msg.sender] = address(newGigSecuredContract);
         _gigSecuredContracts.push(address(newGigSecuredContract));
         _gigContractExist[address(newGigSecuredContract)] = true;
         IAudit(_auditorsContract).addGigContractAddresses(
@@ -59,9 +67,9 @@ contract GigContractFactory {
         IAudit(_auditorsContract).removeAuditor(_auditor);
     }
 
-    function increaseAnAuditorGigs(address _auditor) external onlyOwner {
-        IAudit(_auditorsContract).removeAuditor(_auditor);
-    }
+    // function increaseAnAuditorGigs(address _auditor) external onlyOwner {
+    //     IAudit(_auditorsContract).removeAuditor(_auditor);
+    // }
 
     function decreaseAnAuditorGigs(address _auditor) external onlyOwner {
         IAudit(_auditorsContract).removeAuditor(_auditor);
@@ -89,5 +97,13 @@ contract GigContractFactory {
             gigContractId,
             percentToAward
         );
+    }
+
+    function getCreatorSystem()
+        external
+        view
+        returns (address _gigCreatorSystem)
+    {
+        _gigCreatorSystem = _creatorContractAddress[msg.sender];
     }
 }

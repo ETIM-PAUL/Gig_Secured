@@ -10,6 +10,12 @@ contract Audit {
         uint currentGigs;
         bool isConfirmed;
         uint32 confirmationTime;
+        AuditorContracts[] contractsAddress;
+    }
+
+    struct AuditorContracts {
+        address contractInstance;
+        uint id;
     }
 
     Auditor[] public auditors;
@@ -79,7 +85,8 @@ contract Audit {
             _auditor: msg.sender,
             currentGigs: 0,
             isConfirmed: false,
-            confirmationTime: 0
+            confirmationTime: 0,
+            contractsAddress: []
         });
 
         auditors.push(newAuditor);
@@ -121,6 +128,7 @@ contract Audit {
     function getAuditorByCategory(
         string memory _category
     ) external returns (address selectedAuditor) {
+        selectedAuditor = _governanceContract;
         uint256 earliestConfirmationTime = type(uint32).max; // Initialize earliestConfirmationTime to the maximum value of uint256
         bool notFound = true;
 
@@ -201,7 +209,8 @@ contract Audit {
     }
 
     function increaseAuditorCurrentGigs(
-        address _auditor
+        address _auditor,
+        AuditorContracts memory _auditorContract
     ) external onlyPermittedAccounts {
         if (_auditor == address(0)) {
             revert ZeroAddress();
@@ -209,6 +218,7 @@ contract Audit {
 
         Auditor storage auditorToEdit = auditor_[_auditor];
         auditorToEdit.currentGigs += 1;
+        auditorToEdit.contractsAddress.push(_auditorContract);
     }
 
     function decreaseAuditorCurrentGigs(
@@ -238,7 +248,7 @@ contract Audit {
 
     function setGovernanceContract(
         address _governance
-    ) external onlyPermittedAccounts {
+    ) external onlyGovernance {
         _governanceContract = _governance;
     }
 }
