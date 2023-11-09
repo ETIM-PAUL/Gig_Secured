@@ -8,11 +8,6 @@ import { useRouter } from 'next/navigation'
 export default function Layout({ children }) {
   const { isConnected, provider } = Auth();
   const router = useRouter()
-  // useEffect(() => {
-  //   if (!isConnected || Object.keys(provider).length === 0) {
-  //     router.push('/');
-  //   }
-  // })
   return (
     <main className='bg-white'>
       <section className="h-screen flex">

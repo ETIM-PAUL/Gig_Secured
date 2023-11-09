@@ -27,13 +27,13 @@ export default function AllContracts() {
 
         { }
         <div className="my-10 flex gap-6 flex-wrap">
-          {contracts.map((item) => (
-            <div key={item} className="card w-96 bg-white border shadow-md border-black flex-grow text-black">
+          {contracts.map((item, index) => (
+            <div key={index} className="card w-96 bg-white border shadow-md border-black flex-grow text-black">
               <div className="card-body">
                 <h2 className="card-title">Writing Fiction Story!</h2>
                 <p>Write Five(5) chapters, with each having at least 2000 words about any fiction story </p>
                 <div className="card-actions justify-end">
-                  <Link href={`/contracts/view_contract?id=${1}`}>
+                  <Link href={`/contracts/view?id=${index + 1}`}>
                     <button className="btn">More Details</button>
                   </Link>
                 </div>
