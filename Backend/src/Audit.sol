@@ -86,7 +86,7 @@ contract Audit {
             currentGigs: 0,
             isConfirmed: false,
             confirmationTime: 0,
-            contractsAddress: []
+            contractsAddress: new AuditorContracts[](0)
         });
 
         auditors.push(newAuditor);
@@ -210,13 +210,18 @@ contract Audit {
 
     function increaseAuditorCurrentGigs(
         address _auditor,
-        AuditorContracts memory _auditorContract
+        address _gigContract,
+        uint _gigId
     ) external onlyPermittedAccounts {
         if (_auditor == address(0)) {
             revert ZeroAddress();
         }
 
         Auditor storage auditorToEdit = auditor_[_auditor];
+        AuditorContracts memory _auditorContract;
+        _auditorContract.contractInstance = _gigContract;
+        _auditorContract.id = _gigId;
+
         auditorToEdit.currentGigs += 1;
         auditorToEdit.contractsAddress.push(_auditorContract);
     }
@@ -237,9 +242,9 @@ contract Audit {
 
     function getAuditorByAddress(
         address _auditor
-    ) external view returns (uint currentGigs) {
+    ) external view returns (Auditor memory) {
         Auditor memory auditor = auditor_[_auditor];
-        return auditor.currentGigs;
+        return auditor;
     }
 
     function addAuditorAdmin(address _auditorAdmin) external onlyGovernance {

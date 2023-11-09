@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 import {EscrowUtils} from "./library/EscrowLibrary.sol";
 import {IAudit} from "./interface/IAudit.sol";
+import {IFactory} from "./interface/IFactory.sol";
 import {IERC20} from "./interface/IERC20.sol";
 
 /**
@@ -19,7 +20,7 @@ import {IERC20} from "./interface/IERC20.sol";
  * @author [Author Name]
  * @notice This contract is provided under the MIT License.
  */
- contract GigSecured {
+contract GigSecured {
     event GigContractCreated(string title, address creator, address freelancer);
     event GigStatusUpdated(uint gigId, Status newStatus);
     event GigDeadlineUpdated(uint gigId, uint newDeadline);
@@ -30,7 +31,7 @@ import {IERC20} from "./interface/IERC20.sol";
         address newFreelancerAddress
     );
 
-/**
+    /**
  * @title GigSecured
  * @dev This contract manages secured gig contracts, providing a platform for clients, 
  freelancers, and auditors to engage in gig-related transactions. It enforces rules, 
@@ -47,7 +48,7 @@ import {IERC20} from "./interface/IERC20.sol";
  * @param _governanceAddress The address of the governance authority responsible for contract management.
  * @param _usdcAddress The address of the USDC token contract used for payments.
  * @param _auditContract The address of the IAudit contract responsible for audit functionality.
- */    
+ */
     struct GigContract {
         string title;
         string category;
@@ -68,11 +69,6 @@ import {IERC20} from "./interface/IERC20.sol";
         address creator;
     }
 
-    struct AuditorContracts {
-        address contractInstance;
-        uint id;
-    }
-
     enum Status {
         Pending,
         Building,
@@ -89,6 +85,7 @@ import {IERC20} from "./interface/IERC20.sol";
     address _auditContract;
 
     mapping(uint256 => GigContract) public _allGigs;
+    GigContract[] _contractGigs;
 
     error AtLeastAnHour();
     error InvalidFreelancer(address freeLancer);
@@ -108,12 +105,12 @@ import {IERC20} from "./interface/IERC20.sol";
     error DeadlineHasPassedForCompletion();
     error TooSoonToDispute();
 
-/**
- * @notice Constructor to initialize the GigSecured contract with essential addresses.
- * @param auditContract The address of the IAudit contract for audit functionality.
- * @param governance The address of the governance authority responsible for contract management.
- * @param usdcAddress The address of the USDC token contract used for payments.
- */
+    /**
+     * @notice Constructor to initialize the GigSecured contract with essential addresses.
+     * @param auditContract The address of the IAudit contract for audit functionality.
+     * @param governance The address of the governance authority responsible for contract management.
+     * @param usdcAddress The address of the USDC token contract used for payments.
+     */
     constructor(
         address auditContract,
         address governance,
@@ -124,19 +121,19 @@ import {IERC20} from "./interface/IERC20.sol";
         _usdcAddress = usdcAddress;
     }
 
-/**
+    /**
  * @dev Modifier to restrict access to clients only.
  * @param gigId The unique identifier of the gig contract to check.
  * @notice It checks whether the sender of the transaction is the creator (client) of the specified 
  gig contract. If not, it raises a "Not Client" error.
- */   
+ */
     modifier onlyClient(uint gigId) {
         GigContract storage _newGigContract = _allGigs[gigId];
         require(msg.sender == _newGigContract.creator, "Not Client");
         _;
     }
 
-/**
+    /**
  * @dev Modifier to restrict access to the governance authority.
  * @notice It checks whether the sender of the transaction is the governance authority's address.
   If not, it raises an "Only Governance" error.
@@ -146,7 +143,7 @@ import {IERC20} from "./interface/IERC20.sol";
         _;
     }
 
-/**
+    /**
  * @dev Modifier to restrict access to permitted accounts (governance or client).
  * @param gigId The unique identifier of the gig contract to check.
  * @notice It checks whether the sender of the transaction is either the governance authority or
@@ -162,7 +159,7 @@ import {IERC20} from "./interface/IERC20.sol";
         _;
     }
 
-/**
+    /**
  * @dev Modifier to restrict access to permitted administrators.
  * @param gigId The unique identifier of the gig contract to check.
  * @notice It checks whether the sender of the transaction is either the governance authority
@@ -179,7 +176,7 @@ import {IERC20} from "./interface/IERC20.sol";
         _;
     }
 
-/**
+    /**
  * @dev Modifier to restrict access to freelancers only.
  * @param gigId The unique identifier of the gig contract to check.
  * @notice It checks whether the sender of the transaction is the assigned freelancer for the 
@@ -191,19 +188,19 @@ import {IERC20} from "./interface/IERC20.sol";
         _;
     }
 
-/**
+    /**
  * @dev Modifier to restrict access to auditors only.
  * @param gigId The unique identifier of the gig contract to check.
  * @notice It checks whether the sender of the transaction is the assigned auditor for the specified 
  gig contract. If not, it raises a "Not Auditor" error.
- */    
+ */
     modifier onlyAuditor(uint gigId) {
         GigContract storage _newGigContract = _allGigs[gigId];
         require(msg.sender == _newGigContract.auditor, "Not Auditor");
         _;
     }
 
-/***
+    /***
  * @dev Create a new gig contract.
  *
  * @param _title The title of the gig.
@@ -269,11 +266,16 @@ import {IERC20} from "./interface/IERC20.sol";
         _newGigContract.freeLancer = _freelancer;
 
         gigContract = true;
+        IFactory(_governanceAddress).increaseFreelancerCurrentGigs(
+            _freelancer,
+            address(this),
+            _gigs
+        );
 
         emit GigContractCreated(_title, msg.sender, _freelancer);
     }
 
-/***
+    /***
  * @dev Freelancer signs the gig contract.
  *
  * @param _freelancerSign The signature provided by the freelancer to sign the gig contract.
@@ -309,22 +311,22 @@ import {IERC20} from "./interface/IERC20.sol";
         }
     }
 
-/***
- * @dev Edit the deadline of a gig contract.
- *
- * @param gigId The identifier of the gig contract to be edited.
- * @param newDeadline The new deadline for the gig contract (in seconds since Unix epoch).
- *
- * @dev This function allows the client to edit the deadline of a pending gig contract.
- *
- * @notice The function reverts if the new deadline is in the past.
- * @notice The function reverts if the gig contract is not in a pending status.
- * @notice The new deadline must be at least an hour in the future.
- *
- * @param DeadlineInPast The function reverts if the new deadline is in the past.
- * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
- * @param AtLeastAnHour The function reverts if the new deadline is less than an hour from the current time.
- */
+    /***
+     * @dev Edit the deadline of a gig contract.
+     *
+     * @param gigId The identifier of the gig contract to be edited.
+     * @param newDeadline The new deadline for the gig contract (in seconds since Unix epoch).
+     *
+     * @dev This function allows the client to edit the deadline of a pending gig contract.
+     *
+     * @notice The function reverts if the new deadline is in the past.
+     * @notice The function reverts if the gig contract is not in a pending status.
+     * @notice The new deadline must be at least an hour in the future.
+     *
+     * @param DeadlineInPast The function reverts if the new deadline is in the past.
+     * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
+     * @param AtLeastAnHour The function reverts if the new deadline is less than an hour from the current time.
+     */
     function editGigDeadline(
         uint256 gigId,
         uint256 newDeadline
@@ -344,20 +346,20 @@ import {IERC20} from "./interface/IERC20.sol";
         emit GigDeadlineUpdated(gigId, newDeadline);
     }
 
-/***
- * @dev Edit the title of a gig contract.
- *
- * @param gigId The identifier of the gig contract to be edited.
- * @param newTitle The new title for the gig contract.
- *
- * @dev This function allows the client to edit the title of a pending gig contract.
- *
- * @notice The function reverts if the gig contract is not in a pending status.
- * @notice The new title must not be empty.
- *
- * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
- * @param EmptyTitle The function reverts if the new title is empty.
- */
+    /***
+     * @dev Edit the title of a gig contract.
+     *
+     * @param gigId The identifier of the gig contract to be edited.
+     * @param newTitle The new title for the gig contract.
+     *
+     * @dev This function allows the client to edit the title of a pending gig contract.
+     *
+     * @notice The function reverts if the gig contract is not in a pending status.
+     * @notice The new title must not be empty.
+     *
+     * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
+     * @param EmptyTitle The function reverts if the new title is empty.
+     */
     function editGigTitle(
         uint gigId,
         string memory newTitle
@@ -373,20 +375,20 @@ import {IERC20} from "./interface/IERC20.sol";
         gig.title = newTitle;
     }
 
-/***
- * @dev Edit the description of a gig contract.
- *
- * @param gigId The identifier of the gig contract to be edited.
- * @param newDescription The new description for the gig contract.
- *
- * @dev This function allows the client to edit the description of a pending gig contract.
- *
- * @notice The function reverts if the gig contract is not in a pending status.
- * @notice The new description must not be empty.
- *
- * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
- * @param EmptyDescription The function reverts if the new description is empty.
- */
+    /***
+     * @dev Edit the description of a gig contract.
+     *
+     * @param gigId The identifier of the gig contract to be edited.
+     * @param newDescription The new description for the gig contract.
+     *
+     * @dev This function allows the client to edit the description of a pending gig contract.
+     *
+     * @notice The function reverts if the gig contract is not in a pending status.
+     * @notice The new description must not be empty.
+     *
+     * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
+     * @param EmptyDescription The function reverts if the new description is empty.
+     */
     function editGigDescription(
         uint gigId,
         string memory newDescription
@@ -401,20 +403,20 @@ import {IERC20} from "./interface/IERC20.sol";
         gig.description = newDescription;
     }
 
-/***
- * @dev Edit the category of a gig contract.
- *
- * @param gigId The identifier of the gig contract to be edited.
- * @param newCategory The new category for the gig contract.
- *
- * @dev This function allows the client to edit the category of a pending gig contract.
- *
- * @notice The function reverts if the gig contract is not in a pending status.
- * @notice The new category must not be empty.
- *
- * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
- * @param EmptyCategory The function reverts if the new category is empty.
- */
+    /***
+     * @dev Edit the category of a gig contract.
+     *
+     * @param gigId The identifier of the gig contract to be edited.
+     * @param newCategory The new category for the gig contract.
+     *
+     * @dev This function allows the client to edit the category of a pending gig contract.
+     *
+     * @notice The function reverts if the gig contract is not in a pending status.
+     * @notice The new category must not be empty.
+     *
+     * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
+     * @param EmptyCategory The function reverts if the new category is empty.
+     */
     function editGigCategory(
         uint gigId,
         string memory newCategory
@@ -430,20 +432,20 @@ import {IERC20} from "./interface/IERC20.sol";
         gig.category = newCategory;
     }
 
-/***
- * @dev Edit the freelancer details of a gig contract.
- *
- * @param gigId The identifier of the gig contract to be edited.
- * @param newFreelancerName The new name of the freelancer.
- * @param newFreelancerEmail The new email of the freelancer.
- * @param newFreelancerAddress The new address of the freelancer.
- *
- * @dev This function allows the client to edit the freelancer details of a pending gig contract.
- *
- * @notice The function reverts if the gig contract is not in a pending status.
- *
- * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
- */
+    /***
+     * @dev Edit the freelancer details of a gig contract.
+     *
+     * @param gigId The identifier of the gig contract to be edited.
+     * @param newFreelancerName The new name of the freelancer.
+     * @param newFreelancerEmail The new email of the freelancer.
+     * @param newFreelancerAddress The new address of the freelancer.
+     *
+     * @dev This function allows the client to edit the freelancer details of a pending gig contract.
+     *
+     * @notice The function reverts if the gig contract is not in a pending status.
+     *
+     * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
+     */
     function editGigFreelancer(
         uint256 gigId,
         string memory newFreelancerName,
@@ -466,16 +468,16 @@ import {IERC20} from "./interface/IERC20.sol";
         );
     }
 
-/***
- * @dev Update the status of a gig contract.
- *
- * @param _id The identifier of the gig contract to be updated.
- * @param _status The new status to set for the gig contract.
- *
- * @dev This function allows the creator or freelancer to update the status of a gig contract.
- *
- * @param Status The new status to set for the gig contract. It should be one of the predefined status values.
- */
+    /***
+     * @dev Update the status of a gig contract.
+     *
+     * @param _id The identifier of the gig contract to be updated.
+     * @param _status The new status to set for the gig contract.
+     *
+     * @dev This function allows the creator or freelancer to update the status of a gig contract.
+     *
+     * @param Status The new status to set for the gig contract. It should be one of the predefined status values.
+     */
     function updateGig(uint _id, Status _status) public {
         GigContract storage _newGigContract = _allGigs[_id];
         if (_newGigContract.creator == msg.sender) {
@@ -486,7 +488,7 @@ import {IERC20} from "./interface/IERC20.sol";
         }
     }
 
-/***
+    /***
  * @dev Perform the payment and fee distribution for a closed gig contract.
  *
  * @param gigId The identifier of the gig contract for which payment is being processed.
@@ -519,7 +521,7 @@ import {IERC20} from "./interface/IERC20.sol";
         require(successRemitClient && successPayFreelancer, "Payment Failed");
     }
 
-/***
+    /***
  * @dev Perform payment and fee distribution after an auditor settles a gig.
  *
  * @param gigId The identifier of the gig contract for which payment is being processed.
@@ -572,7 +574,7 @@ import {IERC20} from "./interface/IERC20.sol";
         require(successPayAuditor && successPayFreelancer, "Payment Failed");
     }
 
-/**
+    /**
  * @dev Assign an auditor based on the specified category.
  *
  * @param category The category for which an auditor is being assigned.
@@ -586,14 +588,15 @@ import {IERC20} from "./interface/IERC20.sol";
         string memory category,
         uint gigId
     ) internal returns (address auditor) {
-        AuditorContracts memory _aud;
-        _aud.contractInstance = address(this);
-        _aud.id = gigId;
         auditor = IAudit(_auditContract).getAuditorByCategory(category);
-        IAudit(_auditContract).increaseAuditorCurrentGigs(auditor, _aud);
+        IAudit(_auditContract).increaseAuditorCurrentGigs(
+            auditor,
+            address(this),
+            gigId
+        );
     }
 
-/***
+    /***
  * @dev Update the status of a gig contract by the client.
  *
  * @param newStatus The new status to set for the gig contract.
@@ -642,22 +645,22 @@ import {IERC20} from "./interface/IERC20.sol";
         success = true;
     }
 
-/***
- * @dev Update the status of a gig contract by the freelancer.
- *
- * @param gigId The identifier of the gig contract to be updated.
- * @param newStatus The new status to set for the gig contract.
- *
- * @dev This function allows the freelancer to update the status of a gig contract, potentially changing it to "Building," "Completed," or "Dispute."
- *
- * @notice The function reverts if the status change is not valid according to the contract conditions.
- *
- * @param MustSignBeforeStartBuilding The function reverts if trying to set the status to "Building" without signing.
- * @param DeadlineHasPassedForBuilding The function reverts if trying to set the status to "Building" after the deadline has passed.
- * @param DeadlineHasPassedForCompletion The function reverts if trying to set the status to "Completed" after the deadline has passed.
- * @param TooSoonToDispute The function reverts if trying to set the status to "Dispute" before the settlement time.
- * @param InvalidStatusChange The function reverts if the requested status change is not valid.
- */
+    /***
+     * @dev Update the status of a gig contract by the freelancer.
+     *
+     * @param gigId The identifier of the gig contract to be updated.
+     * @param newStatus The new status to set for the gig contract.
+     *
+     * @dev This function allows the freelancer to update the status of a gig contract, potentially changing it to "Building," "Completed," or "Dispute."
+     *
+     * @notice The function reverts if the status change is not valid according to the contract conditions.
+     *
+     * @param MustSignBeforeStartBuilding The function reverts if trying to set the status to "Building" without signing.
+     * @param DeadlineHasPassedForBuilding The function reverts if trying to set the status to "Building" after the deadline has passed.
+     * @param DeadlineHasPassedForCompletion The function reverts if trying to set the status to "Completed" after the deadline has passed.
+     * @param TooSoonToDispute The function reverts if trying to set the status to "Dispute" before the settlement time.
+     * @param InvalidStatusChange The function reverts if the requested status change is not valid.
+     */
     function freeLancerUpdateGig(
         uint256 gigId,
         Status newStatus
@@ -692,7 +695,7 @@ import {IERC20} from "./interface/IERC20.sol";
         emit GigStatusUpdated(gigId, newStatus);
     }
 
-/**
+    /**
  * @dev Initiate an audit by assigning an auditor for a gig contract in dispute.
  *
  * @param gigId The identifier of the gig contract for which an audit is initiated.
@@ -709,7 +712,7 @@ import {IERC20} from "./interface/IERC20.sol";
         gig._status = Status.Dispute;
     }
 
-/***
+    /***
  * @dev Force closure of a gig contract under specific conditions.
  *
  * @param gigId The identifier of the gig contract to be forcefully closed.
@@ -744,16 +747,20 @@ import {IERC20} from "./interface/IERC20.sol";
         }
     }
 
-/**
- * @dev Get the details of a gig contract by its identifier.
- *
- * @param _gigId The identifier of the gig contract to retrieve details for.
- *
- * @return gigContract A struct containing the details of the specified gig contract.
- *
- * @dev This function allows anyone to retrieve the details of a gig contract by providing its identifier.
- */
+    /**
+     * @dev Get the details of a gig contract by its identifier.
+     *
+     * @param _gigId The identifier of the gig contract to retrieve details for.
+     *
+     * @return gigContract A struct containing the details of the specified gig contract.
+     *
+     * @dev This function allows anyone to retrieve the details of a gig contract by providing its identifier.
+     */
     function getGig(uint256 _gigId) public view returns (GigContract memory) {
         return _allGigs[_gigId];
+    }
+
+    function getAllGigs() public view returns (GigContract[] memory) {
+        return _contractGigs;
     }
 }

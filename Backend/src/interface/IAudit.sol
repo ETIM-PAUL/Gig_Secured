@@ -15,7 +15,8 @@ interface IAudit {
 
     function increaseAuditorCurrentGigs(
         address _auditor,
-        AuditorContracts memory _contractAddresses
+        address gigContract,
+        uint _gigId
     ) external;
 
     function decreaseAuditorCurrentGigs(address _auditor) external;

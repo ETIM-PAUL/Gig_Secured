@@ -29,7 +29,7 @@ export default function ViewContract() {
       </div>
 
       <div className={`mb-0 flex justify-center gap-4 flex-col-reverse md:flex-row items-start pt-10 w-full h-full mx-0 p-0`}>
-        <div className="flex-col gap-4 px-7 py-7 mx-4 sm:mx-0  w-full bg-white my-0 h-fit border-dashed border-r border-2 border-black">
+        <div className="flex-col gap-4 px-7 py-7 mx-4 sm:mx-0  w-full bg-white my-0 h-fit border-dashed border-2 border-black">
           <div
             className=""
           >
