@@ -1,9 +1,21 @@
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
 import { PiArrowLeftBold } from 'react-icons/pi';
 
 export default function ViewAudit() {
   const router = useRouter();
+
+  const [progress, setProgress] = useState([0, 0, 0, 0]);
+
+  const handleBoxClick = (index) => {
+    // Create a new array to represent the updated progress
+    const newProgress = Array(4).fill(0);
+
+    // Set the progress status of the clicked box to 100%
+    newProgress[index] = 100;
+
+    setProgress(newProgress);
+  };
   return (
     <div className='w-[96%] text-black'>
       <div className='flex gap-4 items-center pt-16'>
@@ -25,10 +37,6 @@ export default function ViewAudit() {
             <span className='py-1 rounded-md bg-white px-2 mb-2 block w-fit'>
               building
             </span>
-            <div className='flex items-center gap-2'>
-              <span>Freelancer Address:</span>
-              <span>0x534627</span>
-            </div>
           </div>
         </div>
       </div>
@@ -46,6 +54,23 @@ export default function ViewAudit() {
             deserunt, accusantium assumenda nemo maiores odit libero cupiditate
             in quam voluptates delectus nihil nisi quis voluptatibus culpa
             deleniti. Assumenda iusto accusantium ex odit porro itaque iure.
+          </div>
+          <div className='flex'>
+            {progress.map((percentage, index) => (
+              <div
+                key={index}
+                className='w-1/4 p-2 cursor-pointer '
+                onClick={() => handleBoxClick(index)}
+              >
+                <div className='relative h-10 bg-gray-200 flex justify-center items-center'>
+                  <div className='text-center mt-2'>{20 + index * 20}</div>
+                  <div
+                    className='absolute h-full bg-blue-500 '
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
