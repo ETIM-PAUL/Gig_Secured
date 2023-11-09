@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { PiArrowLeftBold } from 'react-icons/pi';
 import { useRouter } from 'next/navigation';
 
-export default function CreateContract() {
+export default function CreateBecomeAuditor() {
   const router = useRouter();
   const [submitLoading, setSubmitLoading] = useState(false);
   const [termModal, setTermModal] = useState(false);
@@ -14,13 +14,7 @@ export default function CreateContract() {
   const schema = yup
     .object({
       email: yup.string().email().required(),
-      name: yup.string().required(),
-      title: yup.string().required(),
       category: yup.string().required(),
-      description: yup.string().required(),
-      freelancer: yup.string().required(),
-      deadline: yup.string().required(),
-      price: yup.string().required(),
       terms: yup
         .bool()
         .oneOf([true], 'You need to accept the terms and conditions'),
@@ -69,11 +63,10 @@ export default function CreateContract() {
             className={`bg-[#D9D9D9] personal_savings_card p-6 flex flex-col gap-4 justify-between w-full cursor-pointer `}
           >
             <span className='text-[20px] tracking-[0.085px] leading-5'>
-              Create a Gig Secured Contract
+              Start Your Journey as an Auditor
             </span>
             <span className='grotesk_font text-base tracking-[0.085px] leading-5'>
-              Use this form to create a secured contract between you and a
-              freelancer
+              Fill this form to become an auditor!
             </span>
           </div>
         </div>
@@ -81,18 +74,6 @@ export default function CreateContract() {
         {/* form */}
         <div className='my-12'>
           <div className='grid md:flex gap-5 w-full mb-5'>
-            <div className='grid space-y-2 w-full'>
-              <label>Your Name</label>
-              <input
-                {...register('name')}
-                type='text'
-                placeholder='Please Enter Your Name'
-                className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
-              />
-              <p className='text-field-error italic text-red-500'>
-                {errors.name?.message}
-              </p>
-            </div>
             <div className='grid space-y-2 w-full'>
               <label>Your Email</label>
               <input
@@ -107,18 +88,6 @@ export default function CreateContract() {
             </div>
           </div>
           <div className='grid md:flex gap-5 w-full mb-5'>
-            <div className='grid space-y-2 w-full'>
-              <label>Title</label>
-              <input
-                {...register('title')}
-                type='text'
-                placeholder='Contract Title'
-                className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
-              />
-              <p className='text-field-error italic text-red-500'>
-                {errors.title?.message}
-              </p>
-            </div>
             <div className='grid space-y-2 w-full'>
               <label>Category</label>
               <select
@@ -139,60 +108,7 @@ export default function CreateContract() {
               </p>
             </div>
           </div>
-          <div className='grid md:flex gap-5 w-full mb-5'>
-            <div className='grid space-y-2 w-full'>
-              <label>Deadline</label>
-              <input
-                {...register('deadline')}
-                type='date'
-                className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
-              />
-              <p className='text-field-error italic text-red-500'>
-                {errors.deadline?.message}
-              </p>
-            </div>
-            <div className='grid space-y-2 w-full'>
-              <label>Price</label>
-              <input
-                {...register('price')}
-                type='text'
-                placeholder='Please add a Base Fee. Please review terms and conditions'
-                className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
-              />
-              <p className='text-field-error italic text-red-500'>
-                {errors.price?.message}
-              </p>
-            </div>
-          </div>
-          <div className='grid md:flex gap-5 w-full mb-10'>
-            <div className='w-full mt-2 space-y-2'>
-              <label>A short description for your contract</label>
-              <textarea
-                {...register('description')}
-                type='text'
-                placeholder='Short Description'
-                className='input input-bordered bg-white border-[#696969] w-full max-w-full h-full'
-                rows={4}
-                cols={4}
-              />
-              <p className='text-field-error italic text-red-500'>
-                {errors.description?.message}
-              </p>
-            </div>
-            <div className='block space-y-2 w-full'>
-              <label>Freelancer Wallet Address</label>
-              <input
-                {...register('freelancer')}
-                type='text'
-                placeholder='Please add a Valid Freelancer Wallet Address'
-                className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
-              />
-              <p className='text-field-error italic text-red-500'>
-                {errors.freelancer?.message}
-              </p>
-            </div>
-          </div>
-          <div className='grid space-y-2 pt-4 w-full'>
+          <div className='grid space-y-1  w-full'>
             <button
               type='button'
               onClick={() => openTermsModal()}
@@ -200,7 +116,7 @@ export default function CreateContract() {
             >
               View Terms and Conditions
             </button>
-            <p className='text-field-error italic text-red-500 text-center pt-'>
+            <p className='text-field-error italic text-red-500 text-center '>
               {errors.terms?.message}
             </p>
           </div>
@@ -213,7 +129,7 @@ export default function CreateContract() {
           {submitLoading ? (
             <span className='loading loading-spinner loading-lg'></span>
           ) : (
-            'Create Secured Contract'
+            'Become an Auditor'
           )}
         </button>
       </form>

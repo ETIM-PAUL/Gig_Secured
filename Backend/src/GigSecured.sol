@@ -557,6 +557,7 @@ contract GigSecured {
             (auditPaymentFee + freelancerPaymentFee + systemPaymentFee);
 
         gig.price = 0;
+        gig._status = Status.Closed;
 
         bool successPayAuditor = IERC20(_usdcAddress).transfer(
             gig.auditor,
