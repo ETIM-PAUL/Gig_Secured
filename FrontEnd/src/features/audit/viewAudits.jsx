@@ -6,16 +6,17 @@ export default function ViewAudit() {
   const router = useRouter();
 
   const [progress, setProgress] = useState([0, 0, 0, 0]);
+  const [inputValue, setInputValue] = useState(0);
 
   const handleBoxClick = (index) => {
-    // Create a new array to represent the updated progress
     const newProgress = Array(4).fill(0);
-
-    // Set the progress status of the clicked box to 100%
     newProgress[index] = 100;
-
     setProgress(newProgress);
+
+    // Set the input value to the corresponding value (e.g., 20, 40, 60, 80)
+    setInputValue(20 + index * 20);
   };
+
   return (
     <div className='w-[96%] text-black'>
       <div className='flex gap-4 items-center pt-16'>
@@ -44,34 +45,50 @@ export default function ViewAudit() {
       <div
         className={`mb-0 flex justify-center gap-4 flex-col-reverse md:flex-row items-start pt-10 w-full h-full mx-0 p-0`}
       >
-        <div className='w-full items-center'>
-          <p className='max-w-[300px] text-2xl my-4'>Description</p>
+        <div className='w-full'>
           <div>
-            Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-            Aspernatur, ratione architecto ullam numquam corporis consequuntur
-            iure voluptatibus a praesentium voluptas ex, dicta delectus libero
-            veritatis magni rem quae molestias nostrum. Earum quae aperiam hic
-            deserunt, accusantium assumenda nemo maiores odit libero cupiditate
-            in quam voluptates delectus nihil nisi quis voluptatibus culpa
-            deleniti. Assumenda iusto accusantium ex odit porro itaque iure.
+            <h2 className='max-w-[300px] text-2xl my-4'>Description</h2>
+            <p className='text-sm'>
+              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
+              Consectetur nemo, earum quae error et odio, dolorum esse vero
+              mollitia natus aperiam aliquam voluptatum neque itaque! Laboriosam
+              corrupti nostrum suscipit inventore. Neque aspernatur facere
+              excepturi sequi rerum minima id at magnam officia tempora,
+              doloremque quaerat natus odio similique quas! Fugiat natus fuga
+              soluta? Laudantium totam distinctio, impedit mollitia nostrum
+              adipisci aperiam?
+            </p>
           </div>
-          <div className='flex'>
+          <div className='flex items-center mt-4'>
             {progress.map((percentage, index) => (
               <div
                 key={index}
-                className='w-1/4 p-2 cursor-pointer '
+                className='w-1/4 p-2 cursor-pointer'
                 onClick={() => handleBoxClick(index)}
               >
                 <div className='relative h-10 bg-gray-200 flex justify-center items-center'>
-                  <div className='text-center mt-2'>{20 + index * 20}</div>
                   <div
-                    className='absolute h-full bg-blue-500 '
+                    className='absolute h-full bg-blue-500 flex justify-center items-center'
                     style={{ width: `${percentage}%` }}
-                  />
+                  >
+                    <div className='text-center text-white z-10'>
+                      {20 + index * 20}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
+            <input
+              type='number'
+              className='h-10 bg-gray-200 px-4'
+              placeholder='1'
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+            />
           </div>
+          <button className='border w-full mx-2 mt-4 h-10'>
+            Complete Audit
+          </button>
         </div>
       </div>
     </div>
