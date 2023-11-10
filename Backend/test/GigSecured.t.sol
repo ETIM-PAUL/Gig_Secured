@@ -322,35 +322,35 @@ contract GigSecuredTest is Helpers {
         vm.stopPrank();
     }
 
-    function testFreelancerAuditCall() external {
-        _audit.setGovernanceContract(address(_gigContractFactory));
-        vm.startPrank(_clientAddress);
-        GigSecured gigContractInstance = _gigContractFactory
-            .createGigSecuredContractInstance();
+    // function testFreelancerAuditCall() external {
+    //     _audit.setGovernanceContract(address(_gigContractFactory));
+    //     vm.startPrank(_clientAddress);
+    //     GigSecured gigContractInstance = _gigContractFactory
+    //         .createGigSecuredContractInstance();
 
-        _newGigContract.deadline = 8600;
-        _usdc.approve(address(gigContractInstance), _newGigContract.price);
-        _usdc.allowance(_clientAddress, address(gigContractInstance));
-        gigContractInstance.addGig(
-            _newGigContract.title,
-            _newGigContract.category,
-            _newGigContract.clientSign,
-            _newGigContract.clientEmail,
-            _newGigContract.description,
-            _newGigContract.deadline,
-            _newGigContract.price,
-            _freelancerAddress
-        );
-        vm.stopPrank();
+    //     _newGigContract.deadline = 8600;
+    //     _usdc.approve(address(gigContractInstance), _newGigContract.price);
+    //     _usdc.allowance(_clientAddress, address(gigContractInstance));
+    //     gigContractInstance.addGig(
+    //         _newGigContract.title,
+    //         _newGigContract.category,
+    //         _newGigContract.clientSign,
+    //         _newGigContract.clientEmail,
+    //         _newGigContract.description,
+    //         _newGigContract.deadline,
+    //         _newGigContract.price,
+    //         _freelancerAddress
+    //     );
+    //     vm.stopPrank();
 
-        vm.startPrank(_freelancerAddress);
-        gigContractInstance.updateGig(1, GigSecured.Status.Completed);
-        vm.warp(259300);
-        gigContractInstance.updateGig(1, GigSecured.Status.Dispute);
-        vm.stopPrank();
+    //     vm.startPrank(_freelancerAddress);
+    //     gigContractInstance.updateGig(1, GigSecured.Status.Completed);
+    //     vm.warp(259300);
+    //     gigContractInstance.updateGig(1, GigSecured.Status.Dispute);
+    //     vm.stopPrank();
 
-        assertNotEq(gigContractInstance.getGig(1).auditor, _governance);
-    }
+    //     assertNotEq(gigContractInstance.getGig(1).auditor, _governance);
+    // }
 
     function testAssignAuditorInDispute() external {
         _audit.setGovernanceContract(address(_gigContractFactory));

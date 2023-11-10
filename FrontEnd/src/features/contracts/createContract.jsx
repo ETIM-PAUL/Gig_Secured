@@ -82,15 +82,15 @@ export default function CreateContract() {
         <div className='my-12'>
           <div className='grid md:flex gap-5 w-full mb-5'>
             <div className='grid space-y-2 w-full'>
-              <label>Your Name</label>
+              <label>Title</label>
               <input
-                {...register('name')}
+                {...register('title')}
                 type='text'
-                placeholder='Please Enter Your Name'
+                placeholder='Contract Title'
                 className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
               />
               <p className='text-field-error italic text-red-500'>
-                {errors.name?.message}
+                {errors.title?.message}
               </p>
             </div>
             <div className='grid space-y-2 w-full'>
@@ -108,15 +108,14 @@ export default function CreateContract() {
           </div>
           <div className='grid md:flex gap-5 w-full mb-5'>
             <div className='grid space-y-2 w-full'>
-              <label>Title</label>
+              <label>Deadline</label>
               <input
-                {...register('title')}
-                type='text'
-                placeholder='Contract Title'
+                {...register('deadline')}
+                type='date'
                 className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
               />
               <p className='text-field-error italic text-red-500'>
-                {errors.title?.message}
+                {errors.deadline?.message}
               </p>
             </div>
             <div className='grid space-y-2 w-full'>
@@ -140,15 +139,16 @@ export default function CreateContract() {
             </div>
           </div>
           <div className='grid md:flex gap-5 w-full mb-5'>
-            <div className='grid space-y-2 w-full'>
-              <label>Deadline</label>
+            <div className='block space-y-2 w-full'>
+              <label>Freelancer Wallet Address</label>
               <input
-                {...register('deadline')}
-                type='date'
+                {...register('freelancer')}
+                type='text'
+                placeholder='Please add a Valid Freelancer Wallet Address'
                 className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
               />
               <p className='text-field-error italic text-red-500'>
-                {errors.deadline?.message}
+                {errors.freelancer?.message}
               </p>
             </div>
             <div className='grid space-y-2 w-full'>
@@ -179,7 +179,7 @@ export default function CreateContract() {
                 {errors.description?.message}
               </p>
             </div>
-            <div className='block space-y-2 w-full'>
+            {/* <div className='block space-y-2 w-full'>
               <label>Freelancer Wallet Address</label>
               <input
                 {...register('freelancer')}
@@ -190,7 +190,7 @@ export default function CreateContract() {
               <p className='text-field-error italic text-red-500'>
                 {errors.freelancer?.message}
               </p>
-            </div>
+            </div> */}
           </div>
           <div className='grid space-y-2 pt-4 w-full'>
             <button

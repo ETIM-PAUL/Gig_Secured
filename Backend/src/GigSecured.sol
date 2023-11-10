@@ -262,11 +262,11 @@ contract GigSecured {
         _newGigContract.freeLancer = _freelancer;
 
         gigContract = true;
-        IFactory(_governanceAddress).increaseFreelancerCurrentGigs(
-            _freelancer,
-            address(this),
-            _gigs
-        );
+        // IFactory(_governanceAddress).increaseFreelancerCurrentGigs(
+        //     _freelancer,
+        //     address(this),
+        //     _gigs
+        // );
 
         emit GigContractCreated(_title, msg.sender, _freelancer);
     }
@@ -328,9 +328,9 @@ contract GigSecured {
         uint256 newDeadline
     ) external onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
+        // if (gig.freelancerSign.length == 0) {
+        //     revert FreelancerSignedAlready();
+        // }
         if (newDeadline < block.timestamp) {
             revert DeadlineInPast(newDeadline);
         }
@@ -364,9 +364,9 @@ contract GigSecured {
         string memory newTitle
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
+        // if (gig.freelancerSign.length == 0) {
+        //     revert FreelancerSignedAlready();
+        // }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -395,9 +395,9 @@ contract GigSecured {
         string memory newDescription
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
+        // if (gig.freelancerSign.length == 0) {
+        //     revert FreelancerSignedAlready();
+        // }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -426,9 +426,9 @@ contract GigSecured {
         string memory newCategory
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
+        // if (gig.freelancerSign.length == 0) {
+        //     revert FreelancerSignedAlready();
+        // }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -458,9 +458,9 @@ contract GigSecured {
         address newFreelancerAddress
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
+        // if (gig.freelancerSign.length == 0) {
+        //     revert FreelancerSignedAlready();
+        // }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }

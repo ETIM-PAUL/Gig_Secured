@@ -79,18 +79,16 @@ contract Audit {
         string memory _category,
         string memory _email
     ) public {
-        Auditor memory newAuditor = Auditor({
-            category: _category,
-            email: _email,
-            _auditor: msg.sender,
-            currentGigs: 0,
-            isConfirmed: false,
-            confirmationTime: 0,
-            contractsAddress: new AuditorContracts[](0)
-        });
+        Auditor storage newAuditor = auditor_[msg.sender];
+        newAuditor.category = _category;
+        newAuditor.email = _email;
+        newAuditor._auditor = msg.sender;
+        newAuditor.currentGigs = 0;
+        newAuditor.isConfirmed = false;
+        newAuditor.confirmationTime = 0;
+        // newAuditor.contractsAddress = new AuditorContracts[](0);
 
         auditors.push(newAuditor);
-        auditor_[msg.sender] = newAuditor;
     }
 
     //create an array of child contract, then each time, a child contract is created, we push the child contract address
