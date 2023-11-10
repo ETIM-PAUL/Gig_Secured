@@ -18,10 +18,10 @@ export default function Freelances() {
           className='w-full flex funda_bg rounded-2xl cursor-pointer'
         >
           <div className='w-[90%] mx-auto py-3 flex justify-between items-center '>
-            <h2 className='text-[20px] font-bold head2 leading-[26px] tracking-[1.3%]'>
+            <h2 className='text-black text-[20px] font-bold head2 leading-[26px] tracking-[1.3%] mt-[20px]'>
               Freelancer
             </h2>
-            <div className='text-[20px] font-bold head2 leading-[26px] tracking-[1.3%]'>
+            <div className='text-[20px] text-black font-bold head2 leading-[26px] tracking-[1.3%]'>
               <span>No of Gigs: {3}</span>
             </div>
           </div>
@@ -39,8 +39,10 @@ export default function Freelances() {
                   about any fiction story{' '}
                 </p>
                 <div className='card-actions justify-end'>
-                  <Link href={`/audits/view?id=${index + 1}`}>
-                    <button className='btn'>More Details</button>
+                  <Link href={`/freelances/view?id=${index + 1}`}>
+                    <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>
+                      More Details
+                    </button>
                   </Link>
                 </div>
               </div>

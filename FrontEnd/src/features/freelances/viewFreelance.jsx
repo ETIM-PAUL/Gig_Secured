@@ -1,8 +1,8 @@
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PiArrowLeftBold } from 'react-icons/pi';
 
-export default function ViewContract() {
+export default function ViewFreelance() {
   const router = useRouter();
   const [showUpdateModal, setUpdateModal] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -42,7 +42,7 @@ export default function ViewContract() {
             </div>
 
             <div className='flex items-center gap-2'>
-              <span>Freelancer Address:</span>
+              <span>Creator Address:</span>
               <span>0x534627</span>
             </div>
           </div>
@@ -50,66 +50,29 @@ export default function ViewContract() {
       </div>
 
       <div
-        className={`mb-0 flex justify-center gap-4 flex-col-reverse md:flex-row items-start pt-10 w-full h-full mx-0 py-0 px-11`}
+        className={`mb-0 flex justify-center flex-col-reverse md:flex-row items-start pt-10 w-full h-full mx-0 p-0`}
       >
-        <div className='flex-col gap-4 px-7 py-7 mx-4 sm:mx-0  w-full bg-white my-0 h-fit border-dashed border-2 border-black'>
-          <div className=''>
-            <div className='flex-col'>
-              <div>
-                <div className='mb-4 flex items-center gap-2'>
-                  <label
-                    className='block text-lg font-bold text-gray-700'
-                    htmlFor='card_number'
-                  >
-                    Client Name:
-                  </label>
-                  <div className='font-bold text-lg'>
-                    <span>Status</span>
-                  </div>
-                </div>
-                <div className='mb-4 flex items-center gap-2'>
-                  <label
-                    className='block text-lg font-bold text-gray-700'
-                    htmlFor='card_holder_name'
-                  >
-                    Client Email:
-                  </label>
-                  <div className='font-bold text-xl'>
-                    <span>Email</span>
-                  </div>
-                </div>
-
-                <div className='mb-4 flex items-center gap-2'>
-                  <label
-                    className='block text-lg font-bold text-gray-700'
-                    htmlFor='card_number'
-                  >
-                    Freelancer Name:
-                  </label>
-                  <div className='font-bold text-xl'>
-                    <span>Name</span>
-                  </div>
-                </div>
-                <div className='mb-4 flex items-center gap-2'>
-                  <label
-                    className='block text-lg font-bold text-gray-700'
-                    htmlFor='card_holder_name'
-                  >
-                    Freelancer Email:
-                  </label>
-                  <div className='font-bold text-lg'>
-                    <span>Email</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='w-full items-center'>
+        <div className='w-full mx-10'>
           <div>
-            <h3 className='font-bold mt-5 text-2xl'>Price: $1200</h3>
-            <p className='max-w-[300px] text-lg my-4'>Description</p>
+            <h2 className='max-w-[300px] text-2xl my-4'>Price: {'$200'}</h2>
           </div>
+          <div>
+            <h2 className='max-w-[300px] text-2xl my-4'>Description</h2>
+            <p className='text-sm'>
+              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
+              Consectetur nemo, earum quae error et odio, dolorum esse vero
+              mollitia natus aperiam aliquam voluptatum neque itaque! Laboriosam
+              corrupti nostrum suscipit inventore. Neque aspernatur facere
+              excepturi sequi rerum minima id at magnam officia tempora,
+              doloremque quaerat natus odio similique quas! Fugiat natus fuga
+              soluta? Laudantium totam distinctio, impedit mollitia nostrum
+              adipisci aperiam?
+            </p>
+          </div>
+
+          <button className='border mt-4 w-full h-10 btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>
+            Sign
+          </button>
         </div>
       </div>
 

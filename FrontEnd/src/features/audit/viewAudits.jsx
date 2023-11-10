@@ -86,7 +86,7 @@ export default function ViewAudit() {
               onChange={(e) => setInputValue(e.target.value)}
             />
           </div>
-          <button className='border w-full mx-2 mt-4 h-10'>
+          <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FFborder w-full mx-2 mt-4 h-10'>
             Complete Audit
           </button>
         </div>
