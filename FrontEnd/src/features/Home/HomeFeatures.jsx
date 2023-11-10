@@ -91,7 +91,7 @@ export default function HomeFeatures() {
                 <div className='text-black mt-3'>
                   <div className='border flex px-4 rounded-md h-[130px] w-full'>
                     <div className='py-4 w-[80%] flex flex-col justify-between'>
-                      <span>Overdraft your account</span>
+                      <span>Explore all the gigs you are working on</span>
                       <Link href={'services//overdraft'} className="w-fit pt-3 block">
                         <button className='py-1 px-4 rounded-lg text-[white] text-[17px] bg-[#0F4880]'>Start Now</button>
                       </Link>

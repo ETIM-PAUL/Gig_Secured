@@ -49,10 +49,8 @@ contract GigSecuredTest is Helpers {
         _newGigContract = GigSecured.GigContract({
             title: "Natachi White Paper Contract",
             category: "Copy Writing",
-            clientName: "Natachi",
             clientEmail: "natachi@gmail.com",
             clientSign: bytes(""),
-            freelancerName: "Mitong",
             freelancerEmail: "mitong@gmail.com",
             freeLancer: _freelancerAddress,
             freelancerSign: bytes(""),
@@ -76,7 +74,6 @@ contract GigSecuredTest is Helpers {
             _newGigContract.title,
             _newGigContract.category,
             _newGigContract.clientSign,
-            _newGigContract.clientName,
             _newGigContract.clientEmail,
             _newGigContract.description,
             _newGigContract.deadline,
@@ -162,7 +159,6 @@ contract GigSecuredTest is Helpers {
             _newContract.title,
             _newContract.category,
             _newContract.clientSign,
-            _newContract.clientName,
             _newContract.clientEmail,
             _newContract.description,
             _newContract.deadline,
@@ -184,7 +180,6 @@ contract GigSecuredTest is Helpers {
             _newGigContract.title,
             _newGigContract.category,
             _newGigContract.clientSign,
-            _newGigContract.clientName,
             _newGigContract.clientEmail,
             _newGigContract.description,
             block.timestamp + 120 minutes,
@@ -203,7 +198,6 @@ contract GigSecuredTest is Helpers {
             _newGigContract.title,
             _newGigContract.category,
             _newGigContract.clientSign,
-            _newGigContract.clientName,
             _newGigContract.clientEmail,
             _newGigContract.description,
             block.timestamp + 120 minutes,
@@ -222,7 +216,6 @@ contract GigSecuredTest is Helpers {
             _newGigContract.title,
             _newGigContract.category,
             _newGigContract.clientSign,
-            _newGigContract.clientName,
             _newGigContract.clientEmail,
             _newGigContract.description,
             block.timestamp + 120 minutes,
@@ -241,7 +234,6 @@ contract GigSecuredTest is Helpers {
             _newGigContract.title,
             _newGigContract.category,
             _newGigContract.clientSign,
-            _newGigContract.clientName,
             _newGigContract.clientEmail,
             _newGigContract.description,
             block.timestamp + 120 minutes,
@@ -250,12 +242,14 @@ contract GigSecuredTest is Helpers {
         );
         _gigSecured.editGigFreelancer(
             1,
-            "Tola",
             "adetolakemi97@gmail.com",
             address(0x32)
         );
         vm.stopPrank();
-        assertEq(_gigSecured.getGig(1).freelancerName, "Tola");
+        assertEq(
+            _gigSecured.getGig(1).freelancerEmail,
+            "adetolakemi97@gmail.com"
+        );
         assertEq(
             _gigSecured.getGig(1).freelancerEmail,
             "adetolakemi97@gmail.com"
@@ -341,7 +335,6 @@ contract GigSecuredTest is Helpers {
             _newGigContract.title,
             _newGigContract.category,
             _newGigContract.clientSign,
-            _newGigContract.clientName,
             _newGigContract.clientEmail,
             _newGigContract.description,
             _newGigContract.deadline,
@@ -372,7 +365,6 @@ contract GigSecuredTest is Helpers {
             _newGigContract.title,
             _newGigContract.category,
             _newGigContract.clientSign,
-            _newGigContract.clientName,
             _newGigContract.clientEmail,
             _newGigContract.description,
             _newGigContract.deadline,
