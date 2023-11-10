@@ -34,7 +34,7 @@ export default function AllContracts() {
                 <p>Write Five(5) chapters, with each having at least 2000 words about any fiction story </p>
                 <div className="card-actions justify-end">
                   <Link href={`/contracts/view?id=${index + 1}`}>
-                    <button className="btn">More Details</button>
+                    <button className="btn bg-[#D2E9FF] text-black border-[#D2E9FF">More Details</button>
                   </Link>
                 </div>
               </div>

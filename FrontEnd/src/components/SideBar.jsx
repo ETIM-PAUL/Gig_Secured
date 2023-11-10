@@ -10,6 +10,7 @@ import Auth from '@/app/auth/Auth';
 import { useAppContext } from '@/app/auth/Context';
 import { AiOutlineSecurityScan } from 'react-icons/ai';
 import { IoIosArrowDropright, IoIosArrowDropleft } from 'react-icons/io';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 export default function SideBar() {
   const pathname = usePathname();
@@ -42,15 +43,14 @@ export default function SideBar() {
   return (
     <main>
       <section
-        className={`min-h-screen max-h-screen bg-[#D2E9FF] ${
-          !sidebar ? 'w-[100px]' : 'w-[380px]'
-        }`}
+        className={`min-h-screen max-h-screen bg-[#D2E9FF] ${!sidebar ? 'w-[100px]' : 'w-[380px]'
+          }`}
       >
         <section className='w-[90%] mx-auto'>
-          <div className='flex'>
+          <div className='flex items-center'>
             <Link
               href='/home'
-              className='w-[221px] pt-[60px] flex items-center gap-1 mx-auto'
+              className='w-[221px] pt-[40px] flex items-center gap-1 mx-auto'
             >
               <div className='flex gap-2 items-center justify-center w-full'>
                 <img
@@ -65,12 +65,13 @@ export default function SideBar() {
                 )}
               </div>
             </Link>
-            <div onClick={() => setSideBar(!sidebar)} className='text-3xl'>
+            <div onClick={() => setSideBar(!sidebar)} className='text-3xl mt-10'>
               <span className='text-black hover:cursor-pointer'>
                 {sidebar ? <IoIosArrowDropleft /> : <IoIosArrowDropright />}
               </span>
             </div>
           </div>
+
           <div className='mt-[100px] flex flex-col gap-4'>
             {menu.map((items, index) => {
               const isActive = pathname?.startsWith(items?.href);
@@ -79,11 +80,9 @@ export default function SideBar() {
                 <Link
                   href={items?.href}
                   key={index}
-                  className={`${
-                    isActive && 'bg-[#FBFDFF] rounded-lg'
-                  } flex gap-2 items-center text-[#0F4880] w-[100%] h-[48px] ${
-                    sidebar ? 'pl-[90px]' : 'pl-0'
-                  }`}
+                  className={`${isActive && 'bg-[#FBFDFF] rounded-lg'
+                    } flex gap-2 items-center text-[#0F4880] w-[100%] h-[48px] ${sidebar ? 'pl-[90px]' : 'pl-0'
+                    }`}
                 >
                   <items.icon
                     size={30}
@@ -100,10 +99,103 @@ export default function SideBar() {
           </div>
 
           {sidebar && (
-            <div className=' flex items-center bg-[#FBFDFF] rounded-2xl h-[80px] gap-2 justify-center relative w-[100%] top-[240px]'>
-              <p className='text-[17px] leading-6 font-normal tracking-[0.5%] text-[#0F4880] head1'>
+            <div className=' flex items-center bg-[#FBFDFF] text-black rounded-2xl h-[80px] gap-2 justify-center relative w-[100%] top-[240px]'>
+              {/* <p className='text-[17px] leading-6 font-normal tracking-[0.5%] text-[#0F4880] head1'>
                 194XV7C......ROFYOF
               </p>
+              <ConnectButton /> */}
+              <ConnectButton.Custom>
+                {({
+                  account,
+                  chain,
+                  openAccountModal,
+                  openChainModal,
+                  openConnectModal,
+                  authenticationStatus,
+                  mounted,
+                }) => {
+                  // Note: If your app doesn't use authentication, you
+                  // can remove all 'authenticationStatus' checks
+                  const ready = mounted && authenticationStatus !== 'loading';
+                  const connected =
+                    ready &&
+                    account &&
+                    chain &&
+                    (!authenticationStatus ||
+                      authenticationStatus === 'authenticated');
+
+                  return (
+                    <div
+                      {...(!ready && {
+                        'aria-hidden': true,
+                        'style': {
+                          opacity: 0,
+                          pointerEvents: 'none',
+                          userSelect: 'none',
+                        },
+                      })}
+                      className=''
+                    >
+                      {(() => {
+                        if (!connected) {
+                          return (
+                            <button onClick={openConnectModal} type="button" className='bg-white text-black text-2xl font-bold'>
+                              Connect Wallet
+                            </button>
+                          );
+                        }
+
+                        if (chain.unsupported) {
+                          return (
+                            <button onClick={openChainModal} type="button" className='bg-white text-black text-2xl font-bold'>
+                              Wrong network
+                            </button>
+                          );
+                        }
+
+                        return (
+                          <div style={{ display: 'flex', gap: 12 }}>
+                            <button
+                              onClick={openChainModal}
+                              style={{ display: 'flex', alignItems: 'center' }}
+                              type="button"
+                            >
+                              {chain.hasIcon && (
+                                <div
+                                  style={{
+                                    background: chain.iconBackground,
+                                    width: 12,
+                                    height: 12,
+                                    borderRadius: 999,
+                                    overflow: 'hidden',
+                                    marginRight: 4,
+                                  }}
+                                >
+                                  {chain.iconUrl && (
+                                    <img
+                                      alt={chain.name ?? 'Chain icon'}
+                                      src={chain.iconUrl}
+                                      style={{ width: 12, height: 12 }}
+                                    />
+                                  )}
+                                </div>
+                              )}
+                              {chain.name}
+                            </button>
+
+                            <button onClick={openAccountModal} type="button">
+                              {account.displayName}
+                              {account.displayBalance
+                                ? ` (${account.displayBalance})`
+                                : ''}
+                            </button>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  );
+                }}
+              </ConnectButton.Custom>
             </div>
           )}
         </section>
