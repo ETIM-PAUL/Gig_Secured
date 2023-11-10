@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import { BiHomeAlt } from 'react-icons/bi';
-import { BsSend } from 'react-icons/bs';
 import { MdWorkOutline } from 'react-icons/md';
 import { LiaFileContractSolid } from 'react-icons/lia';
 import Link from 'next/link';
@@ -22,7 +21,7 @@ export default function SideBar() {
     {
       name: 'Home',
       icon: BiHomeAlt,
-      href: '/',
+      href: '/home',
     },
     {
       name: 'Contracts',

@@ -36,12 +36,12 @@ export default function HomeFeatures() {
             <div className="flex flex-wrap gap-10 text-white">
               {explore_cards.map((card, index) => (
                 <div key={index} style={{ backgroundImage: `url(${card.bgCustom})` }} className=" bg-no-repeat bg-cover p-4 rounded-[8px] w-96 h-[200px] flex flex-grow flex-col items-between justify-between ">
-                  <Link href={`/app?source=`} className="flex justify-end py-1">
+                  <Link href={card.direct} className="flex justify-end py-1">
                     <button className='bg-[#CDCFDE] py-1 px-4 rounded-lg text-[#0F4880]'>Explore &#8594;</button>
                   </Link>
                   <div className='text-white px-3'>
                     <span className='text-xl block mb-1.5 font-bold'>{card?.name}</span>
-                    <span className="sm:text-2xl grotesk font-bold leading-[25.5px] tracking-[0.085px] pt-4 pb-2 text-2xl">{index === 0 ? 2 : ""}</span>
+                    <span className="sm:text-2xl grotesk font-bold leading-[25.5px] tracking-[0.085px] pt-4 pb-2 text-2xl">{(index === 0 || index === 2) ? 2 : ""}</span>
                   </div>
                 </div>
               ))}

@@ -152,7 +152,7 @@ export default function CreateContract() {
               </p>
             </div>
             <div className='grid space-y-2 w-full'>
-              <label>Price</label>
+              <label>Price (please note after creation of contract, this is not editable)</label>
               <input
                 {...register('price')}
                 type='text'

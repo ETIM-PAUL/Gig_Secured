@@ -26,7 +26,6 @@ contract GigSecured {
     event GigDeadlineUpdated(uint gigId, uint newDeadline);
     event GigFreelancerUpdated(
         uint gigId,
-        string newFreelancerName,
         string newFreelancerEmail,
         address newFreelancerAddress
     );
@@ -52,10 +51,8 @@ contract GigSecured {
     struct GigContract {
         string title;
         string category;
-        string clientName;
         string clientEmail;
         bytes clientSign;
-        string freelancerName;
         string freelancerEmail;
         address freeLancer;
         bytes freelancerSign;
@@ -84,9 +81,10 @@ contract GigSecured {
     address _usdcAddress;
     address _auditContract;
 
-    mapping(uint256 => GigContract) public _allGigs;
+    mapping(uint256 => GigContract) private _allGigs;
     GigContract[] _contractGigs;
 
+    error FreelancerSignedAlready();
     error AtLeastAnHour();
     error InvalidFreelancer(address freeLancer);
     error MaxStagesOfDevelopment();
@@ -230,7 +228,6 @@ contract GigSecured {
         string memory _title,
         string memory _category,
         bytes memory _clientSign,
-        string memory _clientName,
         string memory _clientEmail,
         string memory _description,
         uint _deadline,
@@ -255,7 +252,6 @@ contract GigSecured {
         GigContract storage _newGigContract = _allGigs[_gigs];
         _newGigContract.title = _title;
         _newGigContract.category = _category;
-        _newGigContract.clientName = _clientName;
         _newGigContract.clientEmail = _clientEmail;
         _newGigContract.clientSign = _clientSign;
         _newGigContract.description = _description;
@@ -332,6 +328,9 @@ contract GigSecured {
         uint256 newDeadline
     ) external onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (newDeadline < block.timestamp) {
             revert DeadlineInPast(newDeadline);
         }
@@ -365,7 +364,9 @@ contract GigSecured {
         string memory newTitle
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -394,6 +395,9 @@ contract GigSecured {
         string memory newDescription
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -422,7 +426,9 @@ contract GigSecured {
         string memory newCategory
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -448,21 +454,20 @@ contract GigSecured {
      */
     function editGigFreelancer(
         uint256 gigId,
-        string memory newFreelancerName,
         string memory newFreelancerEmail,
         address newFreelancerAddress
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
-        gig.freelancerName = newFreelancerName;
         gig.freelancerEmail = newFreelancerEmail;
         gig.freeLancer = newFreelancerAddress;
         emit GigFreelancerUpdated(
             gigId,
-            newFreelancerName,
             newFreelancerEmail,
             newFreelancerAddress
         );
@@ -759,6 +764,10 @@ contract GigSecured {
      */
     function getGig(uint256 _gigId) public view returns (GigContract memory) {
         return _allGigs[_gigId];
+    }
+
+    function getGigsCount() public view returns (uint _gigCount) {
+        return _gigs;
     }
 
     function getAllGigs() public view returns (GigContract[] memory) {

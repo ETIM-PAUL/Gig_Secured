@@ -4,15 +4,18 @@ export const explore_cards = [
 
   {
     name: "My Contracts",
-    bgCustom: "/second_pattern.svg"
+    bgCustom: "/second_pattern.svg",
+    direct: "/contracts"
   },
   {
     name: "Become An Auditor",
-    bgCustom: "/first_pattern.svg"
+    bgCustom: "/first_pattern.svg",
+    direct: "/freelances"
   },
   {
-    name: "Shared Balance",
-    bgCustom: "/third_pattern.svg"
+    name: "Freelance Contracts",
+    bgCustom: "/third_pattern.svg",
+    direct: "/audits"
   },
 ]
 export const overdraft_cards = [
