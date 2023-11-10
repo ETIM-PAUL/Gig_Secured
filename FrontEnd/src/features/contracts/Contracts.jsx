@@ -17,7 +17,7 @@ export default function AllContracts() {
           <div className="w-[90%] mx-auto py-3 flex justify-between items-center">
             <div className="">
               <img src="./Group.svg" alt="" className="w-[56px] h-[56px]" />
-              <h2 className="text-[20px] font-bold head2 leading-[26px] tracking-[1.3%] mt-[20px]">Create a new Contract</h2>
+              <h2 className="text-black text-[20px] font-bold head2 leading-[26px] tracking-[1.3%] mt-[20px]">Create a new Contract</h2>
             </div>
             <div className="">
               <img src="./Transfer.png" alt="" className="w-[48px] h-[48px]" />
@@ -34,7 +34,7 @@ export default function AllContracts() {
                 <p>Write Five(5) chapters, with each having at least 2000 words about any fiction story </p>
                 <div className="card-actions justify-end">
                   <Link href={`/contracts/view?id=${index + 1}`}>
-                    <button className="btn bg-[#D2E9FF] text-black border-[#D2E9FF">More Details</button>
+                    <button className="btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF">More Details</button>
                   </Link>
                 </div>
               </div>

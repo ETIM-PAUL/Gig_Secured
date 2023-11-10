@@ -98,106 +98,107 @@ export default function SideBar() {
             })}
           </div>
 
-          {sidebar && (
-            <div className=' flex items-center bg-[#FBFDFF] text-black rounded-2xl h-[80px] gap-2 justify-center relative w-[100%] top-[240px]'>
-              {/* <p className='text-[17px] leading-6 font-normal tracking-[0.5%] text-[#0F4880] head1'>
+          {/* {sidebar && ( */}
+          <div className=' flex items-center bg-[#FBFDFF] text-black rounded-2xl h-[80px] gap-2 justify-center relative w-[100%] top-[240px]'>
+            {/* <p className='text-[17px] leading-6 font-normal tracking-[0.5%] text-[#0F4880] head1'>
                 194XV7C......ROFYOF
               </p>
               <ConnectButton /> */}
-              <ConnectButton.Custom>
-                {({
-                  account,
-                  chain,
-                  openAccountModal,
-                  openChainModal,
-                  openConnectModal,
-                  authenticationStatus,
-                  mounted,
-                }) => {
-                  // Note: If your app doesn't use authentication, you
-                  // can remove all 'authenticationStatus' checks
-                  const ready = mounted && authenticationStatus !== 'loading';
-                  const connected =
-                    ready &&
-                    account &&
-                    chain &&
-                    (!authenticationStatus ||
-                      authenticationStatus === 'authenticated');
+            <ConnectButton.Custom>
+              {({
+                account,
+                chain,
+                openAccountModal,
+                openChainModal,
+                openConnectModal,
+                authenticationStatus,
+                mounted,
+              }) => {
+                // Note: If your app doesn't use authentication, you
+                // can remove all 'authenticationStatus' checks
+                const ready = mounted && authenticationStatus !== 'loading';
+                const connected =
+                  ready &&
+                  account &&
+                  chain &&
+                  (!authenticationStatus ||
+                    authenticationStatus === 'authenticated');
 
-                  return (
-                    <div
-                      {...(!ready && {
-                        'aria-hidden': true,
-                        'style': {
-                          opacity: 0,
-                          pointerEvents: 'none',
-                          userSelect: 'none',
-                        },
-                      })}
-                      className=''
-                    >
-                      {(() => {
-                        if (!connected) {
-                          return (
-                            <button onClick={openConnectModal} type="button" className='bg-white text-black text-2xl font-bold'>
-                              Connect Wallet
-                            </button>
-                          );
-                        }
-
-                        if (chain.unsupported) {
-                          return (
-                            <button onClick={openChainModal} type="button" className='bg-white text-black text-2xl font-bold'>
-                              Wrong network
-                            </button>
-                          );
-                        }
-
+                return (
+                  <div
+                    {...(!ready && {
+                      'aria-hidden': true,
+                      'style': {
+                        opacity: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                      },
+                    })}
+                    className=''
+                  >
+                    {(() => {
+                      if (!connected) {
                         return (
-                          <div style={{ display: 'flex', gap: 12 }}>
-                            <button
-                              onClick={openChainModal}
-                              style={{ display: 'flex', alignItems: 'center' }}
-                              type="button"
-                            >
-                              {chain.hasIcon && (
-                                <div
-                                  style={{
-                                    background: chain.iconBackground,
-                                    width: 12,
-                                    height: 12,
-                                    borderRadius: 999,
-                                    overflow: 'hidden',
-                                    marginRight: 4,
-                                  }}
-                                >
-                                  {chain.iconUrl && (
-                                    <img
-                                      alt={chain.name ?? 'Chain icon'}
-                                      src={chain.iconUrl}
-                                      style={{ width: 12, height: 12 }}
-                                    />
-                                  )}
-                                </div>
-                              )}
-                              {chain.name}
-                            </button>
+                          <button onClick={openConnectModal} type="button" className='bg-white text-black text-2xl font-bold'>
+                            Connect Wallet
+                          </button>
+                        );
+                      }
 
+                      if (chain.unsupported) {
+                        return (
+                          <button onClick={openChainModal} type="button" className='bg-white text-black text-2xl font-bold'>
+                            Wrong network
+                          </button>
+                        );
+                      }
+
+                      return (
+                        <div style={{ display: 'flex', gap: 12 }}>
+                          <button
+                            onClick={openChainModal}
+                            style={{ display: 'flex', alignItems: 'center' }}
+                            type="button"
+                          >
+                            {chain.hasIcon && (
+                              <div
+                                style={{
+                                  background: chain.iconBackground,
+                                  width: 12,
+                                  height: 12,
+                                  borderRadius: 999,
+                                  overflow: 'hidden',
+                                  marginRight: 4,
+                                }}
+                              >
+                                {chain.iconUrl && (
+                                  <img
+                                    alt={chain.name ?? 'Chain icon'}
+                                    src={chain.iconUrl}
+                                    style={{ width: 12, height: 12 }}
+                                  />
+                                )}
+                              </div>
+                            )}
+                            {chain.name}
+                          </button>
+                          {sidebar &&
                             <button onClick={openAccountModal} type="button">
                               {account.displayName}
                               {account.displayBalance
                                 ? ` (${account.displayBalance})`
                                 : ''}
                             </button>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  );
-                }}
-              </ConnectButton.Custom>
-            </div>
-          )}
+                          }
+                        </div>
+                      );
+                    })()}
+                  </div>
+                );
+              }}
+            </ConnectButton.Custom>
+          </div>
+          {/* )} */}
         </section>
       </section>
     </main>
