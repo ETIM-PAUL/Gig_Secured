@@ -152,7 +152,8 @@ contract GigContractFactory {
      * gigs assigned to the auditor should be handled within the `IAudit` contract or its associated interface.
      * Only the owner is allowed to execute this function.
      */
-    function increaseAnAuditorGigs(address _auditor) external onlyOwner {
+
+    function decreaseAuditorGigs(address _auditor) external onlyOwner {
         IAudit(_auditorsContract).decreaseAuditorCurrentGigs(_auditor);
     }
 
@@ -164,29 +165,15 @@ contract GigContractFactory {
         if (_freelancer == address(0)) {
             revert ZeroAddress();
         }
-        if (_freelancerExist[_freelancer] == true) {
-            Freelance storage freelancerToEdit = _freelancerDetails[
-                _freelancer
-            ];
-            FreelancerContracts memory _freelancerContract;
-            _freelancerContract.contractInstance = _gigContract;
-            _freelancerContract.id = _gigId;
+        Freelance storage freelancerToEdit = _freelancerDetails[_freelancer];
+        freelancerToEdit.freelancer = _freelancer;
+        freelancerToEdit.currentGigs += 1;
 
-            freelancerToEdit.currentGigs += 1;
-            freelancerToEdit.contractsAddress.push(_freelancerContract);
-        } else {
-            Freelance storage freelancerToEdit = _freelancerDetails[
-                _freelancer
-            ];
-            freelancerToEdit.freelancer = _freelancer;
-            freelancerToEdit.currentGigs = 1;
+        FreelancerContracts memory _freelancerContract;
+        _freelancerContract.contractInstance = _gigContract;
+        _freelancerContract.id = _gigId;
 
-            FreelancerContracts memory _freelancerContract;
-            _freelancerContract.contractInstance = _gigContract;
-            _freelancerContract.id = _gigId;
-
-            freelancerToEdit.contractsAddress.push(_freelancerContract);
-        }
+        freelancerToEdit.contractsAddress.push(_freelancerContract);
     }
 
     /**

@@ -52,7 +52,6 @@ contract GigSecured {
         string title;
         string category;
         string clientEmail;
-        bytes clientSign;
         string freelancerEmail;
         address freeLancer;
         bytes freelancerSign;
@@ -227,7 +226,6 @@ contract GigSecured {
     function addGig(
         string memory _title,
         string memory _category,
-        bytes memory _clientSign,
         string memory _clientEmail,
         string memory _description,
         uint _deadline,
@@ -253,7 +251,6 @@ contract GigSecured {
         _newGigContract.title = _title;
         _newGigContract.category = _category;
         _newGigContract.clientEmail = _clientEmail;
-        _newGigContract.clientSign = _clientSign;
         _newGigContract.description = _description;
         _newGigContract.deadline = _deadline;
         _newGigContract._status = Status.Pending;
@@ -261,13 +258,13 @@ contract GigSecured {
         _newGigContract.creator = msg.sender;
         _newGigContract.freeLancer = _freelancer;
 
-        gigContract = true;
-        // IFactory(_governanceAddress).increaseFreelancerCurrentGigs(
-        //     _freelancer,
-        //     address(this),
-        //     _gigs
-        // );
+        IFactory(_governanceAddress).increaseFreelancerCurrentGigs(
+            _freelancer,
+            address(this),
+            1
+        );
 
+        gigContract = true;
         emit GigContractCreated(_title, msg.sender, _freelancer);
     }
 
