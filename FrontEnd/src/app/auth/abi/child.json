@@ -1,370 +1,522 @@
 [
   {
     "inputs": [
-      { "internalType": "address", "name": "_factory", "type": "address" },
-      { "internalType": "address", "name": "_token", "type": "address" },
-      { "internalType": "address", "name": "_compound", "type": "address" },
-      { "internalType": "address", "name": "_owner", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "auditContract",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "governance",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "usdcAddress",
+        "type": "address"
+      }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "target", "type": "address" }
-    ],
-    "name": "AddressEmptyCode",
+    "inputs": [],
+    "name": "AtLeastAnHour",
     "type": "error"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" }
-    ],
-    "name": "AddressInsufficientBalance",
-    "type": "error"
-  },
-  { "inputs": [], "name": "FailedInnerCall", "type": "error" },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "token", "type": "address" }
-    ],
-    "name": "SafeERC20FailedOperation",
-    "type": "error"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
-    ],
-    "name": "Borrowed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "receiver",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
-    ],
-    "name": "FundWithdraw",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
-    ],
-    "name": "PersonalClubDeposit",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
-    ],
-    "name": "PublicClubDeposit",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
-    ],
-    "name": "SavingsWithdrawn",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
-    ],
-    "name": "Transfer",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
-    ],
-    "name": "Withdrawal",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      { "internalType": "string", "name": "_clubName", "type": "string" },
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
-    ],
-    "name": "addFundpublic",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
-    ],
-    "name": "addPersonalSavings",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "string", "name": "_clubName", "type": "string" },
-      { "internalType": "uint256", "name": "_endDate", "type": "uint256" },
-      { "internalType": "uint256", "name": "_savingsGoal", "type": "uint256" }
-    ],
-    "name": "createPersonalSavingsClub",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "string", "name": "_clubName", "type": "string" },
-      { "internalType": "uint256", "name": "_startDate", "type": "uint256" },
-      { "internalType": "uint256", "name": "_endDate", "type": "uint256" },
-      { "internalType": "uint256", "name": "_savingsGoal", "type": "uint256" }
-    ],
-    "name": "createPublicSav",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
-    ],
-    "name": "depositFund",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "string", "name": "_clubName", "type": "string" },
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
-    ],
-    "name": "depositToPersonalClub",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "string", "name": "_clubName", "type": "string" }
-    ],
-    "name": "getPublicClubFund",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
   },
   {
     "inputs": [],
-    "name": "getPublicSavingData",
+    "name": "ContractSettlementTimeNotActive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "DeadlineHasPassedForBuilding",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "DeadlineHasPassedForCompletion",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newDeadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "DeadlineInPast",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "EmptyCategory",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "EmptyDescription",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "EmptyTitle",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "FreelancerSignedAlready",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "freeLancer",
+        "type": "address"
+      }
+    ],
+    "name": "InvalidFreelancer",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidStatusChange",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MaxStagesOfDevelopment",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MustSignBeforeStartBuilding",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotAssignedFreeLancer",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum GigSecured.Status",
+        "name": "currentStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "NotPendingStatus",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotPermitted",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RemissionFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TooSoonToDispute",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "freelancer",
+        "type": "address"
+      }
+    ],
+    "name": "GigContractCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newDeadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "GigDeadlineUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "newFreelancerEmail",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newFreelancerAddress",
+        "type": "address"
+      }
+    ],
+    "name": "GigFreelancerUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum GigSecured.Status",
+        "name": "newStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "GigStatusUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_title",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_category",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_clientEmail",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_description",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_price",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_freelancer",
+        "type": "address"
+      }
+    ],
+    "name": "addGig",
     "outputs": [
-      { "internalType": "string[]", "name": "", "type": "string[]" },
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
+      {
+        "internalType": "bool",
+        "name": "gigContract",
+        "type": "bool"
+      }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_spender", "type": "address" },
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
-    ],
-    "name": "grantAccessToFund",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "string", "name": "_clubName", "type": "string" }
+      {
+        "internalType": "enum GigSecured.Status",
+        "name": "newStatus",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      }
     ],
-    "name": "joinPublicClub",
+    "name": "clientUpdateGig",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "success",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "newCategory",
+        "type": "string"
+      }
+    ],
+    "name": "editGigCategory",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+      {
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newDeadline",
+        "type": "uint256"
+      }
     ],
-    "name": "lend",
+    "name": "editGigDeadline",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "newDescription",
+        "type": "string"
+      }
+    ],
+    "name": "editGigDescription",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "newFreelancerEmail",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "newFreelancerAddress",
+        "type": "address"
+      }
+    ],
+    "name": "editGigFreelancer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "newTitle",
+        "type": "string"
+      }
+    ],
+    "name": "editGigTitle",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      }
+    ],
+    "name": "forceClosure",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_freelancerSign",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_gigContract",
+        "type": "uint256"
+      }
+    ],
+    "name": "freeLancerSign",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "success",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum GigSecured.Status",
+        "name": "newStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "freeLancerUpdateGig",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "myPersonalSavings",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "payBackAmount",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "payback",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "showMyPersonalCreatedClub",
+    "name": "getAllGigs",
     "outputs": [
       {
         "components": [
-          { "internalType": "string", "name": "clubName", "type": "string" },
-          { "internalType": "uint256", "name": "startDate", "type": "uint256" },
-          { "internalType": "uint256", "name": "endDate", "type": "uint256" },
+          {
+            "internalType": "string",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "category",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "clientEmail",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "freelancerEmail",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "freeLancer",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "freelancerSign",
+            "type": "bytes"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
           {
             "internalType": "uint256",
-            "name": "savingsGoal",
+            "name": "deadline",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "Personalsavings",
+            "name": "completedTime",
             "type": "uint256"
+          },
+          {
+            "internalType": "enum GigSecured.Status",
+            "name": "_status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bool",
+            "name": "isAudit",
+            "type": "bool"
+          },
+          {
+            "internalType": "address",
+            "name": "auditor",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "price",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
           }
         ],
-        "internalType": "struct SpendNest.personalClubCreated[]",
+        "internalType": "struct GigSecured.GigContract[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -374,27 +526,88 @@
   },
   {
     "inputs": [
-      { "internalType": "string", "name": "_clubName", "type": "string" }
+      {
+        "internalType": "uint256",
+        "name": "_gigId",
+        "type": "uint256"
+      }
     ],
-    "name": "showSingleClub",
+    "name": "getGig",
     "outputs": [
       {
         "components": [
-          { "internalType": "string", "name": "clubName", "type": "string" },
-          { "internalType": "uint256", "name": "startDate", "type": "uint256" },
-          { "internalType": "uint256", "name": "endDate", "type": "uint256" },
+          {
+            "internalType": "string",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "category",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "clientEmail",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "freelancerEmail",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "freeLancer",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "freelancerSign",
+            "type": "bytes"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
           {
             "internalType": "uint256",
-            "name": "savingsGoal",
+            "name": "deadline",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "Personalsavings",
+            "name": "completedTime",
             "type": "uint256"
+          },
+          {
+            "internalType": "enum GigSecured.Status",
+            "name": "_status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bool",
+            "name": "isAudit",
+            "type": "bool"
+          },
+          {
+            "internalType": "address",
+            "name": "auditor",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "price",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
           }
         ],
-        "internalType": "struct SpendNest.personalClubCreated",
+        "internalType": "struct GigSecured.GigContract",
         "name": "",
         "type": "tuple"
       }
@@ -403,70 +616,50 @@
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "amount", "type": "uint256" }
-    ],
-    "name": "transferBetweenOwnAcct",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_receiver", "type": "address" },
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
-    ],
-    "name": "transferFund",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
-    "name": "viewAccount",
+    "name": "getGigsCount",
     "outputs": [
-      { "internalType": "uint256", "name": "", "type": "uint256" },
-      { "internalType": "uint256", "name": "", "type": "uint256" },
-      { "internalType": "uint256", "name": "", "type": "uint256" },
-      { "internalType": "uint256", "name": "", "type": "uint256" },
-      { "internalType": "uint256", "name": "", "type": "uint256" },
-      { "internalType": "uint256", "name": "", "type": "uint256" }
+      {
+        "internalType": "uint256",
+        "name": "_gigCount",
+        "type": "uint256"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+      {
+        "internalType": "uint256",
+        "name": "gigId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "freelancerPercent",
+        "type": "uint256"
+      }
     ],
-    "name": "withdrawFund",
+    "name": "sendPaymentAfterAuditorSettle",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "string", "name": "_clubName", "type": "string" }
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum GigSecured.Status",
+        "name": "_status",
+        "type": "uint8"
+      }
     ],
-    "name": "withdrawPersonalSavings",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "string", "name": "_clubName", "type": "string" }
-    ],
-    "name": "withdrawPublic",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
-    ],
-    "name": "withdrawSavings",
+    "name": "updateGig",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

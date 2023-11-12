@@ -46,7 +46,8 @@ export default function Auth() {
     apiKey,
   });
 
-  const router = useRouter();
+  const providerRead = new ethers.getDefaultProvider("https://base-goerli.g.alchemy.com/v2/pEWkV5B_TfdqO_SzQ7NYfp5tyvQO0BvK");
+  const providerWrite = new ethers.providers.Web3Provider(window.ethereum);
 
   // const createWallet = async () => {
   //   try {
@@ -143,6 +144,8 @@ export default function Auth() {
     setIsConnected,
     factoryContract,
     setFactoryContract,
+    providerRead,
+    providerWrite
     // childAddress,
     // setChildAddress,
   };

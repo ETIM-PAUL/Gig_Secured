@@ -138,7 +138,7 @@ export default function SideBar() {
                     {(() => {
                       if (!connected) {
                         return (
-                          <button onClick={openConnectModal} type="button" className='bg-white text-black text-2xl font-bold'>
+                          <button onClick={openConnectModal} type="button" className='bg-white text-black text-base font-bold'>
                             Connect Wallet
                           </button>
                         );

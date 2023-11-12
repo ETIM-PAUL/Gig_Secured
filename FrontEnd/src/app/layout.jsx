@@ -20,7 +20,7 @@ import {
 } from '@rainbow-me/rainbowkit/wallets';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import {
-  base,
+  baseGoerli,
 } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
@@ -35,7 +35,7 @@ const Disclaimer = ({ Text, Link }) => (
 );
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [base],
+  [baseGoerli],
   [
     alchemyProvider({ apiKey: process.env.ALCHEMY_ID }),
     publicProvider()
