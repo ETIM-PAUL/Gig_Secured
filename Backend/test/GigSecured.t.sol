@@ -28,7 +28,7 @@ contract GigSecuredTest is Helpers {
     uint _gigs;
 
     function setUp() public {
-        _audit = new Audit();
+        _audit = new Audit(0xe01754DEB54c4915D65331Fa31ebf9111CacF9C2);
         _usdc = new USDC();
         _gigContractFactory = new GigContractFactory(
             address(_audit),
