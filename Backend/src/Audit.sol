@@ -126,32 +126,45 @@ contract Audit {
     function getAuditorByCategory(
         string memory _category
     ) external returns (address selectedAuditor) {
-        selectedAuditor = _governanceContract;
-        uint256 earliestConfirmationTime = type(uint32).max; // Initialize earliestConfirmationTime to the maximum value of uint256
-        bool notFound = true;
+        // uint256 earliestConfirmationTime = type(uint32).max; // Initialize earliestConfirmationTime to the maximum value of uint256
+        // bool notFound = true;
 
         for (uint256 i = 0; i < auditorsCount; ++i) {
             if (
-                keccak256(abi.encode(auditors[i].category)) ==
-                keccak256(abi.encode(_category))
+                (keccak256(abi.encode(auditors[i].category)) ==
+                    keccak256(abi.encode(_category))) &&
+                (auditors[i].currentGigs < 2) &&
+                (auditors[i].isConfirmed)
             ) {
                 _auditorsTobeSelected.push(auditor_[auditors[i]._auditor]);
             }
         }
 
-        for (uint i = 0; i < _auditorsTobeSelected.length; ++i) {
-            if (
-                _auditorsTobeSelected[i].isConfirmed &&
-                _auditorsTobeSelected[i].currentGigs == 0 &&
-                _auditorsTobeSelected[i].confirmationTime <
-                earliestConfirmationTime
-            ) {
-                selectedAuditor = _auditorsTobeSelected[i]._auditor; // Update selectedAuditor with the auditor address
-                notFound = true;
-                earliestConfirmationTime = _auditorsTobeSelected[i]
-                    .confirmationTime; // Update earliestConfirmationTime with the new minimum confirmation time
+        if (_auditorsTobeSelected.length > 0) {
+            if (_auditorsTobeSelected.length == 1) {
+                //selectedAuditor = _auditorsTobeSelected[0]._auditor
+            } else {
+                //uint256 nonce =  ISupraRouter(supraAddr).generateRequest("finishLootBox(uint256,uint256[])", 1, 1, 123, supraClientAddress);
+                //uint8 auditorId = nonce % (auditorsTobeSelected.length + 1)
+                //selectedAuditor = _auditorsTobeSelected[auditorId]._auditor
             }
+        } else {
+            selectedAuditor = _governanceContract;
         }
+
+        // for (uint i = 0; i < _auditorsTobeSelected.length; ++i) {
+        //     if (
+        //         _auditorsTobeSelected[i].isConfirmed &&
+        //         _auditorsTobeSelected[i].currentGigs == 0 &&
+        //         _auditorsTobeSelected[i].confirmationTime <
+        //         earliestConfirmationTime
+        //     ) {
+        //         selectedAuditor = _auditorsTobeSelected[i]._auditor; // Update selectedAuditor with the auditor address
+        //         notFound = true;
+        //         earliestConfirmationTime = _auditorsTobeSelected[i]
+        //             .confirmationTime; // Update earliestConfirmationTime with the new minimum confirmation time
+        //     }
+        // }
     }
 
     function removeAuditor(address _auditor) external onlyGovernance {
