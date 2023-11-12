@@ -59,6 +59,7 @@ contract Audit {
     constructor(address routerAddress) {
         _auditorAdmins[msg.sender] = true;
         supraRouter = ISupraRouterContract(routerAddress);
+        _governanceContract = msg.sender;
     }
 
     //modifiers
