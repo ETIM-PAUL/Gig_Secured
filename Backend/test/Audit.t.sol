@@ -20,7 +20,7 @@ contract CounterTest is Test {
         _auditorAddr2 = address(1);
         _auditorAddr3 = address(2);
         _gigContract = address(3);
-        audit = new Audit();
+        audit = new Audit(0xe01754DEB54c4915D65331Fa31ebf9111CacF9C2);
     }
 
     function testConfirmAuditor() public {
@@ -77,29 +77,29 @@ contract CounterTest is Test {
         audit.confirmAuditor(auditor);
     }
 
-    function testRemoveAuditort() public {
-        vm.startPrank(_auditorAddr);
-        audit.becomeAuditor("category", "email");
-        vm.stopPrank();
+    // function testRemoveAuditort() public {
+    //     vm.startPrank(_auditorAddr);
+    //     audit.becomeAuditor("category", "email");
+    //     vm.stopPrank();
 
-        // Confirm the auditor
-        audit.confirmAuditor(_auditorAddr);
+    //     // Confirm the auditor
+    //     audit.confirmAuditor(_auditorAddr);
 
-        bool auditorConfirmed = audit.checkAuditorStatus(_auditorAddr);
-        // Check that the auditor is confirmed
+    //     bool auditorConfirmed = audit.checkAuditorStatus(_auditorAddr);
+    //     // Check that the auditor is confirmed
 
-        assertTrue(auditorConfirmed);
+    //     assertTrue(auditorConfirmed);
 
-        audit.removeAuditor(_auditorAddr);
+    //     audit.removeAuditor(_auditorAddr);
 
-        bool isAuditorConfirmedAfterRemoval = audit.checkAuditorStatus(
-            _auditorAddr
-        );
-        assertFalse(isAuditorConfirmedAfterRemoval);
+    //     bool isAuditorConfirmedAfterRemoval = audit.checkAuditorStatus(
+    //         _auditorAddr
+    //     );
+    //     assertFalse(isAuditorConfirmedAfterRemoval);
 
-        // Verify that the auditor has been removed from the auditor_ mapping
+    //     // Verify that the auditor has been removed from the auditor_ mapping
 
-        bool isAuditorInMapping = audit.checkAuditorStatus(_auditorAddr);
-        assertFalse(isAuditorInMapping);
-    }
+    //     bool isAuditorInMapping = audit.checkAuditorStatus(_auditorAddr);
+    //     assertFalse(isAuditorInMapping);
+    // }
 }

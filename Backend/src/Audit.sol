@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
-import {ISupraRouterContract} from "Backend/src/interface/ISupraRouterContract.sol";
+import {ISupraRouterContract} from "../src/interface/ISupraRouterContract.sol";
 
 contract Audit {
     //states
@@ -149,7 +149,7 @@ contract Audit {
         selectedAuditor = _auditorsTobeSelected[randomIndex]._auditor;
 
         // Clear the array for the next request
-        _auditorsTobeSelected.length = 0;
+        delete _auditorsTobeSelected;
     }
 
     // function getAuditorByCategory(
