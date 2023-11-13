@@ -153,10 +153,11 @@ export default function SideBar() {
                       }
 
                       return (
-                        <div style={{ display: 'flex', gap: 12 }}>
+                        <div className='grid md:flex gap-3'>
                           <button
                             onClick={openChainModal}
-                            style={{ display: 'flex', alignItems: 'center' }}
+                            style={{ alignItems: 'center' }}
+                            className='md:flex grid space-y-2 justify-center'
                             type="button"
                           >
                             {chain.hasIcon && (

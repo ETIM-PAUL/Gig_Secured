@@ -11,50 +11,71 @@ import { ethers } from 'ethers'
 import { useRouter } from 'next/navigation'
 import { factoryAddress } from '@/app/auth/contractAddress'
 import { useAccount } from 'wagmi'
+import { toast } from 'react-toastify'
 
 export default function HomeFeatures() {
   const { childAddress, providerRead, providerWrite, createWallet, isLoading } = Auth();
-  const [accountDetails, setAccountDetails] = useState([])
+  const [contractCounts, setContractsCount] = useState()
   const [hasContract, setHasContract] = useState(false)
-  const [tx, setTx] = useState("")
   const [loadingPage, setLoadingPage] = useState(true)
+  const [tx, setTx] = useState("")
   const router = useRouter()
   const { address, isConnected } = useAccount();
   const [submitLoading, setSubmitLoading] = useState(false);
+
+  const getAddressContractsCount = async (registerAddress) => {
+    if (registerAddress === "") {
+      return;
+    }
+    const contractRead = new ethers.Contract(registerAddress, childAbi, providerRead);
+    let tx = await contractRead.getGigsCount();
+    setContractsCount(Number(tx))
+  }
 
   useEffect(() => {
     const contract = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
     const getConnectedWalletStatus = async () => {
       setLoadingPage(true)
       let tx = await contract.getCreatorSystem(address);
-      if (tx = "0x0000000000000000000000000000000000000000") {
+      if (tx === "0x0000000000000000000000000000000000000000") {
         setHasContract(false)
-        setTx(tx)
       } else {
         setHasContract(true)
+        getAddressContractsCount(tx)
+        setTx(tx)
       }
       setLoadingPage(false)
-      console.log(tx);
     }
     if (isConnected) {
       getConnectedWalletStatus();
     }
-  }, [address, tx])
+  }, [])
 
   const createRegister = async () => {
     const contract = new ethers.Contract(factoryAddress, factoryAbi, providerWrite.getSigner());
+    const contractRead = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
+
     try {
       setSubmitLoading(true)
       let tx = await contract.createGigSecuredContractInstance();
       tx.wait();
-      setTx(tx);
-      console.log(tx);
+
+      let register = await contractRead.getCreatorSystem(address);
+      if (register !== "0x0000000000000000000000000000000000000000") {
+        setHasContract(true)
+        setTx(register)
+      }
+      console.log(register);
       setSubmitLoading(false)
+      toast.success("Secured Contracts Register created successfully")
     } catch (error) {
+      toast.error(error.Error)
       setSubmitLoading(false)
       console.log(error)
     }
   }
+
+
 
   return (
     <Layout>
@@ -64,7 +85,7 @@ export default function HomeFeatures() {
             {(loadingPage && !hasContract) &&
               <span>Loading</span>
             }
-            {(!loadingPage && !hasContract && tx === "0x0000000000000000000000000000000000000000") &&
+            {(!loadingPage && !hasContract && tx === "") &&
               <button
                 disabled={submitLoading}
                 onClick={() => createRegister()}
@@ -81,7 +102,7 @@ export default function HomeFeatures() {
               </button>
             }
 
-            {(!loadingPage && !hasContract && tx !== "0x0000000000000000000000000000000000000000") &&
+            {(!loadingPage && hasContract && tx !== "") &&
               <>
                 <div className="flex flex-wrap gap-10 text-white">
                   {explore_cards.map((card, index) => (
@@ -91,7 +112,7 @@ export default function HomeFeatures() {
                       </Link>
                       <div className='text-white px-3'>
                         <span className='text-xl block mb-1.5 font-bold'>{card?.name}</span>
-                        <span className="sm:text-2xl grotesk font-bold leading-[25.5px] tracking-[0.085px] pt-4 pb-2 text-2xl">{(index === 0 || index === 2) ? 2 : ""}</span>
+                        <span className="sm:text-2xl grotesk font-bold leading-[25.5px] tracking-[0.085px] pt-4 pb-2 text-2xl">{index === 0 ? contractCounts : index === 2 ? 2 : ""}</span>
                       </div>
                     </div>
                   ))}
