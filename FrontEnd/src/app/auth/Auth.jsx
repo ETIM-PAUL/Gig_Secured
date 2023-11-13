@@ -1,19 +1,19 @@
 /** @format */
-"use client";
-import React, { useContext } from "react";
+'use client';
+import React, { useContext } from 'react';
 import {
   ComethWallet,
   ConnectAdaptor,
   SupportedNetworks,
   ComethProvider,
-} from "@cometh/connect-sdk";
-import { useAppContext } from "./Context";
-import factoryAbi from "./abi/factory.json";
-import childAbi from "./abi/child.json";
+} from '@cometh/connect-sdk';
+import { useAppContext } from './Context';
+import factoryAbi from './abi/factory.json';
+import childAbi from './abi/child.json';
 import axios from 'axios';
-import { ethers } from "ethers";
-import { factoryAddress } from "./contractAddress";
-import { useRouter } from "next/navigation";
+import { ethers } from 'ethers';
+import { factoryAddress } from './contractAddress';
+import { useRouter } from 'next/navigation';
 
 export default function Auth() {
   const {
@@ -33,10 +33,10 @@ export default function Auth() {
     gigSecuredAddress,
     setGigSecuredAddress,
     setAuditorsContract,
-    auditorsContract
+    auditorsContract,
   } = useAppContext();
 
-  const apiKey = "15511501-2129-4f96-857a-762009df1f07";
+  const apiKey = '15511501-2129-4f96-857a-762009df1f07';
   const walletAdaptor = new ConnectAdaptor({
     chainId: SupportedNetworks.MUMBAI,
     apiKey,
@@ -46,7 +46,9 @@ export default function Auth() {
     apiKey,
   });
 
-  const providerRead = new ethers.getDefaultProvider("https://base-goerli.g.alchemy.com/v2/pEWkV5B_TfdqO_SzQ7NYfp5tyvQO0BvK");
+  const providerRead = new ethers.getDefaultProvider(
+    'https://base-goerli.publicnode.com'
+  );
   const providerWrite = new ethers.providers.Web3Provider(window.ethereum);
 
   // const createWallet = async () => {
@@ -120,7 +122,7 @@ export default function Auth() {
         setIsConnected(false);
         setWallet(null);
         setProvider(null);
-        setAddress("");
+        setAddress('');
       } catch (e) {
         console.log(e.message);
         // displayError((e ).message);
@@ -145,7 +147,7 @@ export default function Auth() {
     factoryContract,
     setFactoryContract,
     providerRead,
-    providerWrite
+    providerWrite,
     // childAddress,
     // setChildAddress,
   };
