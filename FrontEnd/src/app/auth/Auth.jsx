@@ -49,7 +49,7 @@ export default function Auth() {
   const providerRead = new ethers.getDefaultProvider(
     'https://base-goerli.publicnode.com'
   );
-  const providerWrite = new ethers.providers.Web3Provider(window.ethereum);
+  const providerWrite = new ethers.providers.Web3Provider(window?.ethereum);
 
   // const createWallet = async () => {
   //   try {

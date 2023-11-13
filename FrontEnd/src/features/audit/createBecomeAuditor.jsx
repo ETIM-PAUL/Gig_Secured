@@ -1,16 +1,57 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+/** @format */
+'use client';
+import Auth from '@/app/auth/Auth';
+import React, { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+import Link from 'next/link';
+import { useAccount } from 'wagmi';
+import { ethers } from 'ethers';
+import { auditorAddress } from '@/app/auth/contractAddress';
+import auditAbi from '@/app/auth/abi/audit.json';
+import { CgProfile } from 'react-icons/cg';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { toast } from 'react-toastify';
+import { useForm } from 'react-hook-form';
 import { PiArrowLeftBold } from 'react-icons/pi';
-import { useRouter } from 'next/navigation';
 
 export default function CreateBecomeAuditor() {
-  const router = useRouter();
+  // const router = useRouter();
   const [submitLoading, setSubmitLoading] = useState(false);
   const [termModal, setTermModal] = useState(false);
   const [hasOpenTermModal, setHasOpenTermModal] = useState(false);
+  const [tx, setTx] = useState(null); // Add state for tx
+  const { providerRead, providerWrite } = Auth();
+  const { address, isConnected } = useAccount();
+  const [loadingPage, setLoadingPage] = useState(true);
+
+  useEffect(() => {
+    const contract = new ethers.Contract(
+      auditorAddress,
+      auditAbi,
+      providerRead
+    );
+    const getConnectedWalletStatus = async () => {
+      setLoadingPage(true);
+      try {
+        let tx = await contract.getCreatorSystem(address);
+        // Use '===' instead of '=' for comparison
+        if (tx === '0x0000000000000000000000000000000000000000') {
+          setHasContract(false);
+          setTx(tx);
+        } else {
+          setHasContract(true);
+        }
+      } catch (error) {
+        console.error('Error fetching wallet status:', error);
+      }
+      setLoadingPage(false);
+    };
+
+    if (isConnected) {
+      getConnectedWalletStatus();
+    }
+  }, [address, isConnected, tx]); // Include tx in dependencies
+
   const schema = yup
     .object({
       email: yup.string().email().required(),
@@ -34,19 +75,82 @@ export default function CreateBecomeAuditor() {
     setTermModal(true);
   };
 
+  // const onSubmit = async (data) => {
+  //   console.log(data);
+  //   if (!hasOpenTermModal) {
+  //     return; // Handle the case where terms are not accepted
+  //   }
+
+  //   setSubmitLoading(true);
+  //   try {
+  //     const contract = new ethers.Contract(
+  //       auditorAddress,
+  //       auditAbi,
+  //       providerWrite.getSigner() // Use providerWrite for sending transactions
+  //     );
+
+  //     const transaction = await contract.becomeAuditor(
+  //       data.category,
+  //       data.email
+  //     );
+
+  //     // Wait for the transaction to be mined and confirmed
+  //     await transaction.wait();
+
+  //     setTx(transaction.hash);
+
+  //     setTimeout(() => {
+  //       setSubmitLoading(false);
+  //     }, 1000);
+  //   } catch (error) {
+  //     setSubmitLoading(false);
+  //     toast.error(error.message);
+  //     console.error('Error', error);
+  //   }
+  // };
+
   const onSubmit = async (data) => {
     console.log(data);
-    if (hasOpenTermModal) {
+    if (!hasOpenTermModal) {
+      return; // Handle the case where terms are not accepted
     }
+
     setSubmitLoading(true);
     try {
+      const contract = new ethers.Contract(
+        auditorAddress,
+        auditAbi,
+        providerWrite.getSigner() // Use providerWrite for sending transactions
+      );
+
+      const transaction = await contract.becomeAuditor(
+        data.category,
+        data.email
+      );
+
+      // Wait for the transaction to be mined and confirmed
+      await transaction.wait();
+
+      setTx(transaction.hash);
+
       setTimeout(() => {
         setSubmitLoading(false);
+        // Show success toast
+        toast.success('Successfully became an auditor!', {
+          position: 'top-center',
+          autoClose: 10000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light',
+        });
       }, 1000);
     } catch (error) {
       setSubmitLoading(false);
-      toast.error(error);
-      console.log('Error', error);
+      toast.error(error.message);
+      console.error('Error', error);
     }
   };
 
