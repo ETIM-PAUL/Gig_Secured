@@ -1,4 +1,7 @@
-import { ethers } from "ethers"
+import { ethers, toBigInt } from "ethers"
+
+export const calculateGasMargin = (value) =>
+  (toBigInt(value) * toBigInt(120)) / toBigInt(100);
 
 export const explore_cards = [
 
@@ -118,7 +121,7 @@ export function formatDate(timestamp) {
 }
 
 export function formatUSDT(val) {
-  const formatVal = ethers.utils.formatUnits(val, 6)
+  const formatVal = ethers.formatUnits(val, 6)
   return formatVal;
 }
 

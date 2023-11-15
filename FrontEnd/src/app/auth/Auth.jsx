@@ -1,19 +1,9 @@
 /** @format */
-"use client";
-import React, { useContext } from "react";
-import {
-  ComethWallet,
-  ConnectAdaptor,
-  SupportedNetworks,
-  ComethProvider,
-} from "@cometh/connect-sdk";
-import { useAppContext } from "./Context";
-import factoryAbi from "./abi/factory.json";
-import childAbi from "./abi/child.json";
-import axios from 'axios';
-import { ethers } from "ethers";
-import { factoryAddress } from "./contractAddress";
-import { useRouter } from "next/navigation";
+'use client';
+import React, { useContext } from 'react';
+
+import { useAppContext } from './Context';
+import { ethers } from 'ethers';
 
 export default function Auth() {
   const {
@@ -33,21 +23,18 @@ export default function Auth() {
     gigSecuredAddress,
     setGigSecuredAddress,
     setAuditorsContract,
-    auditorsContract
+    auditorsContract,
   } = useAppContext();
 
-  const apiKey = "15511501-2129-4f96-857a-762009df1f07";
-  const walletAdaptor = new ConnectAdaptor({
-    chainId: SupportedNetworks.MUMBAI,
-    apiKey,
-  });
-  const instance = new ComethWallet({
-    authAdapter: walletAdaptor,
-    apiKey,
-  });
+  const providerRead = new ethers.getDefaultProvider(
+    'https://base-goerli.publicnode.com'
+  );
 
-  const providerRead = new ethers.getDefaultProvider("https://base-goerli.publicnode.com");
-  const providerWrite = new ethers.providers.Web3Provider(window.ethereum);
+  let providerWrite;
+
+  if (typeof window !== "undefined" && window && window?.ethereum) {
+    providerWrite = new ethers.BrowserProvider(window?.ethereum);
+  }
 
   // const createWallet = async () => {
   //   try {
@@ -120,7 +107,7 @@ export default function Auth() {
         setIsConnected(false);
         setWallet(null);
         setProvider(null);
-        setAddress("");
+        setAddress('');
       } catch (e) {
         console.log(e.message);
         // displayError((e ).message);
@@ -145,7 +132,9 @@ export default function Auth() {
     factoryContract,
     setFactoryContract,
     providerRead,
-    providerWrite
+    providerWrite,
+    setGigSecuredAddress,
+    gigSecuredAddress
     // childAddress,
     // setChildAddress,
   };

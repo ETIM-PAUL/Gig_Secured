@@ -6,7 +6,6 @@ import Auth from '@/app/auth/Auth'
 import { useRouter } from 'next/navigation'
 
 export default function Layout({ children }) {
-  const { isConnected, provider } = Auth();
   const router = useRouter()
   return (
     <main className='bg-white'>

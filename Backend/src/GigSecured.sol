@@ -264,6 +264,7 @@ contract GigSecured {
             1
         );
 
+        _contractGigs.push(_newGigContract);
         gigContract = true;
         emit GigContractCreated(_title, msg.sender, _freelancer);
     }

@@ -5,8 +5,18 @@ import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { PiArrowLeftBold } from 'react-icons/pi';
 import { useRouter } from 'next/navigation';
+import Auth from '@/app/auth/Auth';
+import childAbi from '@/app/auth/abi/child.json'
+import { ethers } from 'ethers';
+import { useAccount } from 'wagmi';
+import { factoryAddress, usdc } from '@/app/auth/contractAddress';
+import factoryAbi from '@/app/auth/abi/factory.json'
+import usdcAbi from '@/app/auth/abi/usdc.json'
+import { calculateGasMargin } from '@/utils';
 
 export default function CreateContract() {
+  const { address } = useAccount();
+  const { providerWrite, providerRead } = Auth();
   const router = useRouter();
   const [submitLoading, setSubmitLoading] = useState(false);
   const [termModal, setTermModal] = useState(false);
@@ -14,7 +24,6 @@ export default function CreateContract() {
   const schema = yup
     .object({
       email: yup.string().email().required(),
-      name: yup.string().required(),
       title: yup.string().required(),
       category: yup.string().required(),
       description: yup.string().required(),
@@ -41,18 +50,48 @@ export default function CreateContract() {
   };
 
   const onSubmit = async (data) => {
-    console.log(data);
-    if (hasOpenTermModal) {
+
+    if (!hasOpenTermModal) {
+      toast.error("Please read the terms and conditions thoroughly");
+      return;
     }
-    setSubmitLoading(true);
-    try {
-      setTimeout(() => {
+    const contractRead = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
+    const signer = await providerWrite.getSigner();
+
+    let gigRegister = await contractRead.getCreatorSystem(address);
+    if (gigRegister === "0x0000000000000000000000000000000000000000") {
+      toast.success("Create a Register to add secured contracts")
+      return;
+    } else {
+      const contractWrite = new ethers.Contract(gigRegister, childAbi, signer);
+      const usdtWrite = new ethers.Contract(usdc, usdcAbi, signer);
+      const deadlineFormat = Math.floor(new Date(data.deadline).getTime() / 1000)
+      console.log(deadlineFormat)
+      console.log(typeof deadlineFormat)
+      try {
+        setSubmitLoading(true)
+
+        await usdtWrite.approve(gigRegister, ethers.parseUnits(data.price, 18));
+        const estimatedGas = await contractWrite.addGig.estimateGas(
+          data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer,
+        );
+        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer, { gasLimit: calculateGasMargin(estimatedGas) });
+
+        tx.wait().then(async (receipt) => {
+          console.log(receipt);
+          if (receipt && receipt.status == 1) {
+            // transaction success.
+            setSubmitLoading(false)
+            toast.success("Secured Contract created successfully")
+            router.push("/contracts")
+          }
+        });
+
+      } catch (error) {
         setSubmitLoading(false);
-      }, 1000);
-    } catch (error) {
-      setSubmitLoading(false);
-      toast.error(error);
-      console.log('Error', error);
+        toast.error(error);
+        console.log('Error', error);
+      }
     }
   };
 
@@ -208,7 +247,7 @@ export default function CreateContract() {
 
         <button
           disabled={submitLoading}
-          className='w-[360px] h-[58px] rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block mx-auto leading-[25.5px] tracking-[0.5%]'
+          className={`${submitLoading && "cursor-not-allowed"} w-[360px] h-[58px] rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block mx-auto leading-[25.5px] tracking-[0.5%]`}
         >
           {submitLoading ? (
             <span className='loading loading-spinner loading-lg'></span>
