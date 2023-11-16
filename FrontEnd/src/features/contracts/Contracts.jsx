@@ -2,8 +2,6 @@
 "use client"
 import Auth from "@/app/auth/Auth";
 import React, { useEffect, useState } from "react";
-import copy from "copy-to-clipboard";
-import { toast } from "react-toastify";
 import Link from "next/link";
 import childAbi from '@/app/auth/abi/child.json'
 import factoryAbi from '@/app/auth/abi/factory.json'
@@ -14,7 +12,6 @@ import { useAccount } from "wagmi";
 export default function AllContracts() {
   const { address, isConnected } = useAccount();
   const { providerRead } = Auth();
-  const [contracts, setContracts] = useState([1, 2, 3])
   const [fetchedContracts, setFetchedContracts] = useState([])
   const [hasContract, setHasContract] = useState(false)
   const [loadingPage, setLoadingPage] = useState(true)
@@ -25,10 +22,9 @@ export default function AllContracts() {
       return;
     }
     const contractRead = new ethers.Contract(registerAddress, childAbi, providerRead);
-    let tx = await contractRead.getAllGigs().then((contracts) => {
-      console.log(contracts.Results)
-    });
-    // setFetchedContracts(Number(tx))
+    let tx = await contractRead.getAllGigs();
+    const tr = Object.values(tx)
+    setFetchedContracts(tr)
   }
 
   useEffect(() => {
@@ -72,7 +68,7 @@ export default function AllContracts() {
                   fill='currentFill'
                 />
               </svg>
-              <span class='sr-only'>Loading...</span>
+              <span className='sr-only'>Loading...</span>
             </div>
           }
           {(!loadingPage && !hasContract && tx === "") &&
@@ -98,19 +94,20 @@ export default function AllContracts() {
               </Link>
 
               <div className="my-10 flex gap-6 flex-wrap">
-                {fetchedContracts.length === 0 &&
+                {(fetchedContracts.length === 0 && !loadingPage) &&
                   <div className="text-2xl font-bold w-full text-center block">
                     <span>You don't have any contracts</span>
                   </div>
                 }
               </div>
 
+
               <div className="my-10 flex gap-6 flex-wrap">
-                {fetchedContracts.length > 0 && contracts.map((item, index) => (
+                {fetchedContracts.length > 0 && fetchedContracts.map((item, index) => (
                   <div key={index} className="card w-96 bg-white border shadow-md border-black flex-grow text-black">
                     <div className="card-body">
-                      <h2 className="card-title">Writing Fiction Story!</h2>
-                      <p>Write Five(5) chapters, with each having at least 2000 words about any fiction story </p>
+                      <h2 className="card-title">{item[0]} - <span className="text-sm">{item[1]}</span></h2>
+                      <p>{item[6]}</p>
                       <div className="card-actions justify-end">
                         <Link href={`/contracts/view?id=${index + 1}`}>
                           <button className="btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF">More Details</button>

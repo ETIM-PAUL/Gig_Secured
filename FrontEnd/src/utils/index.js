@@ -129,3 +129,78 @@ export function getEightPercent(val) {
   const data = (val * 8) / 100
   return data;
 }
+
+export function formatStatus(status) {
+  const _status = Number(status)
+  switch (_status) {
+    case 0:
+      return "pending"
+      break;
+    case 1:
+      return "building"
+      break;
+    case 2:
+      return "completed"
+      break;
+    case 3:
+      return "under-review"
+      break;
+    case 4:
+      return "disputed"
+      break;
+    case 5:
+      return "closed"
+      break;
+
+    default:
+      break;
+  }
+}
+
+export function formatBlockchainTimestamp(timestamp) {
+  // Convert the timestamp to milliseconds
+  const timestampMilliseconds = timestamp * 1000;
+
+  // Create a Date object
+  const date = new Date(timestampMilliseconds);
+
+  // Define months array
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  // Get day, month, and year
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+
+  // Add ordinal suffix to the day
+  const dayWithSuffix = addOrdinalSuffix(day);
+
+  // Format the date
+  const formattedDate = `${dayWithSuffix} ${month}, ${year}`;
+
+  return formattedDate;
+}
+
+// Function to add ordinal suffix to the day (e.g., 1st, 2nd, 3rd)
+function addOrdinalSuffix(day) {
+  if (day >= 11 && day <= 13) {
+    return `${day}th`;
+  }
+
+  switch (day % 10) {
+    case 1:
+      return `${day}st`;
+    case 2:
+      return `${day}nd`;
+    case 3:
+      return `${day}rd`;
+    default:
+      return `${day}th`;
+  }
+}
+
+export const shortenAccount = (account) =>
+  `${account.substring(0, 6)}...${account.substring(38)}`;

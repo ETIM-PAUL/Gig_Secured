@@ -1,7 +1,9 @@
 "use client"
 import Layout from '@/components/Layout'
-import CreateContract from '@/features/contracts/createContract'
+import dynamic from 'next/dynamic'
 import React from 'react'
+
+const CreateContract = dynamic(() => import('@/features/contracts/createContract'), { ssr: false })
 
 export default function page() {
   return (

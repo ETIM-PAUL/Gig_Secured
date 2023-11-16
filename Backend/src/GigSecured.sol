@@ -83,6 +83,7 @@ contract GigSecured {
     mapping(uint256 => GigContract) private _allGigs;
     GigContract[] _contractGigs;
 
+    error NotYetReviewed();
     error FreelancerSignedAlready();
     error AtLeastAnHour();
     error InvalidFreelancer(address freeLancer);
@@ -326,9 +327,9 @@ contract GigSecured {
         uint256 newDeadline
     ) external onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        // if (gig.freelancerSign.length == 0) {
-        //     revert FreelancerSignedAlready();
-        // }
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (newDeadline < block.timestamp) {
             revert DeadlineInPast(newDeadline);
         }
@@ -362,9 +363,9 @@ contract GigSecured {
         string memory newTitle
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        // if (gig.freelancerSign.length == 0) {
-        //     revert FreelancerSignedAlready();
-        // }
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -393,9 +394,9 @@ contract GigSecured {
         string memory newDescription
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        // if (gig.freelancerSign.length == 0) {
-        //     revert FreelancerSignedAlready();
-        // }
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -424,9 +425,9 @@ contract GigSecured {
         string memory newCategory
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        // if (gig.freelancerSign.length == 0) {
-        //     revert FreelancerSignedAlready();
-        // }
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -456,9 +457,9 @@ contract GigSecured {
         address newFreelancerAddress
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        // if (gig.freelancerSign.length == 0) {
-        //     revert FreelancerSignedAlready();
-        // }
+        if (gig.freelancerSign.length == 0) {
+            revert FreelancerSignedAlready();
+        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -637,9 +638,15 @@ contract GigSecured {
             revert ContractSettlementTimeNotActive();
         }
         if (newStatus == Status.Closed) {
+            if (gig._status < Status.UnderReview) {
+                revert NotYetReviewed();
+            }
             _sendPaymentClosed(gigId);
         }
         if (newStatus == Status.Dispute) {
+            if (block.timestamp <= gig.completedTime + 259200) {
+                revert TooSoonToDispute();
+            }
             gig.isAudit = true;
             address _auditor = _assignAuditor(gig.category, gigId);
             gig.auditor = _auditor;

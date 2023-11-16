@@ -2,8 +2,9 @@
 import { AiOutlineClose } from 'react-icons/ai'
 import Auth from '@/app/auth/Auth'
 import { useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import HomeFeatures from '@/features/Home/HomeFeatures';
+const HomeFeatures = dynamic(() => import('@/features/Home/HomeFeatures'), { ssr: false })
 
 export default function Home() {
   // const { createWallet, isLoading, isConnected } = Auth();

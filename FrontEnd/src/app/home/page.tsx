@@ -1,5 +1,7 @@
 import React from 'react'
-import HomeFeatures from "../../features/Home/HomeFeatures"
+import dynamic from 'next/dynamic'
+
+const HomeFeatures = dynamic(() => import('../../features/Home/HomeFeatures'), { ssr: false })
 
 export default function page() {
   return (

@@ -66,8 +66,7 @@ export default function CreateContract() {
       const contractWrite = new ethers.Contract(gigRegister, childAbi, signer);
       const usdtWrite = new ethers.Contract(usdc, usdcAbi, signer);
       const deadlineFormat = Math.floor(new Date(data.deadline).getTime() / 1000)
-      console.log(deadlineFormat)
-      console.log(typeof deadlineFormat)
+
       try {
         setSubmitLoading(true)
 
@@ -87,10 +86,14 @@ export default function CreateContract() {
           }
         });
 
-      } catch (error) {
+      } catch (e) {
+        if (e.data && contractWrite) {
+          const decodedError = contractWrite.interface.parseError(e.data);
+          toast.error(`Transaction failed: ${decodedError?.name}`)
+        } else {
+          console.log(`Error in contract:`, e);
+        }
         setSubmitLoading(false);
-        toast.error(error);
-        console.log('Error', error);
       }
     }
   };

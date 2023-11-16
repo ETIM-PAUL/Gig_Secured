@@ -9,14 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@cometh/connect-sdk": "^1.1.0",
     "@headlessui/react": "^1.7.17",
     "@hookform/resolvers": "^3.3.2",
     "@rainbow-me/rainbowkit": "^1.2.0",
     "axios": "^1.5.1",
-    "copy-to-clipboard": "^3.3.3",
     "dotenv": "^16.3.1",
-    "encoding": "^0.1.13",
     "ethers": "6.8.1",
     "next": "13.5.4",
     "react": "^18",
