@@ -77,7 +77,6 @@ export default function CreateContract() {
         let tx = await contractWrite.addGig(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer, { gasLimit: calculateGasMargin(estimatedGas) });
 
         tx.wait().then(async (receipt) => {
-          console.log(receipt);
           if (receipt && receipt.status == 1) {
             // transaction success.
             setSubmitLoading(false)

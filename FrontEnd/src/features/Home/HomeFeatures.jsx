@@ -71,8 +71,8 @@ export default function HomeFeatures() {
       setSubmitLoading(false)
       toast.success("Secured Contracts Register created successfully")
     } catch (e) {
-      if (e.data && contractWrite) {
-        const decodedError = contractWrite.interface.parseError(e.data);
+      if (e.data && contract) {
+        const decodedError = contract.interface.parseError(e.data);
         toast.error(`Transaction failed: ${decodedError?.name}`)
       } else {
         console.log(`Error in contract:`, e);
