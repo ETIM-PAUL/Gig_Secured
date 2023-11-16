@@ -120,6 +120,11 @@
   },
   {
     "inputs": [],
+    "name": "NotYetReviewed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "RemissionFailed",
     "type": "error"
   },
@@ -399,6 +404,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "address",
+        "name": "freelancer",
+        "type": "address"
+      },
       {
         "internalType": "bytes",
         "name": "_freelancerSign",

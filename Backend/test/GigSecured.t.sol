@@ -132,24 +132,41 @@ contract GigSecuredTest is Helpers {
     //         _gigSecured.freeLancerSign(_newGigContract.freelancerSign, 1);
     //     }
 
-    //     function testFreelancerSign() public {
-    //         testAddGigContract();
+    function testFreelancerSign() public {
+        _audit.setGovernanceContract(address(_gigContractFactory));
+        GigSecured gigContractInstance = _gigContractFactory
+            .createGigSecuredContractInstance();
+        vm.startPrank(_clientAddress);
+        _newGigContract.deadline = 8600;
+        _usdc.approve(address(gigContractInstance), _newGigContract.price);
 
-    //         vm.startPrank(_freelancerAddress);
-    //         _newGigContract.freelancerSign = constructSig(
-    //             _freelancerAddress,
-    //             _newGigContract.title,
-    //             1,
-    //             _newGigContract.price,
-    //             _newGigContract.deadline,
-    //             _privKeyFreelancer
-    //         );
-    //         bool freelancerAssign = _gigSecured.freeLancerSign(
-    //             _newGigContract.freelancerSign,
-    //             1
-    //         );
-    //         assertTrue(freelancerAssign);
-    //     }
+        gigContractInstance.addGig(
+            _newGigContract.title,
+            _newGigContract.category,
+            _newGigContract.clientEmail,
+            _newGigContract.description,
+            _newGigContract.deadline,
+            _newGigContract.price,
+            _freelancerAddress
+        );
+        vm.stopPrank();
+
+        vm.startPrank(_freelancerAddress);
+        _newGigContract.freelancerSign = constructSig(
+            _freelancerAddress,
+            _newGigContract.title,
+            1,
+            _newGigContract.price,
+            _newGigContract.deadline,
+            _privKeyFreelancer
+        );
+        bool freelancerAssign = gigContractInstance.freeLancerSign(
+            _freelancerAddress,
+            _newGigContract.freelancerSign,
+            1
+        );
+        assertTrue(freelancerAssign);
+    }
 
     //     function testDeadlineGigContract() external {
     //         GigSecured.GigContract memory _newContract = _newGigContract;

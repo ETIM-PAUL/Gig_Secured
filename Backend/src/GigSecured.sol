@@ -262,7 +262,7 @@ contract GigSecured {
         IFactory(_governanceAddress).increaseFreelancerCurrentGigs(
             _freelancer,
             address(this),
-            1
+            _gigs
         );
 
         _contractGigs.push(_newGigContract);
@@ -286,12 +286,13 @@ contract GigSecured {
  * @param NotAssignedFreeLancer The function reverts if the freelancer is not assigned to the gig contract.
  */
     function freeLancerSign(
+        address freelancer,
         bytes memory _freelancerSign,
         uint _gigContract
     ) external returns (bool success) {
         GigContract storage gigContract = _allGigs[_gigContract];
         bool isVerified = EscrowUtils.verify(
-            msg.sender,
+            freelancer,
             gigContract.title,
             _gigContract,
             gigContract.price,
