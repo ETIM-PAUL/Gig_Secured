@@ -286,13 +286,12 @@ contract GigSecured {
  * @param NotAssignedFreeLancer The function reverts if the freelancer is not assigned to the gig contract.
  */
     function freeLancerSign(
-        address freelancer,
         bytes memory _freelancerSign,
         uint _gigContract
     ) external returns (bool success) {
         GigContract storage gigContract = _allGigs[_gigContract];
         bool isVerified = EscrowUtils.verify(
-            freelancer,
+            msg.sender,
             gigContract.title,
             _gigContract,
             gigContract.price,

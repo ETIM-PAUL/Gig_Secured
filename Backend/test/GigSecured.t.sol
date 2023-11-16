@@ -161,7 +161,6 @@ contract GigSecuredTest is Helpers {
             _privKeyFreelancer
         );
         bool freelancerAssign = gigContractInstance.freeLancerSign(
-            _freelancerAddress,
             _newGigContract.freelancerSign,
             1
         );
