@@ -125,6 +125,28 @@ export default function ViewFreelance() {
     }
   }, [])
 
+  async function sendEmail() {
+    try {
+
+      const response = await fetch('/api/status', {
+        method: 'post',
+        body: JSON.stringify({ newStatus: formatStatus(status), toEmail: contractDetails[2], contractName: contractDetails[0] }),
+      });
+
+      if (!response.ok) {
+        console.log("falling over")
+        throw new Error(`response status: ${response.status}`);
+      }
+      const responseData = await response.json();
+      console.log(responseData['message'])
+
+      toast.success('Message successfully sent');
+    } catch (err) {
+      console.error(err);
+      setSubmitLoading(false)
+      toast.success("Error, please try resubmitting the form");
+    }
+  }
 
   const updateStatus = async () => {
     if (contractDetails[5] === "0x") {
@@ -132,7 +154,7 @@ export default function ViewFreelance() {
       toast.error("You need to sign before you can update status")
       return;
     }
-    console.log(status)
+
     const signer = await providerWrite.getSigner();
 
     const contractWrite = new ethers.Contract(contract, childAbi, signer);
@@ -143,7 +165,8 @@ export default function ViewFreelance() {
     }
     setSubmitLoading(true);
     try {
-      // const estimatedGas = await contractWrite.updateGig.estimateGas(id, status);
+      // sendEmail();
+      const estimatedGas = await contractWrite.updateGig.estimateGas(id, status);
       let tx = await contractWrite.updateGig(id, status);
       tx.wait().then(async (receipt) => {
         if (receipt && receipt.status == 1) {
@@ -210,12 +233,12 @@ export default function ViewFreelance() {
             </div>
             <div>
               <div className='flex items-center justify-end gap-2 mb-2'>
-                {(!isTimestampGreaterThanCurrent(Number(contractDetails[7])) && Number(contractDetails[9] != 5)) &&
+                {(!(isTimestampGreaterThanCurrent(Number(contractDetails[7]))) && Number(contractDetails[9]) != 5) &&
                   <span className='py-1 rounded-md bg-white px-2 block w-fit'>
                     {formatStatus(contractDetails[9])}
                   </span>
                 }
-                {(!isTimestampGreaterThanCurrent(Number(contractDetails[7])) && Number(contractDetails[9] < 3)) ?
+                {!((isTimestampGreaterThanCurrent(Number(contractDetails[7]))) && Number(contractDetails[9]) < 3) ?
                   <button
                     onClick={() => updateModal()}
                     className='w-fit p-2 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-base block leading-[25.5px] tracking-[0.5%]'

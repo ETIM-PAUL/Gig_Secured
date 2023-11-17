@@ -206,14 +206,12 @@ export const shortenAccount = (account) =>
   `${account.substring(0, 6)}...${account.substring(38)}`;
 
 export function isTimestampGreaterThanCurrent(timestamp) {
-  // Convert the timestamp to milliseconds if it's in seconds
-  const timestampMilliseconds = timestamp * 1000;
 
   // Get the current timestamp in milliseconds
-  const currentTimestamp = Date.now() / 100;
+  const currentTimestamp = Math.floor(Date.now() / 1000);
 
-  if (timestamp > currentTimestamp) {
-    return true
+  if (currentTimestamp > timestamp) {
+    return false
   } else {
     return false
   }

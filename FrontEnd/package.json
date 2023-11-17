@@ -6,12 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "preview-email": "email dev"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
     "@hookform/resolvers": "^3.3.2",
     "@rainbow-me/rainbowkit": "^1.2.0",
+    "@react-email/container": "^0.0.10",
+    "@react-email/html": "^0.0.6",
+    "@react-email/section": "^0.0.10",
+    "@react-email/text": "^0.0.6",
     "axios": "^1.5.1",
     "dotenv": "^16.3.1",
     "ethers": "6.8.1",
@@ -19,6 +24,7 @@
     "nodemailer": "^6.9.7",
     "react": "^18",
     "react-dom": "^18",
+    "react-email": "^1.9.5",
     "react-hook-form": "^7.48.2",
     "react-icons": "^4.11.0",
     "react-toastify": "^9.1.3",

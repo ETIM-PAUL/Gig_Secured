@@ -50,7 +50,7 @@ export default function HomeFeatures() {
     if (isConnected) {
       getConnectedWalletStatus();
     }
-  }, [])
+  }, [address])
 
   const createRegister = async () => {
     const signer = await providerWrite.getSigner();
