@@ -1,9 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
-import {ISupraRouterContract} from "../src/interface/ISupraRouterContract.sol";
+
+// import {ISupraRouterContract} from "../src/interface/ISupraRouterContract.sol";
+interface ISupraRouterContract {
+    function generateRequest(
+        string memory _functionSig,
+        uint8 _rngCount,
+        uint256 _numConfirmations,
+        uint256 _clientSeed
+    ) external returns (uint256);
+}
 
 contract Audit {
     //states
+    ISupraRouterContract internal supraRouter;
     struct Auditor {
         string category;
         string email;
@@ -36,6 +46,7 @@ contract Audit {
     //events
     event AuditorRemoved(address indexed removedAuditor);
     event AuditorConfirmed(address indexed confirmedAuditor);
+    event AuditorSelected(address indexed selectedAuditor);
 
     // Custom errors
     error ExceededMaximumCategory();
@@ -53,8 +64,6 @@ contract Audit {
     error OnlyEoa();
     error NotOwner();
     error NoGigForAuditor();
-
-    ISupraRouterContract internal supraRouter;
 
     constructor(address routerAddress) {
         _auditorAdmins[msg.sender] = true;
@@ -129,64 +138,6 @@ contract Audit {
         isAuditorConfirmed = auditor_[_auditor].isConfirmed;
     }
 
-    function myCallback(uint256 nonce, uint256[] calldata rngList) external {
-        require(
-            msg.sender == address(supraRouter),
-            "Only Supra Router can call this function"
-        );
-
-        // Validate that the nonce corresponds to a valid request
-        require(nonce <= auditorsCount, "Invalid nonce");
-
-        // Check if rngList is not empty
-        require(rngList.length > 0, "rngList is empty");
-
-        // Check if _auditorsTobeSelected is not empty
-        require(_auditorsTobeSelected.length > 0, "No available auditors");
-
-        // Use the random numbers in rngList to select an auditor
-        uint256 randomIndex = rngList[0] % _auditorsTobeSelected.length;
-        selectedAuditor = _auditorsTobeSelected[randomIndex]._auditor;
-
-        // Clear the array for the next request
-        delete _auditorsTobeSelected;
-    }
-
-    // function getAuditorByCategory(
-    //     string memory _category
-    // ) external returns (address selectedAuditor) {
-    //     for (uint256 i = 0; i < auditorsCount; ++i) {
-    //         if (
-    //             (keccak256(abi.encode(auditors[i].category)) ==
-    //                 keccak256(abi.encode(_category))) &&
-    //             (auditors[i].currentGigs < 2) &&
-    //             (auditors[i].isConfirmed)
-    //         ) {
-    //             _auditorsTobeSelected.push(auditor_[auditors[i]._auditor]);
-    //         }
-    //     }
-
-    //     if (_auditorsTobeSelected.length > 0) {
-    //         if (_auditorsTobeSelected.length == 1) {
-    //             selectedAuditor = _auditorsTobeSelected[0]._auditor;
-    //         } else {
-    //             uint256 nonce = ISupraRouterContract(supraRouter)
-    //                 .generateRequest(
-    //                     "getAuditorByCategory(string memory)",
-    //                     1,
-    //                     1,
-    //                     123,
-    //                     msg.sender
-    //                 );
-    //             selectedAuditor = _auditorsTobeSelected[
-    //                 nonce % _auditorsTobeSelected.length
-    //             ]._auditor;
-    //         }
-    //     } else {
-    //         selectedAuditor = _governanceContract;
-    //     }
-    // }
-
     function getAuditorByCategory(
         string memory _category
     ) external returns (address) {
@@ -206,11 +157,10 @@ contract Audit {
                 selectedAuditor = _auditorsTobeSelected[0]._auditor;
             } else {
                 uint256 nonce = supraRouter.generateRequest(
-                    "myCallback(uint256,uint256[])",
+                    "callbackRan(uint256,uint256[])",
                     1,
                     1,
-                    123,
-                    msg.sender
+                    180
                 );
 
                 // Note: Using the generated nonce to select an auditor directly
@@ -222,6 +172,28 @@ contract Audit {
         }
 
         return selectedAuditor;
+    }
+
+    function callbackRan(uint256[] calldata rngList) external {
+        require(
+            msg.sender == address(supraRouter),
+            "only supra router can call this function"
+        );
+        require(rngList.length > 0, "no random numbers provided");
+
+        // Add your logic to handle the callback, e.g., select an auditor based on the received random numbers
+        // For simplicity, let's use the sum of the random numbers to determine the selected auditor
+        uint256 totalRandomness = 0;
+        for (uint256 i = 0; i < rngList.length; i++) {
+            totalRandomness += rngList[i];
+        }
+
+        // Use the totalRandomness to select an auditor
+        uint256 randomIndex = totalRandomness % _auditorsTobeSelected.length;
+        selectedAuditor = _auditorsTobeSelected[randomIndex]._auditor;
+
+        // Perform any other required actions, e.g., emit an event, update state variables, etc.
+        emit AuditorSelected(selectedAuditor);
     }
 
     // function removeAuditor(address _auditor) external onlyGovernance {

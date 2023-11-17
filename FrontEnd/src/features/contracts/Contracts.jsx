@@ -1,57 +1,65 @@
 /** @format */
-"use client"
-import Auth from "@/app/auth/Auth";
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import childAbi from '@/app/auth/abi/child.json'
-import factoryAbi from '@/app/auth/abi/factory.json'
-import { factoryAddress } from "@/app/auth/contractAddress";
-import { ethers } from "ethers";
-import { useAccount } from "wagmi";
+'use client';
+import Auth from '@/app/auth/Auth';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import childAbi from '@/app/auth/abi/child.json';
+import factoryAbi from '@/app/auth/abi/factory.json';
+import { factoryAddress } from '@/app/auth/contractAddress';
+import { ethers } from 'ethers';
+import { useAccount } from 'wagmi';
 
 export default function AllContracts() {
   const { address, isConnected } = useAccount();
   const { providerRead } = Auth();
-  const [fetchedContracts, setFetchedContracts] = useState([])
-  const [hasContract, setHasContract] = useState(false)
-  const [loadingPage, setLoadingPage] = useState(true)
-  const [tx, setTx] = useState("")
+  const [fetchedContracts, setFetchedContracts] = useState([]);
+  const [hasContract, setHasContract] = useState(false);
+  const [loadingPage, setLoadingPage] = useState(true);
+  const [tx, setTx] = useState('');
 
   const getAddressContractsCount = async (registerAddress) => {
-    if (registerAddress === "") {
+    if (registerAddress === '') {
       return;
     }
-    const contractRead = new ethers.Contract(registerAddress, childAbi, providerRead);
+    const contractRead = new ethers.Contract(
+      registerAddress,
+      childAbi,
+      providerRead
+    );
     let tx = await contractRead.getAllGigs();
-    const tr = Object.values(tx)
-    setFetchedContracts(tr)
-  }
+    const tr = Object.values(tx);
+    setFetchedContracts(tr);
+  };
 
   useEffect(() => {
-    const contract = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
+    const contract = new ethers.Contract(
+      factoryAddress,
+      factoryAbi,
+      providerRead
+    );
     const getConnectedWalletStatus = async () => {
-      setLoadingPage(true)
+      setLoadingPage(true);
       let tx = await contract.getCreatorSystem(address);
-      if (tx === "0x0000000000000000000000000000000000000000") {
-        setHasContract(false)
+      if (tx === '0x0000000000000000000000000000000000000000') {
+        setHasContract(false);
       } else {
-        setHasContract(true)
-        getAddressContractsCount(tx)
-        setTx(tx)
+        setHasContract(true);
+        getAddressContractsCount(tx);
+        setTx(tx);
       }
-      setLoadingPage(false)
-    }
+      setLoadingPage(false);
+    };
     if (isConnected) {
       getConnectedWalletStatus();
     }
-  }, [])
+  }, []);
 
   return (
     <div>
-      {isConnected ?
+      {isConnected ? (
         <div>
-          {(loadingPage && !hasContract) &&
-            <div role='status' className="flex justify-center mt-10 w-full">
+          {loadingPage && !hasContract && (
+            <div role='status' className='flex justify-center mt-10 w-full'>
               <svg
                 aria-hidden='true'
                 className='inline w-24 h-24 text-gray-200 animate-spin dark:text-gray-300 fill-[#0E4980]'
@@ -70,64 +78,80 @@ export default function AllContracts() {
               </svg>
               <span className='sr-only'>Loading...</span>
             </div>
-          }
-          {(!loadingPage && !hasContract && tx === "") &&
-            <div
-              className='px-3 py-4 text-center font-bold mx-auto rounded-lg mt-10 bg-[#D2E9FF] text-black text-xl block leading-[25.5px] tracking-[0.5%]'
-            >
-              No contracts register, Please proceed to Dashboard to create a register
+          )}
+          {!loadingPage && !hasContract && tx === '' && (
+            <div className='px-3 py-4 text-center font-bold mx-auto rounded-lg mt-10 bg-[#D2E9FF] text-black text-xl block leading-[25.5px] tracking-[0.5%]'>
+              No contracts register, Please proceed to Dashboard to create a
+              register
             </div>
-          }
+          )}
 
-          {(!loadingPage && hasContract && tx !== "") &&
-            <div className="mt-20 ">
-              <Link href="/contracts/create" className="w-full flex funda_bg rounded-2xl cursor-pointer">
-                <div className="w-[90%] mx-auto py-3 flex justify-between items-center">
-                  <div className="">
-                    <img src="./Group.svg" alt="" className="w-[56px] h-[56px]" />
-                    <h2 className="text-black text-[20px] font-bold head2 leading-[26px] tracking-[1.3%] mt-[20px]">Create a new Contract</h2>
+          {!loadingPage && hasContract && tx !== '' && (
+            <div className='mt-20 '>
+              <Link
+                href='/contracts/create'
+                className='w-full flex funda_bg rounded-2xl cursor-pointer'
+              >
+                <div className='w-[90%] mx-auto py-3 flex justify-between items-center'>
+                  <div className=''>
+                    <img
+                      src='./Group.svg'
+                      alt=''
+                      className='w-[56px] h-[56px]'
+                    />
+                    <h2 className='text-black text-[20px] font-bold head2 leading-[26px] tracking-[1.3%] mt-[20px]'>
+                      Create a new Contract
+                    </h2>
                   </div>
-                  <div className="">
-                    <img src="./Transfer.png" alt="" className="w-[48px] h-[48px]" />
+                  <div className=''>
+                    <img
+                      src='./Transfer.png'
+                      alt=''
+                      className='w-[48px] h-[48px]'
+                    />
                   </div>
                 </div>
               </Link>
 
-              <div className="my-10 flex gap-6 flex-wrap">
-                {(fetchedContracts.length === 0 && !loadingPage) &&
-                  <div className="text-2xl font-bold w-full text-center block">
+              <div className='my-10 flex gap-6 flex-wrap'>
+                {fetchedContracts.length === 0 && !loadingPage && (
+                  <div className='text-2xl font-bold w-full text-center block'>
                     <span>You don't have any contracts</span>
                   </div>
-                }
+                )}
               </div>
 
-
-              <div className="my-10 flex gap-6 flex-wrap">
-                {fetchedContracts.length > 0 && fetchedContracts.map((item, index) => (
-                  <div key={index} className="card w-96 bg-white border shadow-md border-black flex-grow text-black">
-                    <div className="card-body">
-                      <h2 className="card-title">{item[0]} - <span className="text-sm">{item[1]}</span></h2>
-                      <p>{item[6]}</p>
-                      <div className="card-actions justify-end">
-                        <Link href={`/contracts/view?id=${index + 1}`}>
-                          <button className="btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF">More Details</button>
-                        </Link>
+              <div className='my-10 flex gap-6 flex-wrap'>
+                {fetchedContracts.length > 0 &&
+                  fetchedContracts.map((item, index) => (
+                    <div
+                      key={index}
+                      className='card w-96 bg-white border shadow-md border-black flex-grow text-black'
+                    >
+                      <div className='card-body'>
+                        <h2 className='card-title'>
+                          {item[0]} - <span className='text-sm'>{item[1]}</span>
+                        </h2>
+                        <p>{item[6]}</p>
+                        <div className='card-actions justify-end'>
+                          <Link href={`/contracts/view?id=${index + 1}`}>
+                            <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>
+                              More Details
+                            </button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
-          }
+          )}
         </div>
-        :
-        <span
-          className='mx-auto rounded-lg mt-10 bg-[#D2E9FF] text-black text-center block leading-[25.5px] tracking-[0.5%] p-4 fnt-bold text-2xl'
-        >
+      ) : (
+        <span className='mx-auto rounded-lg mt-10 bg-[#D2E9FF] text-black text-center block leading-[25.5px] tracking-[0.5%] p-4 fnt-bold text-2xl'>
           Not Connected
         </span>
-      }
+      )}
     </div>
-
   );
 }

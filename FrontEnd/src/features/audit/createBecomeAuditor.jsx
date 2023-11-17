@@ -13,9 +13,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { PiArrowLeftBold } from 'react-icons/pi';
+import { useRouter } from 'next/navigation';
 
 export default function CreateBecomeAuditor() {
-  // const router = useRouter();
+  const router = useRouter();
   const [submitLoading, setSubmitLoading] = useState(false);
   const [termModal, setTermModal] = useState(false);
   const [hasOpenTermModal, setHasOpenTermModal] = useState(false);
