@@ -63,6 +63,8 @@ contract GigSecured {
         address auditor;
         uint price;
         address creator;
+        uint creationDate;
+        string joblink;
     }
 
     enum Status {
@@ -257,6 +259,7 @@ contract GigSecured {
         _newGigContract._status = Status.Pending;
         _newGigContract.price = _price;
         _newGigContract.creator = msg.sender;
+        _newGigContract.creationDate = block.timestamp;
         _newGigContract.freeLancer = _freelancer;
 
         IFactory(_governanceAddress).increaseFreelancerCurrentGigs(
@@ -286,12 +289,13 @@ contract GigSecured {
  * @param NotAssignedFreeLancer The function reverts if the freelancer is not assigned to the gig contract.
  */
     function freeLancerSign(
+        address freelancer,
         bytes memory _freelancerSign,
         uint _gigContract
     ) external returns (bool success) {
         GigContract storage gigContract = _allGigs[_gigContract];
         bool isVerified = EscrowUtils.verify(
-            msg.sender,
+            freelancer,
             gigContract.title,
             _gigContract,
             gigContract.price,
@@ -327,9 +331,6 @@ contract GigSecured {
         uint256 newDeadline
     ) external onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
         if (newDeadline < block.timestamp) {
             revert DeadlineInPast(newDeadline);
         }
@@ -363,9 +364,6 @@ contract GigSecured {
         string memory newTitle
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -394,9 +392,6 @@ contract GigSecured {
         string memory newDescription
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -425,9 +420,6 @@ contract GigSecured {
         string memory newCategory
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -457,9 +449,6 @@ contract GigSecured {
         address newFreelancerAddress
     ) public onlyClient(gigId) {
         GigContract storage gig = _allGigs[gigId];
-        if (gig.freelancerSign.length == 0) {
-            revert FreelancerSignedAlready();
-        }
         if (gig._status != Status.Pending) {
             revert NotPendingStatus(gig._status);
         }
@@ -482,13 +471,17 @@ contract GigSecured {
      *
      * @param Status The new status to set for the gig contract. It should be one of the predefined status values.
      */
-    function updateGig(uint _id, Status _status) public {
+    function updateGig(
+        uint _id,
+        Status _status,
+        string memory joblink_
+    ) public {
         GigContract storage _newGigContract = _allGigs[_id];
         if (_newGigContract.creator == msg.sender) {
-            clientUpdateGig(_status, _id);
+            clientUpdateGig(_status, _id, joblink_);
         }
         if (_newGigContract.freeLancer == msg.sender) {
-            freeLancerUpdateGig(_id, _status);
+            freeLancerUpdateGig(_id, _status, joblink_);
         }
     }
 
@@ -621,7 +614,8 @@ contract GigSecured {
  */
     function clientUpdateGig(
         Status newStatus,
-        uint256 gigId
+        uint256 gigId,
+        string memory _joblink
     ) public onlyClient(gigId) returns (bool success) {
         GigContract storage gig = _allGigs[gigId];
         if (
@@ -648,6 +642,7 @@ contract GigSecured {
                 revert TooSoonToDispute();
             }
             gig.isAudit = true;
+            gig.joblink = _joblink;
             address _auditor = _assignAuditor(gig.category, gigId);
             gig.auditor = _auditor;
         }
@@ -674,11 +669,12 @@ contract GigSecured {
      */
     function freeLancerUpdateGig(
         uint256 gigId,
-        Status newStatus
+        Status newStatus,
+        string memory _joblink
     ) public onlyFreelancer(gigId) {
         GigContract storage gig = _allGigs[gigId];
 
-        if (newStatus == Status.Building && (gig.freelancerSign).length == 0) {
+        if (newStatus == Status.Building && gig.freelancerSign.length == 0) {
             revert MustSignBeforeStartBuilding();
         }
         if (newStatus == Status.Building && block.timestamp > gig.deadline) {
@@ -697,8 +693,11 @@ contract GigSecured {
         if (newStatus == Status.Completed) {
             gig.completedTime = block.timestamp;
             gig._status = Status.Completed;
+        } else if (newStatus == Status.Building) {
+            gig._status = Status.Building;
         } else if (newStatus == Status.Dispute) {
             _freeLancerAudit(gigId);
+            gig.joblink = _joblink;
         } else {
             revert InvalidStatusChange();
         }
@@ -739,9 +738,8 @@ contract GigSecured {
     function forceClosure(uint gigId) external onlyPermittedAccounts(gigId) {
         GigContract storage gig = _allGigs[gigId];
         if (
-            (gig._status != Status.Building &&
-                gig.deadline < block.timestamp) ||
-            (gig._status != Status.Pending && gig.deadline < block.timestamp)
+            gig._status == Status.Pending ||
+            (gig._status == Status.Building && gig.deadline < block.timestamp)
         ) {
             uint priceMinusFee = EscrowUtils.nonAuditFees(gig.price);
             uint gigContractPrice = gig.price;

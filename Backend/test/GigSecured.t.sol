@@ -60,7 +60,8 @@ contract GigSecuredTest is Helpers {
             isAudit: false,
             auditor: _auditor,
             price: 100000000,
-            creator: _clientAddress
+            creator: _clientAddress,
+            creationDate: 0
         });
     }
 
@@ -134,9 +135,9 @@ contract GigSecuredTest is Helpers {
 
     function testFreelancerSign() public {
         _audit.setGovernanceContract(address(_gigContractFactory));
+        vm.startPrank(_clientAddress);
         GigSecured gigContractInstance = _gigContractFactory
             .createGigSecuredContractInstance();
-        vm.startPrank(_clientAddress);
         _newGigContract.deadline = 8600;
         _usdc.approve(address(gigContractInstance), _newGigContract.price);
 

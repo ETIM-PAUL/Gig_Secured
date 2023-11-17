@@ -84,7 +84,7 @@ export default function BecomeAuditor() {
                         </div>
                       )}
                       <h2 className='text-lg font-semibold capitalize sm:text-xl'>
-                        {`${auditorDetails.category} gigs: ${Number(
+                        {`${auditorDetails.category}  audit gigs: ${Number(
                           auditorDetails.currentGigs
                         )}`}
                       </h2>

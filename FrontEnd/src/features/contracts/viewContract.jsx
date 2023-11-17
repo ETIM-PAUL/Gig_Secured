@@ -20,13 +20,18 @@ export default function ViewContract() {
   const [contractDetails, setContractDetails] = useState(null)
   const [gigContract, setGigContract] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
+  const [errorMessageLink, setErrorMessageLink] = useState("")
 
+  const [deadline, setDeadline] = useState("");
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState(null);
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
+  const [jobLink, setJobLink] = useState("");
 
   const [showUpdateModal, setUpdateModal] = useState(false);
+  const [forceCloseModal, setForceCloseModal] = useState(false);
+  const [forceLoading, setForceClosing] = useState(false);
   const [showTitleModal, setShowTitleModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showDescriptionModal, setDescriptionModal] = useState(false);
@@ -85,7 +90,47 @@ export default function ViewContract() {
     }
   }, [])
 
+  const forceCloseContract = async () => {
+    const signer = await providerWrite.getSigner();
+
+    const contractWrite = new ethers.Contract(gigContract, childAbi, signer);
+
+    setForceClosing(true);
+    try {
+      // const estimatedGas = await contractWrite.updateGig.estimateGas(id, status);
+      let tx = await contractWrite.forceClosure(id);
+      tx.wait().then(async (receipt) => {
+        if (receipt && receipt.status == 1) {
+          // transaction success.
+          toast.success("Secured Contract status updated successfully")
+          setForceClosing(false)
+          setForceCloseModal(false)
+          const newArray = contractDetails;
+          newArray[9] = 5;
+          setContractDetails(newArray)
+          router.push("/contracts")
+        }
+      });
+    } catch (e) {
+      if (e.data && contractWrite) {
+        const decodedError = contractWrite.interface.parseError(e.data);
+        toast.error(`Transaction failed: ${decodedError?.name}`)
+      } else {
+        console.log(`Error in contract:`, e);
+      }
+      setForceClosing(false)
+      setForceCloseModal(false)
+    }
+  }
   const updateStatus = async () => {
+    if (contractDetails[5] === "0x") {
+      toast.error("Freelancer hasn't started building yet")
+      return;
+    }
+    if (status === "4" && jobLink === "") {
+      setErrorMessageLink("You selected Dispute, please include a link to a document listing information about the work. This will help the assigned auditor review the work and make settlement")
+      return;
+    }
     const signer = await providerWrite.getSigner();
 
     const contractWrite = new ethers.Contract(gigContract, childAbi, signer);
@@ -304,6 +349,14 @@ export default function ViewContract() {
                   >
                     Update Status
                   </button>
+                  {Number(contractDetails[9]) === 0 &&
+                    <button
+                      onClick={() => setForceCloseModal(true)}
+                      className='w-fit p-2 rounded-lg bg-red-500 hover:bg-red-800 text-[#fff] text-[17px] block leading-[25.5px] tracking-[0.5%]'
+                    >
+                      Force Close
+                    </button>
+                  }
                 </div>
 
                 <div className='flex items-center gap-2'>
@@ -385,6 +438,52 @@ export default function ViewContract() {
           </div>
 
 
+          {/* forceClose */}
+          {forceCloseModal && (
+            <div>
+              <input
+                type='checkbox'
+                checked
+                onChange={() => null}
+                id='my_modal_6'
+                className='modal-toggle'
+              />
+              <div className='modal bg-white'>
+                <div className='modal-box bg-white'>
+                  <h3 className='font-bold text-xl'>Force close the project!</h3>
+                  <p className='font-bold text-base text-red-500 py-2'>Note that you will be closing this project since the freelancer hasn't signed | completed after deadline</p>
+                  <div className='grid space-y-2 w-full mt-1'>
+                    <div className='flex gap-3 items-center'>
+                      <div className='grid space-y-2 w-full'>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='w-full flex gap-3 items-center justify-end mt-3'>
+                    <div className='w-full' onClick={() => setForceCloseModal(false)}>
+                      <label
+                        htmlFor='my_modal_6'
+                        className='btn btn-error w-full text-white'
+                      >
+                        Close!
+                      </label>
+                    </div>
+                    <button
+                      onClick={() => forceCloseContract()}
+                      disabled={forceLoading}
+                      className='w-full h-full py-3 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]'
+                    >
+                      {forceLoading ? (
+                        <span className='loading loading-spinner loading-base'></span>
+                      ) : (
+                        'Proceed'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* updateDeadline */}
           {showDeadlineModal && (
             <div>
@@ -404,7 +503,8 @@ export default function ViewContract() {
                       <div className='grid space-y-2 w-full'>
 
                         <input
-                          // {...register('name')}
+                          onChange={(e) => setDeadline(e.target.value)}
+                          value={deadline}
                           type='date'
                           className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
                         />
@@ -699,9 +799,21 @@ export default function ViewContract() {
                         </p>
                       </div>
                     </div>
+                    {status === "4" &&
+                      <>
+                        <input
+                          value={jobLink}
+                          onChange={(e) => setJobLink(e.target.value)}
+                          type='text'
+                          placeholder='Please Enter A Document Link that contains working links and other necessary links'
+                          className='input input-bordered  border-[#696969] w-full max-w-full bg-white' /><p className='text-field-error italic text-red-500'>
+                          {errorMessageLink.length > 0 && errorMessageLink}
+                        </p>
+                      </>
+                    }
                   </div>
                   <div className='w-full flex gap-3 items-center justify-end mt-3'>
-                    <div className='w-full' onClick={() => setUpdateModal(false)}>
+                    <div className='w-full' onClick={() => { setUpdateModal(false); setStatus(3) }}>
                       <label
                         htmlFor='my_modal_6'
                         className='btn btn-error w-full text-white'

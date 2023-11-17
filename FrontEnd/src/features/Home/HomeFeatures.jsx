@@ -127,7 +127,7 @@ export default function HomeFeatures() {
                 </button>
               }
 
-              {(!loadingPage && hasContract && tx !== "") &&
+              {(!loadingPage) &&
                 <>
                   <div className="flex flex-wrap gap-10 text-white">
                     {explore_cards.map((card, index) => (
@@ -137,7 +137,7 @@ export default function HomeFeatures() {
                         </Link>
                         <div className='text-white px-3'>
                           <span className='text-xl block mb-1.5 font-bold'>{card?.name}</span>
-                          <span className="sm:text-2xl grotesk font-bold leading-[25.5px] tracking-[0.085px] pt-4 pb-2 text-2xl">{index === 0 ? contractCounts : index === 2 ? 2 : ""}</span>
+                          <span className="sm:text-2xl grotesk font-bold leading-[25.5px] tracking-[0.085px] pt-4 pb-2 text-2xl">{index === 0 ? contractCounts : index === 2 && ""}</span>
                         </div>
                       </div>
                     ))}

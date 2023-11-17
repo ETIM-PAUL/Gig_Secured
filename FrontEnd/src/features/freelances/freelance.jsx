@@ -44,13 +44,11 @@ export default function Freelances() {
         gigAddresses.push(element[0])
         gigs.push(Number(element[1]))
       }
-      console.log(gigAddresses)
       setContractDetails(all)
       setGigSecureAddress(gigAddresses)
       setGigsId(gigs)
       setContracts(tr)
       setLoadingPage(false)
-      console.log(contractDetails)
     }
     // if (isConnected) {
     getConnectedWalletStatus();
@@ -83,7 +81,7 @@ export default function Freelances() {
               <span className='sr-only'>Loading...</span>
             </div>
           }
-          {!loadingPage &&
+          {(!loadingPage && contractDetails) &&
             <main>
               <section className='mt-20 '>
                 <div
@@ -92,10 +90,10 @@ export default function Freelances() {
                 >
                   <div className='w-[90%] mx-auto py-6 flex justify-between items-center '>
                     <h2 className='text-black text-[20px] font-bold head2 leading-[26px] tracking-[1.3%]'>
-                      {shortenAccount(contracts[0])}
+                      {shortenAccount(address)}
                     </h2>
                     <div className='text-[20px] text-black font-bold head2 leading-[26px] tracking-[1.3%]'>
-                      <span>No of Gigs: {Number(contracts[1])}</span>
+                      <span>No of Freelance Gigs: {Number(contracts[1])}</span>
                     </div>
                   </div>
                 </div>

@@ -27,7 +27,7 @@ export default function Auth() {
   } = useAppContext();
 
   const providerRead = new ethers.getDefaultProvider(
-    'https://base-goerli.publicnode.com'
+    'https://base-goerli.g.alchemy.com/v2/pEWkV5B_TfdqO_SzQ7NYfp5tyvQO0BvK'
   );
 
   let providerWrite;

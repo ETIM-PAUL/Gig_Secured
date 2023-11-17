@@ -11,14 +11,14 @@ export const explore_cards = [
     direct: "/contracts"
   },
   {
-    name: "Become An Auditor",
+    name: "Audit Contracts",
     bgCustom: "/first_pattern.svg",
-    direct: "/freelances"
+    direct: "/audits"
   },
   {
     name: "Freelance Contracts",
     bgCustom: "/third_pattern.svg",
-    direct: "/audits"
+    direct: "/freelances"
   },
 ]
 export const overdraft_cards = [
@@ -204,3 +204,17 @@ function addOrdinalSuffix(day) {
 
 export const shortenAccount = (account) =>
   `${account.substring(0, 6)}...${account.substring(38)}`;
+
+export function isTimestampGreaterThanCurrent(timestamp) {
+  // Convert the timestamp to milliseconds if it's in seconds
+  const timestampMilliseconds = timestamp * 1000;
+
+  // Get the current timestamp in milliseconds
+  const currentTimestamp = Date.now() / 100;
+
+  if (timestamp > currentTimestamp) {
+    return true
+  } else {
+    return false
+  }
+}

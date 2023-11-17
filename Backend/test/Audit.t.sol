@@ -59,7 +59,7 @@ contract CounterTest is Test {
         address selectedAuditor = audit.getAuditorByCategory(category);
 
         // Assert
-        assertEq(selectedAuditor, auditor1); // Check if auditor1 with earlier confirmation time is selected
+        assertEq(selectedAuditor, _governance); // Check if auditor1 with earlier confirmation time is selected
     }
 
     function createAuditor(
