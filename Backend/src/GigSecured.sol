@@ -638,8 +638,8 @@ contract GigSecured {
             _sendPaymentClosed(gigId);
         }
         if (newStatus == Status.Dispute) {
-            if (block.timestamp <= gig.completedTime + 259200) {
-                revert TooSoonToDispute();
+            if (gig._status != Status.UnderReview) {
+                revert NotYetReviewed();
             }
             gig.isAudit = true;
             gig.joblink = _joblink;
@@ -739,7 +739,7 @@ contract GigSecured {
         GigContract storage gig = _allGigs[gigId];
         if (
             gig._status == Status.Pending ||
-            (gig._status == Status.Building && gig.deadline < block.timestamp)
+            (gig._status < Status.Completed && gig.deadline < block.timestamp)
         ) {
             uint priceMinusFee = EscrowUtils.nonAuditFees(gig.price);
             uint gigContractPrice = gig.price;

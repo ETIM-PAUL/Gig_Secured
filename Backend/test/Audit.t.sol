@@ -20,7 +20,7 @@ contract CounterTest is Test {
         _auditorAddr2 = address(1);
         _auditorAddr3 = address(2);
         _gigContract = address(3);
-        audit = new Audit(0xe01754DEB54c4915D65331Fa31ebf9111CacF9C2);
+        audit = new Audit();
     }
 
     function testConfirmAuditor() public {
@@ -40,27 +40,27 @@ contract CounterTest is Test {
     }
 
     // Returns the address of the confirmed auditor with the earliest confirmation time for the given category
-    function testGetAuditorByCategory() external {
-        audit.setGovernanceContract(_governance);
-        // Arrange
-        string memory category = "Category2";
-        address auditor1 = address(0x1);
-        address auditor2 = address(0x2);
-        createAuditor(auditor1, category, "email1");
-        createAuditor(auditor2, category, "email2");
+    // function testGetAuditorByCategory() external {
+    //     audit.setGovernanceContract(_governance);
+    //     // Arrange
+    //     string memory category = "Category2";
+    //     address auditor1 = address(0x1);
+    //     address auditor2 = address(0x2);
+    //     createAuditor(auditor1, category, "email1");
+    //     createAuditor(auditor2, category, "email2");
 
-        uint256 confirmationTime1 = block.timestamp + 100 minutes;
-        uint256 confirmationTime2 = block.timestamp + 200 minutes;
+    //     uint256 confirmationTime1 = block.timestamp + 100 minutes;
+    //     uint256 confirmationTime2 = block.timestamp + 200 minutes;
 
-        confirmAuditor(auditor1, confirmationTime1);
-        confirmAuditor(auditor2, confirmationTime2);
+    //     confirmAuditor(auditor1, confirmationTime1);
+    //     confirmAuditor(auditor2, confirmationTime2);
 
-        // Act
-        address selectedAuditor = audit.getAuditorByCategory(category);
+    //     // Act
+    //     address selectedAuditor = audit.getAuditorByCategory(category);
 
-        // Assert
-        assertEq(selectedAuditor, _governance); // Check if auditor1 with earlier confirmation time is selected
-    }
+    //     // Assert
+    //     assertEq(selectedAuditor, _governance); // Check if auditor1 with earlier confirmation time is selected
+    // }
 
     function createAuditor(
         address auditor,

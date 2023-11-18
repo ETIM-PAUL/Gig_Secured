@@ -28,7 +28,7 @@ contract GigSecuredTest is Helpers {
     uint _gigs;
 
     function setUp() public {
-        _audit = new Audit(0xe01754DEB54c4915D65331Fa31ebf9111CacF9C2);
+        _audit = new Audit();
         _usdc = new USDC();
         _gigContractFactory = new GigContractFactory(
             address(_audit),
@@ -61,7 +61,8 @@ contract GigSecuredTest is Helpers {
             auditor: _auditor,
             price: 100000000,
             creator: _clientAddress,
-            creationDate: 0
+            creationDate: 0,
+            joblink: ""
         });
     }
 
@@ -162,6 +163,7 @@ contract GigSecuredTest is Helpers {
             _privKeyFreelancer
         );
         bool freelancerAssign = gigContractInstance.freeLancerSign(
+            _freelancerAddress,
             _newGigContract.freelancerSign,
             1
         );
