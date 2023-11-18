@@ -50,9 +50,9 @@ export default function Freelances() {
       setContracts(tr)
       setLoadingPage(false)
     }
-    // if (isConnected) {
-    getConnectedWalletStatus();
-    // }
+    if (isConnected) {
+      getConnectedWalletStatus();
+    }
     setFetched(true)
   }, [])
 

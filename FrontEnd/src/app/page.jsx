@@ -13,7 +13,6 @@ import { MdOutlineWorkOutline } from 'react-icons/md';
 import { FaHandshakeAngle } from 'react-icons/fa6';
 import AOS from 'aos'; // You can also use <link> for styles
 import Link from 'next/link';
-import HomeFeatures from '@/features/Home/HomeFeatures';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -87,7 +86,7 @@ const Section3 = () => {
           transition={{ duration: 0.3 }}
         >
           {isConnected ? (
-            <Link href={'/'}>
+            <Link href={'/home'}>
               <div className='px-8 py-3 mt-12 text-lg rounded-3xl bg-[#0F4880] text-white'>
                 Explore Gig Secured
               </div>
@@ -275,7 +274,7 @@ export default function Home() {
         <nav className='flex justify-between bg-[#D2E9FF] items-center text-[#0F4880] px-12 fixed w-full z-10'>
           <div className='logo flex justify-center items-center   h-16 '>
             <MdOutlineWorkOutline className='text-3xl' />{' '}
-            <span className='ml-2'>GigSecured</span>
+            <span className='ml-2 font-bold text-2xl'>GigSecured</span>
           </div>
           <div className='text-[#0F4880] text-lg font-bold flex justify-center items-center gap-8'>
             <Link href={'/'}>
@@ -294,7 +293,7 @@ export default function Home() {
                 Features
               </motion.span>
             </Link>
-            <Link href={'/'}>
+            <Link href={'/home'}>
               <motion.span
                 whileHover={{ borderBottom: '3px solid #0F4880' }}
                 className='cursor-pointer py-2'
@@ -304,7 +303,7 @@ export default function Home() {
             </Link>
           </div>
           {isConnected ? (
-            <Link href={'/'}>
+            <Link href={'/home'}>
               <button className='border-2 rounded-3xl border-[#0F4880] py-1 px-6'>
                 Launch App
               </button>
@@ -429,7 +428,7 @@ export default function Home() {
               transition={{ duration: 0.3 }}
             >
               {isConnected ? (
-                <Link href={'/'}>
+                <Link href={'/home'}>
                   <div className='px-8 py-3 mt-12 text-lg rounded-3xl bg-[#0F4880] text-white'>
                     Explore Gig Secured
                   </div>
@@ -569,30 +568,30 @@ export default function Home() {
         <Section3 />
         <Section4 />
 
-        <footer className='bg-[#D2E9FF] px-12 font-bold'>
+        <footer className='bg-[#D2E9FF] px-12 mb-20 font-bold'>
           <div className='w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between'>
             <span className='text-sm text-[#0F4880] sm:text-center '>
               © 2023{' '}
-              <a href='/' className='hover:underline'>
+              <span className='hover:underline'>
                 GigSecured™
-              </a>
+              </span>
               . All Rights Reserved.
             </span>
             <ul className='flex flex-wrap items-center mt-3 text-sm font-bold text-[#0F4880]  sm:mt-0'>
               <li>
-                <a href='#' className='hover:underline me-4 md:me-6'>
+                <Link href='#' className='hover:underline me-4 md:me-6'>
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href='#' className='hover:underline me-4 md:me-6'>
+                <Link href='#' className='hover:underline me-4 md:me-6'>
                   Features{' '}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href='#' className='hover:underline me-4 md:me-6'>
+                <Link href='/home' className='hover:underline me-4 md:me-6'>
                   Explore
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
