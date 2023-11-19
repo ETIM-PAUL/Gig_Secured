@@ -10,6 +10,7 @@ import { useAppContext } from '@/app/auth/Context';
 import { AiOutlineSecurityScan } from 'react-icons/ai';
 import { IoIosArrowDropright, IoIosArrowDropleft } from 'react-icons/io';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { RxDashboard } from 'react-icons/rx';
 
 export default function SideBar() {
   const pathname = usePathname();
@@ -38,12 +39,18 @@ export default function SideBar() {
       icon: AiOutlineSecurityScan,
       href: '/audits',
     },
+    {
+      name: 'Admin',
+      icon: RxDashboard,
+      href: '/admin',
+    },
   ];
   return (
     <main>
       <section
-        className={`min-h-screen max-h-screen bg-[#D2E9FF] ${!sidebar ? 'w-[100px]' : 'w-[380px]'
-          }`}
+        className={`min-h-screen max-h-screen bg-[#D2E9FF] ${
+          !sidebar ? 'w-[100px]' : 'w-[380px]'
+        }`}
       >
         <section className='w-[90%] mx-auto'>
           <div className='flex items-center'>
@@ -64,7 +71,10 @@ export default function SideBar() {
                 )}
               </div>
             </Link>
-            <div onClick={() => setSideBar(!sidebar)} className='text-3xl mt-10'>
+            <div
+              onClick={() => setSideBar(!sidebar)}
+              className='text-3xl mt-10'
+            >
               <span className='text-black hover:cursor-pointer'>
                 {sidebar ? <IoIosArrowDropleft /> : <IoIosArrowDropright />}
               </span>
@@ -79,9 +89,11 @@ export default function SideBar() {
                 <Link
                   href={items?.href}
                   key={index}
-                  className={`${isActive && 'bg-[#FBFDFF] rounded-lg'
-                    } flex gap-2 items-center text-[#0F4880] w-[100%] h-[48px] ${sidebar ? 'pl-[90px]' : 'pl-0'
-                    }`}
+                  className={`${
+                    isActive && 'bg-[#FBFDFF] rounded-lg'
+                  } flex gap-2 items-center text-[#0F4880] w-[100%] h-[48px] ${
+                    sidebar ? 'pl-[90px]' : 'pl-0'
+                  }`}
                 >
                   <items.icon
                     size={30}
@@ -127,7 +139,7 @@ export default function SideBar() {
                   <div
                     {...(!ready && {
                       'aria-hidden': true,
-                      'style': {
+                      style: {
                         opacity: 0,
                         pointerEvents: 'none',
                         userSelect: 'none',
@@ -138,7 +150,11 @@ export default function SideBar() {
                     {(() => {
                       if (!connected) {
                         return (
-                          <button onClick={openConnectModal} type="button" className='bg-white text-black text-base font-bold'>
+                          <button
+                            onClick={openConnectModal}
+                            type='button'
+                            className='bg-white text-black text-base font-bold'
+                          >
                             Connect Wallet
                           </button>
                         );
@@ -146,7 +162,11 @@ export default function SideBar() {
 
                       if (chain.unsupported) {
                         return (
-                          <button onClick={openChainModal} type="button" className='bg-white text-black text-2xl font-bold'>
+                          <button
+                            onClick={openChainModal}
+                            type='button'
+                            className='bg-white text-black text-2xl font-bold'
+                          >
                             Wrong network
                           </button>
                         );
@@ -158,7 +178,7 @@ export default function SideBar() {
                             onClick={openChainModal}
                             style={{ alignItems: 'center' }}
                             className='md:flex grid space-y-2 justify-center'
-                            type="button"
+                            type='button'
                           >
                             {chain.hasIcon && (
                               <div
@@ -182,14 +202,14 @@ export default function SideBar() {
                             )}
                             {chain.name}
                           </button>
-                          {sidebar &&
-                            <button onClick={openAccountModal} type="button">
+                          {sidebar && (
+                            <button onClick={openAccountModal} type='button'>
                               {account.displayName}
                               {account.displayBalance
                                 ? ` (${account.displayBalance})`
                                 : ''}
                             </button>
-                          }
+                          )}
                         </div>
                       );
                     })()}

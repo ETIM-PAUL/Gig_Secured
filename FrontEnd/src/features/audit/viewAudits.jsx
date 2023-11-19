@@ -7,6 +7,10 @@ export default function ViewAudit() {
 
   const [progress, setProgress] = useState([0, 0, 0, 0]);
   const [inputValue, setInputValue] = useState(0);
+  const [showUpdateModal, setUpdateModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [status, setStatus] = useState(1);
 
   const handleBoxClick = (index) => {
     const newProgress = Array(4).fill(0);
@@ -15,6 +19,57 @@ export default function ViewAudit() {
 
     // Set the input value to the corresponding value (e.g., 20, 40, 60, 80)
     setInputValue(20 + index * 20);
+  };
+
+  const updateModal = () => {
+    setUpdateModal(true);
+  };
+
+  const updateStatus = async () => {
+    if (contractDetails[5] === '0x') {
+      setUpdateModal(false);
+      toast.error('You need to sign before you can update status');
+      return;
+    }
+
+    const signer = await providerWrite.getSigner();
+
+    const contractWrite = new ethers.Contract(contract, childAbi, signer);
+
+    if (status === 'null' || status === null) {
+      setErrorMessage('Please select a status');
+      return;
+    }
+    setSubmitLoading(true);
+    try {
+      // sendEmail();
+      const estimatedGas = await contractWrite.updateGig.estimateGas(
+        id,
+        status
+      );
+      let tx = await contractWrite.updateGig(id, status);
+      tx.wait().then(async (receipt) => {
+        if (receipt && receipt.status == 1) {
+          // transaction success.
+          toast.success('Secured Contract status updated successfully');
+          setSubmitLoading(false);
+          setUpdateModal(false);
+          const newArray = contractDetails;
+          newArray[9] = status;
+          setContractDetails(newArray);
+        }
+      });
+    } catch (e) {
+      if (e.data && contractWrite) {
+        const decodedError = contractWrite.interface.parseError(e.data);
+        toast.error(`Transaction failed: ${decodedError?.name}`);
+      } else {
+        console.log(`Error in contract:`, e);
+      }
+      setSubmitLoading(false);
+      setUpdateModal(false);
+    }
+    setErrorMessage('');
   };
 
   return (
@@ -35,9 +90,12 @@ export default function ViewAudit() {
             </span>
           </div>
           <div>
-            <span className='py-1 rounded-md bg-white px-2 mb-2 block w-fit'>
-              building
-            </span>
+            <button
+              onClick={() => updateModal()}
+              className='w-fit p-2 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-base block leading-[25.5px] tracking-[0.5%]'
+            >
+              Update Status
+            </button>
           </div>
         </div>
       </div>
@@ -91,6 +149,62 @@ export default function ViewAudit() {
           </button>
         </div>
       </div>
+
+      {showUpdateModal && (
+        <div>
+          <input
+            type='checkbox'
+            checked
+            onChange={() => null}
+            id='my_modal_6'
+            className='modal-toggle'
+          />
+          <div className='modal bg-white'>
+            <div className='modal-box bg-white'>
+              <h3 className='font-bold text-lg'>Change Contract Status!</h3>
+
+              <div className='grid space-y-2 w-full'>
+                <div className='flex gap-3 items-center'>
+                  <div className='grid space-y-2 w-full'>
+                    <select
+                      onChange={(e) => setStatus(e.target.value)}
+                      className='select select-bordered mt-6 border-[#696969] w-full max-w-full bg-white'
+                    >
+                      <option value={1}>Building</option>
+                      <option value={2}>Completed</option>
+                      <option value={4}>Dispute</option>
+                    </select>
+                    <p className='text-field-error italic text-red-500'>
+                      {errorMessage.length > 0 && errorMessage}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className='w-full flex gap-3 items-center justify-end mt-3'>
+                <div className='w-full' onClick={() => setUpdateModal(false)}>
+                  <label
+                    htmlFor='my_modal_6'
+                    className='btn btn-error w-full text-white'
+                  >
+                    Close!
+                  </label>
+                </div>
+                <button
+                  disabled={submitLoading}
+                  onClick={() => updateStatus()}
+                  className='w-full h-full py-3 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]'
+                >
+                  {submitLoading ? (
+                    <span className='loading loading-spinner loading-base'></span>
+                  ) : (
+                    'Update'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
