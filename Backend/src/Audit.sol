@@ -1,32 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
-// import {ISupraRouterContract} from "../src/interface/ISupraRouterContract.sol";
-interface ISupraRouterContract {
-    function generateRequest(
-        string memory _functionSig,
-        uint8 _rngCount,
-        uint256 _numConfirmations,
-        uint256 _clientSeed
-    ) external returns (uint256);
-
-    function generateRequest(
-        string memory _functionSig,
-        uint8 _rngCount,
-        uint256 _numConfirmations
-    ) external returns (uint256);
-}
-
 contract Audit {
     //states
-    address supraRouter;
     struct Auditor {
         string category;
         string email;
         address _auditor;
         uint currentGigs;
         bool isConfirmed;
-        uint32 confirmationTime;
+        uint256 confirmationTime;
         AuditorContracts[] contractsAddress;
     }
 
@@ -42,15 +25,12 @@ contract Audit {
 
     uint256 public auditorsCount;
 
-    Auditor[] private _auditorsTobeSelected;
+    address[] private _auditorsTobeSelected;
 
     mapping(string => Auditor[]) public auditorsByCategory;
 
     address _governanceContract;
     address public selectedAuditor;
-
-    mapping(uint256 => string) result;
-    mapping(string => uint256[]) rngForUser;
 
     //events
     event AuditorRemoved(address indexed removedAuditor);
@@ -76,8 +56,9 @@ contract Audit {
 
     constructor() {
         _auditorAdmins[msg.sender] = true;
-        supraRouter = 0xe01754DEB54c4915D65331Fa31ebf9111CacF9C2;
         _governanceContract = msg.sender;
+        selectedAuditor = msg.sender;
+        makeGovernanceAuditor();
     }
 
     //modifiers
@@ -97,6 +78,19 @@ contract Audit {
             "Only Governance or Gig Contract Owner"
         );
         _;
+    }
+
+    function makeGovernanceAuditor() public {
+        Auditor storage newAuditor = auditor_[msg.sender];
+        newAuditor.category = "all contracts";
+        newAuditor.email = "admin@gigSecured.com";
+        newAuditor._auditor = msg.sender;
+        newAuditor.currentGigs = 0;
+        newAuditor.isConfirmed = true;
+        newAuditor.confirmationTime = block.timestamp;
+        auditorsCount++;
+
+        auditors.push(newAuditor);
     }
 
     function becomeAuditor(
@@ -136,7 +130,7 @@ contract Audit {
 
         auditorsCount++;
         auditor_[_auditorAddr].isConfirmed = true;
-        auditor_[_auditorAddr].confirmationTime = uint32(block.timestamp);
+        auditor_[_auditorAddr].confirmationTime = block.timestamp;
 
         emit AuditorConfirmed(_auditorAddr);
     }
@@ -147,89 +141,37 @@ contract Audit {
         isAuditorConfirmed = auditor_[_auditor].isConfirmed;
     }
 
-    // function getAuditorByCategory(
-    //     string memory _category
-    // ) external returns (address) {
-    //     for (uint256 i = 0; i < auditorsCount; ++i) {
-    //         if (
-    //             (keccak256(abi.encode(auditors[i].category)) ==
-    //                 keccak256(abi.encode(_category))) &&
-    //             (auditors[i].currentGigs < 2) &&
-    //             (auditors[i].isConfirmed)
-    //         ) {
-    //             _auditorsTobeSelected.push(auditor_[auditors[i]._auditor]);
-    //         }
-    //     }
-
-    //     if (_auditorsTobeSelected.length > 0) {
-    //         if (_auditorsTobeSelected.length == 1) {
-    //             selectedAuditor = _auditorsTobeSelected[0]._auditor;
-    //         } else {
-    //             uint256 nonce = supraRouter.generateRequest(
-    //                 "callbackRan(uint256,uint256[])",
-    //                 1,
-    //                 1,
-    //                 180
-    //             );
-
-    //             // Note: Using the generated nonce to select an auditor directly
-    //             uint256 randomIndex = nonce % _auditorsTobeSelected.length;
-    //             selectedAuditor = _auditorsTobeSelected[randomIndex]._auditor;
-    //         }
-    //     } else {
-    //         selectedAuditor = _governanceContract;
-    //     }
-
-    //     return selectedAuditor;
-    // }
-
-    function getRNGForUser() public returns (uint256 randomNumber) {
-        uint256 random = ISupraRouterContract(supraRouter).generateRequest(
-            "myCallbackUsername(uint256,uint256[])",
-            10,
-            1,
-            10
-        );
-        //   result[nonce] = username;
-        randomNumber = random % 5;
-    }
-
-    function myCallbackUsername(
-        uint256 nonce,
-        uint256[] calldata rngList
-    ) external {
-        require(
-            msg.sender == supraRouter,
-            "only supra router can call this function"
-        );
-        uint8 i = 0;
-        uint256[] memory x = new uint256[](rngList.length);
-        rngForUser[result[nonce]] = x;
-        for (i = 0; i < rngList.length; i++) {
-            rngForUser[result[nonce]][i] = rngList[i] % 100;
-        }
-    }
-
-    function callbackRan(uint256[] calldata rngList) external {
-        require(
-            msg.sender == address(supraRouter),
-            "only supra router can call this function"
-        );
-        require(rngList.length > 0, "no random numbers provided");
-
-        // Add your logic to handle the callback, e.g., select an auditor based on the received random numbers
-        // For simplicity, let's use the sum of the random numbers to determine the selected auditor
-        uint256 totalRandomness = 0;
-        for (uint256 i = 0; i < rngList.length; i++) {
-            totalRandomness += rngList[i];
+    function getAuditorByCategory(
+        string memory _category,
+        uint256 ranNum
+    ) external returns (address) {
+        for (uint256 i = 0; i < auditorsCount; ++i) {
+            if (
+                (keccak256(
+                    abi.encode(auditor_[auditors[i]._auditor].category)
+                ) == keccak256(abi.encode(_category))) &&
+                (auditor_[auditors[i]._auditor].currentGigs < 3) &&
+                (auditor_[auditors[i]._auditor].isConfirmed)
+            ) {
+                _auditorsTobeSelected.push(
+                    auditor_[auditors[i]._auditor]._auditor
+                );
+            }
         }
 
-        // Use the totalRandomness to select an auditor
-        uint256 randomIndex = totalRandomness % _auditorsTobeSelected.length;
-        selectedAuditor = _auditorsTobeSelected[randomIndex]._auditor;
-
-        // Perform any other required actions, e.g., emit an event, update state variables, etc.
+        if (_auditorsTobeSelected.length > 0) {
+            if (_auditorsTobeSelected.length == 1) {
+                selectedAuditor = _auditorsTobeSelected[0];
+            } else {
+                uint indexTo = ranNum % _auditorsTobeSelected.length;
+                selectedAuditor = _auditorsTobeSelected[indexTo];
+            }
+        }
         emit AuditorSelected(selectedAuditor);
+    }
+
+    function returnSelectedAuditor() external view returns (address) {
+        return selectedAuditor;
     }
 
     // function removeAuditor(address _auditor) external onlyGovernance {

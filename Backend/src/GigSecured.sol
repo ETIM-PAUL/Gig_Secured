@@ -474,14 +474,19 @@ contract GigSecured {
     function updateGig(
         uint _id,
         Status _status,
-        string memory joblink_
+        string memory joblink_,
+        string memory ran
     ) public {
         GigContract storage _newGigContract = _allGigs[_id];
+        bytes memory inputBytes = bytes(ran);
+
+        // Convert bytes to number
+        uint256 ranNum = bytesToUint(inputBytes);
         if (_newGigContract.creator == msg.sender) {
-            clientUpdateGig(_status, _id, joblink_);
+            clientUpdateGig(_status, _id, joblink_, ranNum);
         }
         if (_newGigContract.freeLancer == msg.sender) {
-            freeLancerUpdateGig(_id, _status, joblink_);
+            freeLancerUpdateGig(_id, _status, joblink_, ranNum);
         }
     }
 
@@ -584,14 +589,19 @@ contract GigSecured {
  */
     function _assignAuditor(
         string memory category,
-        uint gigId
-    ) internal returns (address auditor) {
-        auditor = IAudit(_auditContract).getAuditorByCategory(category);
+        uint gigId,
+        uint _rand
+    ) internal returns (address) {
+        address selectedAuditor;
+        IAudit(_auditContract).getAuditorByCategory(category, _rand);
+        selectedAuditor = IAudit(_auditContract).returnSelectedAuditor();
         IAudit(_auditContract).increaseAuditorCurrentGigs(
-            auditor,
+            selectedAuditor,
             address(this),
             gigId
         );
+
+        return selectedAuditor;
     }
 
     /***
@@ -615,7 +625,8 @@ contract GigSecured {
     function clientUpdateGig(
         Status newStatus,
         uint256 gigId,
-        string memory _joblink
+        string memory _joblink,
+        uint ranD
     ) public onlyClient(gigId) returns (bool success) {
         GigContract storage gig = _allGigs[gigId];
         if (
@@ -624,12 +635,6 @@ contract GigSecured {
             newStatus != Status.Dispute
         ) {
             revert InvalidStatusChange();
-        }
-        if (
-            newStatus == Status.Dispute &&
-            block.timestamp <= gig.completedTime + 259200
-        ) {
-            revert ContractSettlementTimeNotActive();
         }
         if (newStatus == Status.Closed) {
             if (gig._status < Status.UnderReview) {
@@ -643,7 +648,7 @@ contract GigSecured {
             }
             gig.isAudit = true;
             gig.joblink = _joblink;
-            address _auditor = _assignAuditor(gig.category, gigId);
+            address _auditor = _assignAuditor(gig.category, gigId, ranD);
             gig.auditor = _auditor;
         }
 
@@ -670,7 +675,8 @@ contract GigSecured {
     function freeLancerUpdateGig(
         uint256 gigId,
         Status newStatus,
-        string memory _joblink
+        string memory _joblink,
+        uint ranD
     ) public onlyFreelancer(gigId) {
         GigContract storage gig = _allGigs[gigId];
 
@@ -696,7 +702,7 @@ contract GigSecured {
         } else if (newStatus == Status.Building) {
             gig._status = Status.Building;
         } else if (newStatus == Status.Dispute) {
-            _freeLancerAudit(gigId);
+            _freeLancerAudit(gigId, ranD);
             gig.joblink = _joblink;
         } else {
             revert InvalidStatusChange();
@@ -713,9 +719,9 @@ contract GigSecured {
  * @dev This internal function assigns an auditor for a gig contract in dispute. It marks the 
  contract as audited and sets the status to "Dispute."
  */
-    function _freeLancerAudit(uint256 gigId) internal {
+    function _freeLancerAudit(uint256 gigId, uint256 _ranD) internal {
         GigContract storage gig = _allGigs[gigId];
-        address _auditor = _assignAuditor(gig.category, gigId);
+        address _auditor = _assignAuditor(gig.category, gigId, _ranD);
         gig.auditor = _auditor;
         gig.isAudit = true;
 
@@ -775,5 +781,17 @@ contract GigSecured {
 
     function getAllGigs() public view returns (GigContract[] memory) {
         return _contractGigs;
+    }
+
+    function bytesToUint(bytes memory b) internal pure returns (uint256) {
+        require(b.length > 0, "Empty byte array");
+
+        uint256 result = 0;
+
+        for (uint256 i = 0; i < b.length; i++) {
+            result = result * 256 + uint8(b[i]);
+        }
+
+        return result;
     }
 }

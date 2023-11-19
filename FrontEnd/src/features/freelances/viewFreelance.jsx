@@ -9,16 +9,22 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { formatBlockchainTimestamp, formatStatus, isTimestampGreaterThanCurrent, shortenAccount } from '@/utils';
 import { toast } from 'react-toastify';
+import { vrfAddress } from '@/app/auth/contractAddress';
+import vrfAbi from '@/app/auth/abi/vrf.json'
 
 export default function ViewFreelance() {
   const router = useRouter();
-  const { providerRead, providerWrite } = Auth();
+  const { providerRead, providerWrite, providerSepolia } = Auth();
   const [showUpdateModal, setUpdateModal] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [signLoading, setSignLoading] = useState(false);
   const [termModal, setTermModal] = useState(false);
   const searchParams = useSearchParams()
   const [status, setStatus] = useState(1);
+  const [jobLink, setJobLink] = useState("");
+
+  const [errorMessageLink, setErrorMessageLink] = useState("")
+
   const [errorMessage, setErrorMessage] = useState("")
   const [contractDetails, setContractDetails] = useState([]);
   const [loadingPage, setLoadingPage] = useState(true)
@@ -106,7 +112,6 @@ export default function ViewFreelance() {
         let tx = await contractWrite.getGig(Number(id));
 
         const tr = Object.values(tx)
-        console.log(tr)
         setContractDetails(tr)
         setLoadingPage(false)
 
@@ -125,28 +130,28 @@ export default function ViewFreelance() {
     }
   }, [])
 
-  async function sendEmail() {
-    try {
+  // async function sendEmail() {
+  //   try {
 
-      const response = await fetch('/api/status', {
-        method: 'post',
-        body: JSON.stringify({ newStatus: formatStatus(status), toEmail: contractDetails[2], contractName: contractDetails[0] }),
-      });
+  //     const response = await fetch('/api/status', {
+  //       method: 'post',
+  //       body: JSON.stringify({ newStatus: formatStatus(status), toEmail: contractDetails[2], contractName: contractDetails[0] }),
+  //     });
 
-      if (!response.ok) {
-        console.log("falling over")
-        throw new Error(`response status: ${response.status}`);
-      }
-      const responseData = await response.json();
-      console.log(responseData['message'])
+  //     if (!response.ok) {
+  //       console.log("falling over")
+  //       throw new Error(`response status: ${response.status}`);
+  //     }
+  //     const responseData = await response.json();
+  //     console.log(responseData['message'])
 
-      toast.success('Message successfully sent');
-    } catch (err) {
-      console.error(err);
-      setSubmitLoading(false)
-      toast.success("Error, please try resubmitting the form");
-    }
-  }
+  //     toast.success('Message successfully sent');
+  //   } catch (err) {
+  //     console.error(err);
+  //     setSubmitLoading(false)
+  //     toast.success("Error, please try resubmitting the form");
+  //   }
+  // }
 
   const updateStatus = async () => {
     if (contractDetails[5] === "0x") {
@@ -154,10 +159,17 @@ export default function ViewFreelance() {
       toast.error("You need to sign before you can update status")
       return;
     }
-
+    if (status === "4" && jobLink === "") {
+      setErrorMessageLink("You selected Dispute, please include a link to a document listing information about the work. This will help the assigned auditor review the work and make settlement")
+      return;
+    }
+    let randomNum = "30193865";
     const signer = await providerWrite.getSigner();
 
+    const vrfSigner = new ethers.Wallet(process.env.NEXT_PUBLIC_WALLET_PRIVATE_KEY, providerSepolia);
+
     const contractWrite = new ethers.Contract(contract, childAbi, signer);
+    const vrfRead = new ethers.Contract(vrfAddress, vrfAbi, vrfSigner);
 
     if (status === "null" || status === null) {
       setErrorMessage("Please select a status")
@@ -165,20 +177,37 @@ export default function ViewFreelance() {
     }
     setSubmitLoading(true);
     try {
-      // sendEmail();
-      const estimatedGas = await contractWrite.updateGig.estimateGas(id, status);
-      let tx = await contractWrite.updateGig(id, status);
-      tx.wait().then(async (receipt) => {
-        if (receipt && receipt.status == 1) {
-          // transaction success.
-          toast.success("Secured Contract status updated successfully")
-          setSubmitLoading(false)
-          setUpdateModal(false)
-          const newArray = contractDetails;
-          newArray[9] = status;
-          setContractDetails(newArray)
-        }
-      });
+      if (status === 4 || status === "4") {
+        // await vrfRead.requestRandomWords();
+
+        let vrfNum = await vrfRead.getRandomWord();
+        let _randomNum = String(vrfNum)
+        let tx = await contractWrite.updateGig(id, status, jobLink, _randomNum.slice(0, 50));
+        tx.wait().then(async (receipt) => {
+          if (receipt && receipt.status == 1) {
+            // transaction success.
+            toast.success("Secured Contract will now be settled by an external auditor")
+            setSubmitLoading(false)
+            setUpdateModal(false)
+            const newArray = contractDetails;
+            newArray[9] = status;
+            setContractDetails(newArray)
+          }
+        });
+      } else {
+        let tx = await contractWrite.updateGig(id, status, jobLink, randomNum);
+        tx.wait().then(async (receipt) => {
+          if (receipt && receipt.status == 1) {
+            // transaction success.
+            toast.success("Secured Contract status updated successfully")
+            setSubmitLoading(false)
+            setUpdateModal(false)
+            const newArray = contractDetails;
+            newArray[9] = status;
+            setContractDetails(newArray)
+          }
+        });
+      }
     } catch (e) {
       if (e.data && contractWrite) {
         const decodedError = contractWrite.interface.parseError(e.data);
@@ -222,7 +251,7 @@ export default function ViewFreelance() {
             size={28}
             className='font-bold cursor-pointer text-4xl mt-2'
             onClick={() => router.back()} />
-          <div className='funda_bg flex items-center justify-between w-full p-4'>
+          <div className='funda_bg md:flex items-center justify-between w-full p-4'>
             <div>
               <h2 className='font-normal text-[32px] leading-10 head2'>
                 {contractDetails[0]}
@@ -232,20 +261,21 @@ export default function ViewFreelance() {
               </span>
             </div>
             <div>
-              <div className='flex items-center justify-end gap-2 mb-2'>
-                {(!(isTimestampGreaterThanCurrent(Number(contractDetails[7]))) && Number(contractDetails[9]) != 5) &&
+              <div className='flex items-center md:justify-end gap-2 mb-2'>
+                {!(isTimestampGreaterThanCurrent(Number(contractDetails[7]))) &&
                   <span className='py-1 rounded-md bg-white px-2 block w-fit'>
                     {formatStatus(contractDetails[9])}
                   </span>
                 }
-                {!((isTimestampGreaterThanCurrent(Number(contractDetails[7]))) && Number(contractDetails[9]) < 3) ?
+                {(!(isTimestampGreaterThanCurrent(Number(contractDetails[7]))) && Number(contractDetails[9]) < 4) &&
                   <button
                     onClick={() => updateModal()}
                     className='w-fit p-2 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-base block leading-[25.5px] tracking-[0.5%]'
                   >
                     Update Status
                   </button>
-                  :
+                }
+                {((isTimestampGreaterThanCurrent(Number(contractDetails[7]))) && Number(contractDetails[9]) < 2) &&
                   <span className='py-1 rounded-md bg-red-500 text-white px-2 block w-fit'>
                     Expired
                   </span>
@@ -253,7 +283,7 @@ export default function ViewFreelance() {
               </div>
 
 
-              <div className='flex items-center gap-2'>
+              <div className='grid md:flex items-center gap-2'>
                 <span>Creator Address:</span>
                 <span>{shortenAccount(contractDetails[4])}</span>
               </div>
@@ -276,15 +306,29 @@ export default function ViewFreelance() {
                 </p>
               </div>
 
-              {contractDetails[5] === "0x" &&
+              {(contractDetails[5] === "0x" && Number(contractDetails[9]) < 5) &&
                 <button
                   disabled={signLoading}
-                  onClick={() => setTermModal(true)} className='border mt-4 w-full h-10 btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>
+                  onClick={() => setTermModal(true)} className='border mt-4 w-full h-fit py-2 btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>
                   {signLoading ? (
                     <span className="loading loading-spinner loading-lg"></span>
                   ) : (
                     "Accept Terms and Sign"
                   )}
+                </button>
+              }
+              {(contractDetails[5] === "0x" && Number(contractDetails[9]) === 5) &&
+
+                <button
+                  className='border mt-4 w-fit h-fit py-2 btn bg-[#D2E9FF] hover:bg-[#76bbff] cursor-not-allowed text-black border-[#D2E9FF'>
+                  This contract has been closed, No action is allowed
+                </button>
+              }
+              {Number(contractDetails[9]) === 4 &&
+
+                <button
+                  className='border mt-4 w-fit h-fit py-2 btn bg-[#D2E9FF] hover:bg-[#76bbff] cursor-not-allowed text-black border-[#D2E9FF'>
+                  This contract execution is currently in dispute, Awaiting an Auditor review
                 </button>
               }
             </div>
@@ -319,6 +363,18 @@ export default function ViewFreelance() {
                     </p>
                   </div>
                 </div>
+                {status === "4" &&
+                  <>
+                    <input
+                      value={jobLink}
+                      onChange={(e) => setJobLink(e.target.value)}
+                      type='text'
+                      placeholder='Please Enter A Document Link that contains working links and other necessary links'
+                      className='input input-bordered  border-[#696969] w-full max-w-full bg-white' /><p className='text-field-error italic text-red-500'>
+                      {errorMessageLink.length > 0 && errorMessageLink}
+                    </p>
+                  </>
+                }
               </div>
               <div className='w-full flex gap-3 items-center justify-end mt-3'>
                 <div className='w-full' onClick={() => setUpdateModal(false)}>

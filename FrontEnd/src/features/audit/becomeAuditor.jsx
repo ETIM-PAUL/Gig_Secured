@@ -9,17 +9,25 @@ import { ethers } from 'ethers';
 import { auditorAddress } from '@/app/auth/contractAddress';
 import auditAbi from '@/app/auth/abi/audit.json';
 import { CgProfile } from 'react-icons/cg';
+import childAbi from '@/app/auth/abi/child.json'
 
 export default function BecomeAuditor() {
   const { providerRead, providerWrite } = Auth();
   const { address, isConnected } = useAccount();
   const [auditorDetails, setAuditorDetails] = useState(null);
+  const [auditContracts, setAuditContracts] = useState();
   const [loadingPage, setLoadingPage] = useState(true);
-  const [submitLoading, setSubmitLoading] = useState(false);
+  const [contractDetails, setContractDetails] = useState([]);
+  const [gigSecureAddress, setGigSecureAddress] = useState([]);
+  const [gigId, setGigsId] = useState([]);
+  // const [submitLoading, setSubmitLoading] = useState(false);
 
   useEffect(() => {
     const getAuditorDetails = async () => {
       setLoadingPage(true);
+      const all = [];
+      const gigAddresses = [];
+      const gigs = [];
       try {
         const contract = new ethers.Contract(
           auditorAddress,
@@ -29,6 +37,21 @@ export default function BecomeAuditor() {
         const details = await contract.getAuditorByAddress(address);
 
         setAuditorDetails(details);
+        const tr = Object.values(details[6])
+        for (let index = 0; index < tr.length; index++) {
+          const element = tr[index];
+
+          const signer = await providerWrite.getSigner();
+          const contractRead = new ethers.Contract(element[0], childAbi, signer);
+          let txQuery = await contractRead.getGig(Number(element[1]));
+
+          all.push(txQuery)
+          gigAddresses.push(element[0])
+          gigs.push(Number(element[1]))
+        }
+        setContractDetails(all)
+        setGigSecureAddress(gigAddresses)
+        setGigsId(gigs)
         setLoadingPage(false);
       } catch (error) {
         console.error('Error fetching auditor details:', error);
@@ -116,6 +139,30 @@ export default function BecomeAuditor() {
                 </Link>
               </div>
             )}
+
+            {/* action */}
+            <div className='my-10 flex gap-6 flex-wrap'>
+              {contractDetails.length > 0 && contractDetails.map((item, index) => (
+                <div
+                  key={index}
+                  className='card w-96 bg-white border shadow-md border-black flex-grow text-black'
+                >
+                  <div className='card-body'>
+                    <h2 className='card-title'>{item[0]}</h2>
+                    <p>
+                      {item[6]}
+                    </p>
+                    <div className='card-actions justify-end'>
+                      <Link href={`/audits/view?id=${gigId[index]}&contract=${gigSecureAddress[index]}`}>
+                        <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>
+                          Audit Contract
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </section>

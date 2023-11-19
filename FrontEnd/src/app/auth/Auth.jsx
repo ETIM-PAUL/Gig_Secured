@@ -29,6 +29,9 @@ export default function Auth() {
   const providerRead = new ethers.getDefaultProvider(
     'https://base-goerli.g.alchemy.com/v2/pEWkV5B_TfdqO_SzQ7NYfp5tyvQO0BvK'
   );
+  const providerSepolia = new ethers.JsonRpcProvider(
+    'https://eth-sepolia.g.alchemy.com/v2/PN7ox_cWivKpFnRnE5YKoJ5Vyp8-Bx5j'
+  );
 
   let providerWrite;
 
@@ -133,6 +136,7 @@ export default function Auth() {
     setFactoryContract,
     providerRead,
     providerWrite,
+    providerSepolia,
     setGigSecuredAddress,
     gigSecuredAddress
     // childAddress,

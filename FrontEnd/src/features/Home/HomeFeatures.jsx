@@ -64,7 +64,7 @@ export default function HomeFeatures() {
     if (isConnected) {
       getConnectedWalletStatus();
     }
-  }, []);
+  }, [address]);
 
   const createRegister = async () => {
     const signer = await providerWrite.getSigner();
@@ -129,20 +129,22 @@ export default function HomeFeatures() {
               )}
               {!loadingPage && !hasContract && tx === '' && (
                 <>
-                  <button
-                    disabled={submitLoading}
-                    onClick={() => createRegister()}
-                    className='w-[360px] h-[58px] mx-auto rounded-lg mb-10 bg-[#D2E9FF] hover:bg-[#0978e0cb] text-black hover:text-white text-[17px] block leading-[25.5px] tracking-[0.5%]'
-                  >
-                    {submitLoading ? (
-                      <div className='flex gap-2 justify-center items-center'>
-                        <span className='loading loading-spinner loading-lg'></span>
-                        <span>Processing</span>
-                      </div>
-                    ) : (
-                      'Create a Register to add secured contracts'
-                    )}
-                  </button>
+                  {(!hasContract) &&
+                    <button
+                      disabled={submitLoading}
+                      onClick={() => createRegister()}
+                      className='w-[360px] h-[58px] mx-auto rounded-lg mb-10 bg-[#D2E9FF] hover:bg-[#0978e0cb] text-black hover:text-white text-[17px] block leading-[25.5px] tracking-[0.5%]'
+                    >
+                      {submitLoading ? (
+                        <div className='flex gap-2 justify-center items-center'>
+                          <span className='loading loading-spinner loading-lg'></span>
+                          <span>Processing</span>
+                        </div>
+                      ) : (
+                        'Create a Register to add secured contracts'
+                      )}
+                    </button>
+                  }
                   <br />
                   <div className='flex flex-wrap gap-10 text-white'>
                     {explore_cards.map((card, index) => (
@@ -167,7 +169,7 @@ export default function HomeFeatures() {
                             {index === 0
                               ? contractCounts
                               : index === 2
-                                ? 2
+                                ? ''
                                 : ''}
                           </span>
                         </div>
@@ -280,7 +282,7 @@ export default function HomeFeatures() {
                             {index === 0
                               ? contractCounts
                               : index === 2
-                                ? 2
+                                ? ''
                                 : ''}
                           </span>
                         </div>

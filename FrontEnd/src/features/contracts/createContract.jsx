@@ -50,12 +50,12 @@ export default function CreateContract() {
   };
 
   const onSubmit = async (data) => {
-
     if (!hasOpenTermModal) {
       toast.error("Please read the terms and conditions thoroughly");
       return;
     }
     const contractRead = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
+
     const signer = await providerWrite.getSigner();
 
     let gigRegister = await contractRead.getCreatorSystem(address);
@@ -70,11 +70,9 @@ export default function CreateContract() {
       try {
         setSubmitLoading(true)
 
-        await usdtWrite.approve(gigRegister, ethers.parseUnits(data.price, 18));
-        const estimatedGas = await contractWrite.addGig.estimateGas(
-          data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer,
-        );
-        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer, { gasLimit: calculateGasMargin(estimatedGas) });
+        await usdtWrite.approve(gigRegister, ethers.parseUnits(data.price, 6));
+
+        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer);
 
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
@@ -165,7 +163,7 @@ export default function CreateContract() {
                 {...register("category")}
                 className="select select-bordered border-[#696969] w-full max-w-full bg-white"
               >
-                <option disabled selected>
+                <option>
                   {/* Select Option? */}
                   Smart Contract Development
                 </option>
