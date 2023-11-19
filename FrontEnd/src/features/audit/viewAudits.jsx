@@ -39,7 +39,6 @@ export default function ViewAudit() {
         let tx = await contractWrite.getGig(Number(id));
 
         const tr = Object.values(tx)
-        console.log(tr)
         setContractDetails(tr)
         setLoadingPage(false)
 
@@ -150,44 +149,46 @@ export default function ViewAudit() {
                   google
                 </a>
               </div>
-              <div>
-                <div className='flex items-center mt-4'>
-                  {progress.map((percentage, index) => (
-                    <div
-                      key={index}
-                      className='w-1/4 p-2 cursor-pointer'
-                      onClick={() => handleBoxClick(index)}
-                    >
-                      <div className='relative h-10 bg-gray-200 flex justify-center items-center'>
-                        <div
-                          className='absolute h-full bg-blue-500 flex justify-center items-center'
-                          style={{ width: `${percentage}%` }}
-                        >
-                          <div className='text-center text-white z-10'>
-                            {20 + index * 20}
+              {Number(contractDetails[9]) !== 5 &&
+                <div>
+                  <div className='flex items-center mt-4'>
+                    {progress.map((percentage, index) => (
+                      <div
+                        key={index}
+                        className='w-1/4 p-2 cursor-pointer'
+                        onClick={() => handleBoxClick(index)}
+                      >
+                        <div className='relative h-10 bg-gray-200 flex justify-center items-center'>
+                          <div
+                            className='absolute h-full bg-blue-500 flex justify-center items-center'
+                            style={{ width: `${percentage}%` }}
+                          >
+                            <div className='text-center text-white z-10'>
+                              {20 + index * 20}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  <input
-                    type='number'
-                    className='h-10 bg-gray-200 px-4'
-                    placeholder='1'
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)} />
+                    ))}
+                    <input
+                      type='number'
+                      className='h-10 bg-gray-200 px-4'
+                      placeholder='1'
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)} />
+                  </div>
+                  <button
+                    onClick={() => auditContract()}
+                    disabled={submitLoading || inputValue < 10}
+                    className={`${(submitLoading || Number(inputValue) < 10) && "cursor-not-allowed"} btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FFborder w-full mx-2 mt-4 h-10`}>
+                    {submitLoading ? (
+                      <span className="loading loading-spinner loading-lg"></span>
+                    ) : (
+                      "Complete Audit"
+                    )}
+                  </button>
                 </div>
-                <button
-                  onClick={() => auditContract()}
-                  disabled={submitLoading || inputValue < 10}
-                  className={`${(submitLoading || Number(inputValue) < 10) && "cursor-not-allowed"} btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FFborder w-full mx-2 mt-4 h-10`}>
-                  {submitLoading ? (
-                    <span className="loading loading-spinner loading-lg"></span>
-                  ) : (
-                    "Complete Audit"
-                  )}
-                </button>
-              </div>
+              }
             </div>
           </div></>
       }
