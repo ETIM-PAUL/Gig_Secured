@@ -163,7 +163,7 @@ export default function ViewAudit() {
                             className='absolute h-full bg-blue-500 flex justify-center items-center'
                             style={{ width: `${percentage}%` }}
                           >
-                            <div className='text-center text-white z-10'>
+                            <div className='text-center text-black z-10'>
                               {20 + index * 20}
                             </div>
                           </div>

@@ -107,7 +107,7 @@ export default function BecomeAuditor() {
                         </div>
                       )}
                       <h2 className='text-lg font-semibold capitalize sm:text-xl'>
-                        {`${auditorDetails.category}  audit gigs: ${Number(
+                        {`${auditorDetails.category}  Pending audits: ${Number(
                           auditorDetails.currentGigs
                         )}`}
                       </h2>
@@ -152,13 +152,19 @@ export default function BecomeAuditor() {
                     <p>
                       {item[6]}
                     </p>
-                    <div className='card-actions justify-end'>
-                      <Link href={`/audits/view?id=${gigId[index]}&contract=${gigSecureAddress[index]}`}>
-                        <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>
-                          Audit Contract
-                        </button>
-                      </Link>
-                    </div>
+                    {Number(item[6]) !== 5 ?
+                      <div className='card-actions justify-end'>
+                        <Link href={`/audits/view?id=${gigId[index]}&contract=${gigSecureAddress[index]}`}>
+                          <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>
+                            Audit Contract
+                          </button>
+                        </Link>
+                      </div>
+                      :
+                      <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black hover:cursor-not-allowed border-[#D2E9FF'>
+                        Audit Completed
+                      </button>
+                    }
                   </div>
                 </div>
               ))}
