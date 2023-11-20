@@ -19,17 +19,19 @@ export default function CreateContract() {
   const { providerWrite, providerRead } = Auth();
   const router = useRouter();
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [twelvePercent, setTwelvePercent] = useState(0);
+  const [price, setPrice] = useState(0);
   const [termModal, setTermModal] = useState(false);
   const [hasOpenTermModal, setHasOpenTermModal] = useState(false);
   const schema = yup
     .object({
       email: yup.string().email().required(),
+      freelancerEmail: yup.string().email().required(),
       title: yup.string().required(),
       category: yup.string().required(),
       description: yup.string().required(),
       freelancer: yup.string().required(),
       deadline: yup.string().required(),
-      price: yup.string().required(),
       terms: yup
         .bool()
         .oneOf([true], "You need to accept the terms and conditions"),
@@ -39,6 +41,8 @@ export default function CreateContract() {
   const {
     register,
     handleSubmit,
+    getValues,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
@@ -49,11 +53,20 @@ export default function CreateContract() {
     setTermModal(true);
   };
 
+  const calculateTwelve = (value) => {
+    console.log(getValues("price"))
+    setPrice(value)
+    const num = value * 0.12;
+    setTwelvePercent(num);
+  }
+
   const onSubmit = async (data) => {
     if (!hasOpenTermModal) {
       toast.error("Please read the terms and conditions thoroughly");
       return;
     }
+    const sum = Number(price) + Number(twelvePercent)
+
     const contractRead = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
 
     const signer = await providerWrite.getSigner();
@@ -69,10 +82,9 @@ export default function CreateContract() {
 
       try {
         setSubmitLoading(true)
-        const estimatedGas = await contractWrite.updateGig.estimateGas(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer);
-        await usdtWrite.approve(gigRegister, ethers.parseUnits(data.price, 6));
-
-        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer, { gasLimit: calculateGasMargin(estimatedGas) });
+        // const estimatedGas = await contractWrite.addGig.estimateGas(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(String(sum), 6), data.freelancer);
+        await usdtWrite.approve(gigRegister, ethers.parseUnits(String(sum), 6));
+        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.freelancerEmail, data.description, deadlineFormat, ethers.parseUnits(String(sum), 6), data.freelancer);
 
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
@@ -119,7 +131,7 @@ export default function CreateContract() {
 
         {/* form */}
         <div className="my-12">
-          <div className="grid md:flex gap-5 w-full mb-5">
+          <div className="grid lg:flex gap-5 w-full mb-5">
             <div className="grid space-y-2 w-full">
               <label>Title</label>
               <input
@@ -145,7 +157,7 @@ export default function CreateContract() {
               </p>
             </div>
           </div>
-          <div className="grid md:flex gap-5 w-full mb-5">
+          <div className="grid lg:flex gap-5 w-full mb-5">
             <div className="grid space-y-2 w-full">
               <label>Deadline</label>
               <input
@@ -177,7 +189,7 @@ export default function CreateContract() {
               </p>
             </div>
           </div>
-          <div className="grid md:flex gap-5 w-full mb-5">
+          <div className="grid lg:flex gap-5 w-full mb-5">
             <div className="block space-y-2 w-full">
               <label>Freelancer Wallet Address</label>
               <input
@@ -191,22 +203,48 @@ export default function CreateContract() {
               </p>
             </div>
             <div className="grid space-y-2 w-full">
-              <label>
-                Price (please note after creation of contract, this is not
-                editable)
-              </label>
-              <input
-                {...register("price")}
-                type="text"
-                placeholder="Please add a Base Fee. Please review terms and conditions"
-                className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
-              />
+              <div className='grid gap-2'>
+                <label>
+                  Price (12% for escrow and/or audit by the side)
+                </label>
+                <div className='grid gap-2 md:flex'>
+                  <input
+                    // {...register("price")}
+                    type="number"
+                    value={price}
+                    onChange={(e) => calculateTwelve(e.target.value)}
+                    min={1}
+                    placeholder="Please add a contract Fee"
+                    className="input input-bordered md:w-[80%] appearance-none border-[#696969] max-w-full bg-white"
+                  />
+                  <input
+                    type="number"
+                    disabled
+                    value={twelvePercent}
+                    placeholder="12% stake"
+                    className="input input-bordered md:w-[20%] disabled:bg-white disabled:text-black border-[#696969] max-w-full bg-white"
+                  />
+                </div>
+
+              </div>
               <p className="text-field-error italic text-red-500">
                 {errors.price?.message}
               </p>
             </div>
           </div>
-          <div className="grid md:flex gap-5 w-full mb-10">
+          <div className="grid lg:flex gap-5 w-full mb-10">
+            <div className="grid space-y-2 w-full">
+              <label>Freelancer Email</label>
+              <input
+                {...register("freelancerEmail")}
+                type="text"
+                placeholder="Please Enter Your Valid Email"
+                className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
+              />
+              <p className="text-field-error italic text-red-500">
+                {errors.freelancerEmail?.message}
+              </p>
+            </div>
             <div className="w-full mt-2 space-y-2">
               <label>Project Documentation</label>
               <input

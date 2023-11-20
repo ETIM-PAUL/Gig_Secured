@@ -40,7 +40,7 @@ export default function AllContracts() {
     const getConnectedWalletStatus = async () => {
       setLoadingPage(true);
       let tx = await contract.getCreatorSystem(address);
-      console.log(tx)
+
       if (tx === '0x0000000000000000000000000000000000000000') {
         setHasContract(false);
       } else {

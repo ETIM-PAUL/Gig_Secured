@@ -48,7 +48,7 @@ export default function SideBar() {
   return (
     <main>
       <section
-        className={`min-h-screen max-h-screen bg-[#D2E9FF] ${!sidebar ? 'w-[100px]' : 'w-[380px]'
+        className={`min-h-screen max-h-screen w-[100px] md-w-full bg-[#D2E9FF] ${!sidebar ? 'w-[100px]' : 'w-[380px]'
           }`}
       >
         <section className='w-[90%] mx-auto'>

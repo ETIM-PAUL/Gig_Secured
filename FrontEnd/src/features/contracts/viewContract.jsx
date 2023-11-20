@@ -91,6 +91,45 @@ export default function ViewContract() {
     }
   }, [])
 
+  const updateFreelancer = async () => {
+    const signer = await providerWrite.getSigner();
+
+    const contractWrite = new ethers.Contract(gigContract, childAbi, signer);
+
+    if (title === "") {
+      setErrorMessage("Please enter a title")
+      return;
+    }
+    setUpdateContractTitleLoading(true);
+    try {
+      const estimatedGas = await contractWrite.editGigTitle.estimateGas(
+        id, title
+      );
+      let tx = await contractWrite.editGigTitle(id, title, { gasLimit: calculateGasMargin(estimatedGas) });
+
+      tx.wait().then(async (receipt) => {
+        if (receipt && receipt.status == 1) {
+          // transaction success.
+          toast.success("Secured Contract title updated successfully")
+          setUpdateContractTitleLoading(false)
+          setShowTitleModal(false)
+          const newArray = contractDetails;
+          newArray[0] = title;
+          setContractDetails(newArray)
+        }
+      });
+    } catch (e) {
+      if (e.data && contractWrite) {
+        const decodedError = contractWrite.interface.parseError(e.data);
+        toast.error(`Transaction failed: ${decodedError?.name}`)
+      } else {
+        console.log(`Error in contract:`, e);
+      }
+      setUpdateContractTitleLoading(false)
+      setShowTitleModal(false)
+    }
+  }
+
   const forceCloseContract = async () => {
     const signer = await providerWrite.getSigner();
 
@@ -234,7 +273,7 @@ export default function ViewContract() {
     const contractWrite = new ethers.Contract(gigContract, childAbi, signer);
 
     if (title === "") {
-      setErrorMessage("Please enter a description")
+      setErrorMessage("Please enter a documentation link")
       return;
     }
     setDescriptionLoading(true);
@@ -247,7 +286,7 @@ export default function ViewContract() {
       tx.wait().then(async (receipt) => {
         if (receipt && receipt.status == 1) {
           // transaction success.
-          toast.success("Secured Contract description updated successfully")
+          toast.success("Secured Contract project link updated successfully")
           setDescriptionLoading(false)
           setDescriptionModal(false)
           const newArray = contractDetails;
@@ -394,7 +433,7 @@ export default function ViewContract() {
                     </button>
                   }
                 </div>
-                <div className='flex items-center mt-2 gap-2'>
+                <div className='lg:flex items-center mt-2 gap-2'>
                   <span className='text-base block'>Category: {contractDetails[1]}</span>
                   {formatStatus(contractDetails[9]) === "pending" &&
                     <button onClick={() => setShowCategoryModal(true)}>
@@ -429,6 +468,11 @@ export default function ViewContract() {
                 <div className='flex items-center gap-2'>
                   <span>Freelancer Address:</span>
                   <span>{shortenAccount(contractDetails[4])}</span>
+                  {/* {contractDetails[5] === "0x" &&
+                    <button onClick={() => setFreelancerModal(true)}>
+                      <FiEdit />
+                    </button>
+                  } */}
                 </div>
               </div>
             </div>
@@ -791,7 +835,7 @@ export default function ViewContract() {
           )}
 
           {/* updateFreelancer */}
-          {showFreelancerModal && (
+          {/* {showFreelancerModal && (
             <div>
               <input
                 type='checkbox'
@@ -802,28 +846,23 @@ export default function ViewContract() {
               />
               <div className='modal bg-white'>
                 <div className='modal-box bg-white'>
-                  <h3 className='font-bold text-lg'>Change Gig Contract Freelancer!</h3>
-                  {/* <p className='font-bold text-xs text-red-500 py-2'>You can't change when freelancer has began work!</p> */}
-                  <div className='grid space-y-2 w-full mt-1'>
-                    <div className='flex gap-3 items-center'>
-                      <div className='grid space-y-2 w-full'>
+                  <h3 className='font-bold text-lg'>Change Gig Contract Freelancer (only if the previous freelancer hasn't signed!)</h3>
+                  <div className='grid space-y-2 w-full mt-6'>
+                    <div className='block space-y-2 w-full'>
 
-                        <input
-                          // {...register('name')}
-                          type='text'
-                          placeholder='Please Enter New Freelancer Email'
-                          className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
-                        />
-                        <input
-                          // {...register('name')}
-                          type='text'
-                          placeholder='Please Enter New Freelancer Address'
-                          className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
-                        />
-                      </div>
+                      <input
+                        type='text'
+                        placeholder='Please Enter New Freelancer Email'
+                        className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
+                      />
+                      <input
+                        type='text'
+                        placeholder='Please Enter New Freelancer Address'
+                        className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
+                      />
                     </div>
                   </div>
-                  <div className='w-full flex gap-3 items-center justify-end mt-3'>
+                  <div className='w-full flex gap-3 items-center mt-3'>
                     <div className='w-full' onClick={() => setFreelancerModal(false)}>
                       <label
                         htmlFor='my_modal_6'
@@ -831,22 +870,22 @@ export default function ViewContract() {
                       >
                         Close!
                       </label>
-                      <button
-                        disabled={submitLoading}
-                        className='w-full h-full py-3 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]'
-                      >
-                        {submitLoading ? (
-                          <span className='loading loading-spinner loading-lg'></span>
-                        ) : (
-                          'Update'
-                        )}
-                      </button>
                     </div>
+                    <button
+                      disabled={submitLoading}
+                      className='w-full h-full py-3 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]'
+                    >
+                      {submitLoading ? (
+                        <span className='loading loading-spinner loading-lg'></span>
+                      ) : (
+                        'Update'
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* updateStatusModal */}
           {showUpdateModal && (

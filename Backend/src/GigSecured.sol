@@ -85,6 +85,8 @@ contract GigSecured {
     mapping(uint256 => GigContract) private _allGigs;
     GigContract[] _contractGigs;
 
+    error AlreadyInDispute();
+    error NotYetCompleted();
     error NotYetReviewed();
     error FreelancerSignedAlready();
     error AtLeastAnHour();
@@ -231,6 +233,7 @@ contract GigSecured {
         string memory _title,
         string memory _category,
         string memory _clientEmail,
+        string memory _freelancerEmail,
         string memory _description,
         uint _deadline,
         uint _price,
@@ -258,6 +261,7 @@ contract GigSecured {
         _newGigContract.title = _title;
         _newGigContract.category = _category;
         _newGigContract.clientEmail = _clientEmail;
+        _newGigContract.freelancerEmail = _freelancerEmail;
         _newGigContract.description = _description;
         _newGigContract.deadline = _deadline;
         _newGigContract._status = Status.Pending;
@@ -447,23 +451,26 @@ contract GigSecured {
      *
      * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
      */
-    function editGigFreelancer(
-        uint256 gigId,
-        string memory newFreelancerEmail,
-        address newFreelancerAddress
-    ) public onlyClient(gigId) {
-        GigContract storage gig = _allGigs[gigId];
-        if (gig._status != Status.Pending) {
-            revert NotPendingStatus(gig._status);
-        }
-        gig.freelancerEmail = newFreelancerEmail;
-        gig.freeLancer = newFreelancerAddress;
-        emit GigFreelancerUpdated(
-            gigId,
-            newFreelancerEmail,
-            newFreelancerAddress
-        );
-    }
+    // function editGigFreelancer(
+    //     uint256 gigId,
+    //     string memory newFreelancerEmail,
+    //     address newFreelancerAddress
+    // ) public onlyClient(gigId) {
+    //     GigContract storage gig = _allGigs[gigId];
+    //     if (gig._status != Status.Pending) {
+    //         revert NotPendingStatus(gig._status);
+    //     }
+    //     if (gig.freelancerSign.length != 0) {
+    //         revert FreelancerSignedAlready();
+    //     }
+    //     gig.freelancerEmail = newFreelancerEmail;
+    //     gig.freeLancer = newFreelancerAddress;
+    //     emit GigFreelancerUpdated(
+    //         gigId,
+    //         newFreelancerEmail,
+    //         newFreelancerAddress
+    //     );
+    // }
 
     /***
      * @dev Update the status of a gig contract.
@@ -646,9 +653,17 @@ contract GigSecured {
             }
             _sendPaymentClosed(gigId);
         }
+        if (newStatus == Status.UnderReview) {
+            if (gig._status != Status.Completed) {
+                revert NotYetCompleted();
+            }
+        }
         if (newStatus == Status.Dispute) {
             if (gig._status != Status.UnderReview) {
                 revert NotYetReviewed();
+            }
+            if (gig._status == Status.Dispute) {
+                revert AlreadyInDispute();
             }
             gig.isAudit = true;
             gig.joblink = _joblink;
@@ -698,6 +713,9 @@ contract GigSecured {
             block.timestamp <= gig.completedTime + 259200
         ) {
             revert TooSoonToDispute();
+        }
+        if (gig._status == Status.Dispute) {
+            revert AlreadyInDispute();
         }
         gig._status = newStatus;
         if (newStatus == Status.Completed) {
