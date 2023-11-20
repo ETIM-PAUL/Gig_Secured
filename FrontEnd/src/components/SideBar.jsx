@@ -10,6 +10,7 @@ import { useAppContext } from '@/app/auth/Context';
 import { AiOutlineSecurityScan } from 'react-icons/ai';
 import { IoIosArrowDropright, IoIosArrowDropleft } from 'react-icons/io';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { RxDashboard } from 'react-icons/rx';
 
 export default function SideBar() {
   const pathname = usePathname();
@@ -38,6 +39,11 @@ export default function SideBar() {
       icon: AiOutlineSecurityScan,
       href: '/audits',
     },
+    {
+      name: 'Admin',
+      icon: RxDashboard,
+      href: '/admin',
+    },
   ];
   return (
     <main>
@@ -64,7 +70,10 @@ export default function SideBar() {
                 )}
               </div>
             </Link>
-            <div onClick={() => setSideBar(!sidebar)} className='text-3xl mt-10'>
+            <div
+              onClick={() => setSideBar(!sidebar)}
+              className='text-3xl mt-10'
+            >
               <span className='text-black hover:cursor-pointer'>
                 {sidebar ? <IoIosArrowDropleft /> : <IoIosArrowDropright />}
               </span>
@@ -98,7 +107,7 @@ export default function SideBar() {
           </div>
 
           {/* {sidebar && ( */}
-          <div className=' flex items-center bg-[#FBFDFF] text-black rounded-2xl h-[80px] gap-2 justify-center relative w-[100%] top-[240px]'>
+          <div className=' flex items-center bg-[#FBFDFF] text-black rounded-2xl h-[80px] gap-2 justify-center relative w-[100%] top-[140px]'>
             {/* <p className='text-[17px] leading-6 font-normal tracking-[0.5%] text-[#0F4880] head1'>
                 194XV7C......ROFYOF
               </p>
@@ -127,7 +136,7 @@ export default function SideBar() {
                   <div
                     {...(!ready && {
                       'aria-hidden': true,
-                      'style': {
+                      style: {
                         opacity: 0,
                         pointerEvents: 'none',
                         userSelect: 'none',
@@ -138,7 +147,11 @@ export default function SideBar() {
                     {(() => {
                       if (!connected) {
                         return (
-                          <button onClick={openConnectModal} type="button" className='bg-white text-black text-base font-bold'>
+                          <button
+                            onClick={openConnectModal}
+                            type='button'
+                            className='bg-white text-black text-base font-bold'
+                          >
                             Connect Wallet
                           </button>
                         );
@@ -146,7 +159,11 @@ export default function SideBar() {
 
                       if (chain.unsupported) {
                         return (
-                          <button onClick={openChainModal} type="button" className='bg-white text-black text-2xl font-bold'>
+                          <button
+                            onClick={openChainModal}
+                            type='button'
+                            className='bg-white text-black text-2xl font-bold'
+                          >
                             Wrong network
                           </button>
                         );
@@ -158,7 +175,7 @@ export default function SideBar() {
                             onClick={openChainModal}
                             style={{ alignItems: 'center' }}
                             className='md:flex grid space-y-2 justify-center'
-                            type="button"
+                            type='button'
                           >
                             {chain.hasIcon && (
                               <div
@@ -182,14 +199,14 @@ export default function SideBar() {
                             )}
                             {chain.name}
                           </button>
-                          {sidebar &&
-                            <button onClick={openAccountModal} type="button">
+                          {sidebar && (
+                            <button onClick={openAccountModal} type='button'>
                               {account.displayName}
                               {account.displayBalance
                                 ? ` (${account.displayBalance})`
                                 : ''}
                             </button>
-                          }
+                          )}
                         </div>
                       );
                     })()}

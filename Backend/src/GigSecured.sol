@@ -89,6 +89,7 @@ contract GigSecured {
     error FreelancerSignedAlready();
     error AtLeastAnHour();
     error InvalidFreelancer(address freeLancer);
+    error ZeroAmount();
     error MaxStagesOfDevelopment();
     error NotAssignedFreeLancer();
     error NotPermitted();
@@ -96,7 +97,7 @@ contract GigSecured {
     error DeadlineInPast(uint newDeadline);
     error NotPendingStatus(Status currentStatus);
     error EmptyTitle();
-    error EmptyDescription();
+    error EmptyProjectLink();
     error EmptyCategory();
     error InvalidStatusChange();
     error ContractSettlementTimeNotActive();
@@ -238,8 +239,11 @@ contract GigSecured {
         if (_deadline < (block.timestamp + 3600)) {
             revert AtLeastAnHour();
         }
-        if (_freelancer == address(0)) {
+        if (_freelancer == address(0) || _freelancer == msg.sender) {
             revert InvalidFreelancer(_freelancer);
+        }
+        if (_price == 0) {
+            revert ZeroAmount();
         }
         bool success = IERC20(_usdcAddress).transferFrom(
             msg.sender,
@@ -396,7 +400,7 @@ contract GigSecured {
             revert NotPendingStatus(gig._status);
         }
         if (bytes(newDescription).length == 0) {
-            revert EmptyDescription();
+            revert EmptyProjectLink();
         }
         gig.description = newDescription;
     }

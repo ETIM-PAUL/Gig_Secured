@@ -303,6 +303,46 @@ export default function ViewContract() {
       setUpdateContractCategoryLoading(false)
     }
   }
+  const updateDeadline = async () => {
+    const signer = await providerWrite.getSigner();
+
+    const contractWrite = new ethers.Contract(gigContract, childAbi, signer);
+
+    if (deadline === "") {
+      setErrorMessage("Please enter a deadline")
+      return;
+    }
+    const deadlineFormat = Math.floor(new Date(deadline).getTime() / 1000)
+    setUpdateDeadlineLoading(true);
+    try {
+      const estimatedGas = await contractWrite.editGigDeadline.estimateGas(
+        id, deadlineFormat
+      );
+      let tx = await contractWrite.editGigDeadline(id, deadlineFormat, { gasLimit: calculateGasMargin(estimatedGas) });
+
+      tx.wait().then(async (receipt) => {
+        if (receipt && receipt.status == 1) {
+          // transaction success.
+          toast.success("Secured Contract deadline updated successfully")
+          setFreelancerDeadlineModal(false)
+          setUpdateDeadlineLoading(false)
+          const newArray = contractDetails;
+          newArray[7] = Number(deadlineFormat);
+          setContractDetails(newArray)
+        }
+      });
+    } catch (e) {
+      if (e.data && contractWrite) {
+        const decodedError = contractWrite.interface.parseError(e.data);
+        toast.error(`Transaction failed: ${decodedError?.name}`)
+      } else {
+        console.log(`Error in contract:`, e);
+      }
+      setFreelancerDeadlineModal(false)
+      setUpdateDeadlineLoading(false)
+      setShowTitleModal(false)
+    }
+  }
 
   return (
     <div>
@@ -450,7 +490,7 @@ export default function ViewContract() {
                   Price: ${contractDetails[12] && ethers.formatUnits(contractDetails[12], 6)}0
                 </h3>
                 <div className='flex gap-2 mt-5'>
-                  <h3 className='font-bold text-2xl'>Description</h3>
+                  <h3 className='font-bold text-2xl'>Project Documentation Link</h3>
                   {formatStatus(contractDetails[9]) === "pending" &&
                     <button onClick={() => setDescriptionModal(true)}>
                       <FiEdit />
@@ -548,11 +588,12 @@ export default function ViewContract() {
                       </label>
                     </div>
                     <button
+                      onClick={updateDeadline}
                       disabled={updateDeadlineLoading}
                       className='w-full h-full py-3 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]'
                     >
                       {updateDeadlineLoading ? (
-                        <span className='loading loading-spinner loading-lg'></span>
+                        <span className='loading loading-spinner loading-md'></span>
                       ) : (
                         'Update'
                       )}
@@ -638,15 +679,20 @@ export default function ViewContract() {
                   <div className='grid space-y-2 w-full mt-1'>
                     <div className='flex gap-3 items-center'>
                       <div className='grid space-y-2 w-full'>
-
-                        <input
-                          // {...register('name')}
-                          value={category}
+                        <select
                           onChange={(e) => setCategory(e.target.value)}
-                          type='text'
-                          placeholder='Please Enter Category'
-                          className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
-                        />
+                          className="select select-bordered border-[#696969] w-full max-w-full bg-white"
+                        >
+                          <option value="Smart Contract Development">
+                            {/* Select Option? */}
+                            Smart Contract Development
+                          </option>
+                          <option value="Freelance Writing">Freelance Writing</option>
+                          <option value="Art Sale">Art Sale</option>
+                          <option value="Marketing">Marketing</option>
+                          <option value="Video Content">Video Content</option>
+                        </select>
+
                         <p className='text-field-error italic text-red-500'>
                           {errorMessage.length > 0 && errorMessage}
                         </p>
@@ -691,20 +737,25 @@ export default function ViewContract() {
               />
               <div className='modal bg-white'>
                 <div className='modal-box bg-white'>
-                  <h3 className='font-bold text-lg'>Change Contract Description!</h3>
+                  <h3 className='font-bold text-lg'>Change Contract Project Documentation Link!</h3>
                   {/* <p className='font-bold text-xs text-red-500 py-2'>You can't change when freelancer has began work!</p> */}
                   <div className='grid space-y-2 w-full mt-1'>
                     <div className='flex gap-3 items-center'>
                       <div className='grid space-y-2 w-full'>
 
-                        <textarea
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
+                        {/* <textarea
                           type='text'
                           placeholder='Short Description'
                           className='input input-bordered bg-white placeholder:pt-2 border-[#696969] w-full max-w-full h-full'
                           rows={4}
                           cols={4}
+                        /> */}
+                        <input
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          type="text"
+                          placeholder="A link to a detailed documentation of the project"
+                          className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
                         />
                         <p className='text-field-error italic text-red-500'>
                           {errorMessage.length > 0 && errorMessage}

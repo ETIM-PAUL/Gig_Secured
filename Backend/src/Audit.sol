@@ -25,8 +25,6 @@ contract Audit {
 
     uint256 public auditorsCount;
 
-    address[] private _auditorsTobeSelected;
-
     mapping(string => Auditor[]) public auditorsByCategory;
 
     address _governanceContract;
@@ -144,7 +142,9 @@ contract Audit {
     function getAuditorByCategory(
         string memory _category,
         uint256 ranNum
-    ) external returns (address) {
+    ) external {
+        address[] memory _auditorsTobeSelected = new address[](0);
+        uint k;
         for (uint256 i = 0; i < auditorsCount; ++i) {
             if (
                 (keccak256(
@@ -153,9 +153,9 @@ contract Audit {
                 (auditor_[auditors[i]._auditor].currentGigs < 3) &&
                 (auditor_[auditors[i]._auditor].isConfirmed)
             ) {
-                _auditorsTobeSelected.push(
-                    auditor_[auditors[i]._auditor]._auditor
-                );
+                _auditorsTobeSelected[k] = auditor_[auditors[i]._auditor]
+                    ._auditor;
+                k++;
             }
         }
 

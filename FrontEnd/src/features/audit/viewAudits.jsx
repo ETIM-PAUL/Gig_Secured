@@ -20,6 +20,9 @@ export default function ViewAudit() {
 
   const [progress, setProgress] = useState([0, 0, 0, 0]);
   const [inputValue, setInputValue] = useState(0);
+  const [showUpdateModal, setUpdateModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [status, setStatus] = useState(1);
 
   const handleBoxClick = (index) => {
     const newProgress = Array(4).fill(0);

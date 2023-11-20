@@ -69,10 +69,10 @@ export default function CreateContract() {
 
       try {
         setSubmitLoading(true)
-
+        const estimatedGas = await contractWrite.updateGig.estimateGas(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer);
         await usdtWrite.approve(gigRegister, ethers.parseUnits(data.price, 6));
 
-        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer);
+        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer, { gasLimit: calculateGasMargin(estimatedGas) });
 
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
@@ -208,31 +208,17 @@ export default function CreateContract() {
           </div>
           <div className="grid md:flex gap-5 w-full mb-10">
             <div className="w-full mt-2 space-y-2">
-              <label>A short description for your contract</label>
-              <textarea
+              <label>Project Documentation</label>
+              <input
                 {...register("description")}
                 type="text"
-                placeholder="Short Description"
-                className="input input-bordered bg-white border-[#696969] w-full max-w-full h-full"
-                rows={4}
-                cols={4}
+                placeholder="A link to a detailed documentation of the project"
+                className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
               />
               <p className="text-field-error italic text-red-500">
                 {errors.description?.message}
               </p>
             </div>
-            {/* <div className='block space-y-2 w-full'>
-              <label>Freelancer Wallet Address</label>
-              <input
-                {...register('freelancer')}
-                type='text'
-                placeholder='Please add a Valid Freelancer Wallet Address'
-                className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
-              />
-              <p className='text-field-error italic text-red-500'>
-                {errors.freelancer?.message}
-              </p>
-            </div> */}
           </div>
           <div className="grid space-y-2 pt-4 w-full">
             <button

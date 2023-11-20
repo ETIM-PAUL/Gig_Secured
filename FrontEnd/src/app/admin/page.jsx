@@ -1,11 +1,11 @@
 import React from 'react';
 import Layout from '@/components/Layout';
-import BecomeAuditor from '../../features/audit/becomeAuditor';
+import AdminDash from '../../features/admin/adminDash';
 
 export default function page() {
   return (
     <Layout>
-      <BecomeAuditor />
+      <AdminDash />
     </Layout>
   );
 }
