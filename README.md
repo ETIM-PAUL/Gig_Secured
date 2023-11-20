@@ -1,4 +1,4 @@
-## Meet Gig Secured!
+## Meet GIG SECURED!
 
 _Our Secure Escrow and Talent Management Platform for Freelancers_
 
@@ -19,11 +19,8 @@ We offer a blockchain-based platform where freelancers and clients can come to a
 ### What to expect when on Gig Secured:
 
 **1\. Smart Contract Escrow Service:** The platform facilitates secure escrow services, where the contractor deposits the full payment plus an additional 12% into a smart contract, ensuring financial security for the freelance worker.
-
 **2\. Independent Auditing Mechanism:** In cases of disputes regarding job quality, independent auditors will be appointed to review the completed work and assess it against the agreed-upon standards, ensuring fair compensation for the freelance worker based on the level of job completion. Audits would be in the form of performance grades where auditors will award scores to the job before them in direct relation to the agreed-upon standards (and not the auditor's expertise) and the score awarded by the auditor becomes the final fee paid to the freelancer and balances would be refunded to the client.
-
 **3\. Prompt Dispute Resolution:** The platform will swiftly address disputes by engaging independent auditors who will have a maximum of 48 hours to complete their audits, ensuring fast, fair and impartial decisions regarding job completion and quality standards.
-
 **4\. Efficient Contract Reversal Mechanism:** In cases of non-compliance with contract terms, particularly with regards to agreed upon timelines, the system will ensure a prompt reversal of funds, fostering accountability and adherence to contractual obligations.
 
 ### How profitable is Gig Secured?
@@ -33,14 +30,11 @@ Under this model, our platform will generate revenue from two sources, fees and 
 ### What is the future of Gig Secured?
 
 **1\. Platform Expansion:** In the future, we will expand the platform to include a talent marketplace that connects freelancers with clients.
-
 **2\. Customizable Auditor Selection:** Future iterations will allow users to choose specific auditors, providing flexibility and transparency in the auditing process, with an option for additional fees for premium auditor selections and any additional service.
-
 **3\. Partnerships:** We aim to expand our user base and establish strategic partnerships within the freelance and blockchain industries to ensure sustainable growth and scalability.
-
 **4\. Additional Revenue Stream:** We will display relevant ads on our platform to generate additional income.
 
-### WWhy use Gig Secured for your contracts?
+### Why use Gig Secured for your contracts?
 
 There are many platforms that connect freelancers with clients, such as Upwork, Fiverr, Freelancer.com, and Guru. However, these platforms charge high fees (up to 20%) from both freelancers and clients, have limited or no dispute resolution mechanisms, and do not guarantee payment security or quality assurance. Our platform differs from these platforms in several ways:
 
@@ -49,7 +43,7 @@ There are many platforms that connect freelancers with clients, such as Upwork, 
 - We create job opportunities for qualified auditors who can review gigs and provide feedback, ratings, and recommendations for both freelancers and clients.
 - In the future, we will have a talent management system that helps freelancers showcase their skills, portfolios, and testimonials, and helps clients find the best freelancers for their projects.
 
-### Last words...
+### Finally...
 
 Our secure escrow and talent management platform aim to revolutionize the freelance industry by establishing a fair and transparent payment system, ensuring quality assurance, and fostering a more collaborative and trustworthy environment for contractors/clients and freelancers. With our user-centric approach and commitment to technological innovation, we are poised to make a significant impact on the global gig economy.
 
