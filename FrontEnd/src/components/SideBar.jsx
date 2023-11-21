@@ -48,9 +48,8 @@ export default function SideBar() {
   return (
     <main>
       <section
-        className={`min-h-screen max-h-screen bg-[#D2E9FF] ${
-          !sidebar ? 'w-[100px]' : 'w-[380px]'
-        }`}
+        className={`min-h-screen max-h-screen w-[100px] md-w-full bg-[#D2E9FF] ${!sidebar ? 'w-[100px]' : 'w-[380px]'
+          }`}
       >
         <section className='w-[90%] mx-auto'>
           <div className='flex items-center'>
@@ -89,11 +88,9 @@ export default function SideBar() {
                 <Link
                   href={items?.href}
                   key={index}
-                  className={`${
-                    isActive && 'bg-[#FBFDFF] rounded-lg'
-                  } flex gap-2 items-center text-[#0F4880] w-[100%] h-[48px] ${
-                    sidebar ? 'pl-[90px]' : 'pl-0'
-                  }`}
+                  className={`${isActive && 'bg-[#FBFDFF] rounded-lg'
+                    } flex gap-2 items-center text-[#0F4880] w-[100%] h-[48px] ${sidebar ? 'pl-[90px]' : 'pl-0'
+                    }`}
                 >
                   <items.icon
                     size={30}
@@ -110,7 +107,7 @@ export default function SideBar() {
           </div>
 
           {/* {sidebar && ( */}
-          <div className=' flex items-center bg-[#FBFDFF] text-black rounded-2xl h-[80px] gap-2 justify-center relative w-[100%] top-[240px]'>
+          <div className=' flex items-center bg-[#FBFDFF] text-black rounded-2xl h-[80px] gap-2 justify-center relative w-[100%] top-[140px]'>
             {/* <p className='text-[17px] leading-6 font-normal tracking-[0.5%] text-[#0F4880] head1'>
                 194XV7C......ROFYOF
               </p>

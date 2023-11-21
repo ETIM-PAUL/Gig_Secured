@@ -25,12 +25,12 @@ contract Audit {
 
     uint256 public auditorsCount;
 
-    address[] private _auditorsTobeSelected;
-
     mapping(string => Auditor[]) public auditorsByCategory;
 
     address _governanceContract;
     address public selectedAuditor;
+
+    address[] _auditorsTobeSelected;
 
     //events
     event AuditorRemoved(address indexed removedAuditor);
@@ -145,12 +145,13 @@ contract Audit {
         string memory _category,
         uint256 ranNum
     ) external returns (address) {
+        selectedAuditor = _governanceContract;
         for (uint256 i = 0; i < auditorsCount; ++i) {
             if (
                 (keccak256(
-                    abi.encode(auditor_[auditors[i]._auditor].category)
-                ) == keccak256(abi.encode(_category))) &&
-                (auditor_[auditors[i]._auditor].currentGigs < 3) &&
+                    abi.encodePacked(auditor_[auditors[i]._auditor].category)
+                ) == keccak256(abi.encodePacked(_category))) &&
+                (auditor_[auditors[i]._auditor].currentGigs < 2) &&
                 (auditor_[auditors[i]._auditor].isConfirmed)
             ) {
                 _auditorsTobeSelected.push(
@@ -167,7 +168,9 @@ contract Audit {
                 selectedAuditor = _auditorsTobeSelected[indexTo];
             }
         }
+        _auditorsTobeSelected = new address[](0);
         emit AuditorSelected(selectedAuditor);
+        return selectedAuditor;
     }
 
     function returnSelectedAuditor() external view returns (address) {

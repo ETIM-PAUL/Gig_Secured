@@ -114,13 +114,13 @@ export default function BecomeAuditor() {
                       <p className='px-5 text-xs sm:text-base text-[#0E4980]'>
                         {auditorDetails.email}
                       </p>
-                      {auditorDetails && auditorDetails.isConfirmed && (
+                      {/* {auditorDetails && auditorDetails.isConfirmed && (
                         <Link href='/audits/view'>
                           <div className='text-[#0E4980] bg-lime-500  font-medium rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 '>
                             View Assigned Audits
                           </div>
                         </Link>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 </div>

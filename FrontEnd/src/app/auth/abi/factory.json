@@ -107,6 +107,31 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getAllRegisters",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "register",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct GigContractFactory.Register[]",
+        "name": "_allRegisters",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",

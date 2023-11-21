@@ -22,6 +22,11 @@
   },
   {
     "inputs": [],
+    "name": "AlreadyInDispute",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "AtLeastAnHour",
     "type": "error"
   },
@@ -53,12 +58,17 @@
   },
   {
     "inputs": [],
+    "name": "DuplicateEmails",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "EmptyCategory",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "EmptyDescription",
+    "name": "EmptyProjectLink",
     "type": "error"
   },
   {
@@ -120,6 +130,11 @@
   },
   {
     "inputs": [],
+    "name": "NotYetCompleted",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "NotYetReviewed",
     "type": "error"
   },
@@ -131,6 +146,11 @@
   {
     "inputs": [],
     "name": "TooSoonToDispute",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroAmount",
     "type": "error"
   },
   {
@@ -236,6 +256,11 @@
       {
         "internalType": "string",
         "name": "_clientEmail",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_freelancerEmail",
         "type": "string"
       },
       {
@@ -354,29 +379,6 @@
       }
     ],
     "name": "editGigDescription",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "gigId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "newFreelancerEmail",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "newFreelancerAddress",
-        "type": "address"
-      }
-    ],
-    "name": "editGigFreelancer",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -714,9 +716,9 @@
         "type": "string"
       },
       {
-        "internalType": "string",
+        "internalType": "uint256",
         "name": "ran",
-        "type": "string"
+        "type": "uint256"
       }
     ],
     "name": "updateGig",

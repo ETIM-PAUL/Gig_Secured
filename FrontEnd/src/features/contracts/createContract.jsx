@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -12,24 +12,31 @@ import { useAccount } from 'wagmi';
 import { factoryAddress, usdc } from '@/app/auth/contractAddress';
 import factoryAbi from '@/app/auth/abi/factory.json'
 import usdcAbi from '@/app/auth/abi/usdc.json'
-import { calculateGasMargin } from '@/utils';
+import axios from 'axios'
+import { create } from 'ipfs-http-client'
+import { Buffer } from 'buffer'
+// const client = create('https://ipfs.infura.io:5001/api/v0')
 
 export default function CreateContract() {
   const { address } = useAccount();
   const { providerWrite, providerRead } = Auth();
   const router = useRouter();
+  const [fileUrl, updateFileUrl] = useState('');
+  const [newFile, updateNewFile] = useState();
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [ipfsLoading, setIpfsLoading] = useState(false);
+  const [twelvePercent, setTwelvePercent] = useState(0);
+  const [price, setPrice] = useState(0);
   const [termModal, setTermModal] = useState(false);
   const [hasOpenTermModal, setHasOpenTermModal] = useState(false);
   const schema = yup
     .object({
       email: yup.string().email().required(),
+      freelancerEmail: yup.string().email().required(),
       title: yup.string().required(),
       category: yup.string().required(),
       description: yup.string().required(),
       freelancer: yup.string().required(),
-      deadline: yup.string().required(),
-      price: yup.string().required(),
       terms: yup
         .bool()
         .oneOf([true], "You need to accept the terms and conditions"),
@@ -39,6 +46,8 @@ export default function CreateContract() {
   const {
     register,
     handleSubmit,
+    getValues,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
@@ -49,14 +58,120 @@ export default function CreateContract() {
     setTermModal(true);
   };
 
+  const calculateTwelve = (value) => {
+    setPrice(value)
+    const num = value * 0.12;
+    setTwelvePercent(num);
+  }
+
+  async function uploadIPFS() {
+    const file = newFile
+    // try {
+    //   const auth = 'Basic ' + Buffer.from("84c218297c294ec39c7c5d350ee55c09" + ':' + "84c218297c294ec39c7c5d350ee55c09").toString('base64');
+    //   const client = create({
+    //     host: 'ipfs.infura.io',
+    //     port: 5001,
+    //     protocol: 'https',
+    //     headers: {
+    //       authorization: auth,
+    //     },
+    //   });
+    //   const added = await client.add(file);
+    //   console.log(added);
+    //   const url = `https://ipfs.infura.io/ipfs/${added.path}`
+    //   console.log(url);
+    //   updateFileUrl(url)
+    //   setIpfsLoading(false)
+    // } catch (error) {
+    //   console.log('Error uploading file:' + error)
+    //   setIpfsLoading(false)
+    // }
+    try {
+      if (file !== undefined) {
+        setIpfsLoading(true)
+        const formData = new FormData();
+        console.log(file)
+        formData.append('file', file);
+        const pinataBody = {
+          options: {
+            cidVersion: 1,
+          },
+          metadata: {
+            name: file.name,
+          }
+        }
+        formData.append('pinataOptions', JSON.stringify(pinataBody.options));
+        formData.append('pinataMetadata', JSON.stringify(pinataBody.metadata));
+        const url = `${pinataConfig.root}/pinning/pinFileToIPFS`;
+        const response = await axios({
+          method: 'post',
+          url: url,
+          data: formData,
+          headers: pinataConfig.headers
+        })
+        console.log(response.data)
+        queryPinataFiles();
+      } else {
+        toast.error("Please upload a document detailing the project outlines, aims and objectives");
+        return;
+        setIpfsLoading(false)
+      }
+      setIpfsLoading(false)
+    } catch (error) {
+      setIpfsLoading(false)
+      console.log(error)
+    }
+  }
+
+  const queryPinataFiles = async () => {
+    try {
+      const url = `${pinataConfig.root}/data/pinList?status=pinned`;
+      const response = await axios.get(url, pinataConfig);
+      console.log(response.data)
+      // setPinnedFiles(response.data.rows);
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
+  const pinataConfig = {
+    root: 'https://api.pinata.cloud',
+    headers: {
+      'pinata_api_key': "e98332f4fcdf7aa677fa",
+      'pinata_secret_api_key': "ddba77116b8064d68c18b734f8b2fe484b18349b8a1c7af90006689e944ff59a"
+    }
+  };
+
+  const testPinataConnection = async () => {
+    try {
+      console.log(pinataConfig)
+      const url = `${pinataConfig.root}/data/testAuthentication`
+      const res = await axios.get(url, { headers: pinataConfig.headers });
+      console.log(res.data);
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    testPinataConnection()
+  });
+
+
   const onSubmit = async (data) => {
     if (!hasOpenTermModal) {
       toast.error("Please read the terms and conditions thoroughly");
       return;
     }
+    // if (fileUrl === '') {
+    //   toast.error("Please upload a document detailing the project outlines, aims and objectives");
+    //   return;
+    // }
+    const sum = Number(price) + Number(twelvePercent)
+    const account = await ethereum.request({ method: 'eth_accounts' });
     const contractRead = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
 
-    const signer = await providerWrite.getSigner();
+    const signer = await providerWrite.getSigner(account[0]);
 
     let gigRegister = await contractRead.getCreatorSystem(address);
     if (gigRegister === "0x0000000000000000000000000000000000000000") {
@@ -69,10 +184,9 @@ export default function CreateContract() {
 
       try {
         setSubmitLoading(true)
-
-        await usdtWrite.approve(gigRegister, ethers.parseUnits(data.price, 6));
-
-        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(data.price, 6), data.freelancer);
+        // const estimatedGas = await contractWrite.addGig.estimateGas(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(String(sum), 6), data.freelancer);
+        await usdtWrite.approve(gigRegister, ethers.parseUnits(String(sum), 6));
+        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.freelancerEmail, data.description, deadlineFormat, ethers.parseUnits(String(sum), 6), data.freelancer);
 
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
@@ -119,7 +233,7 @@ export default function CreateContract() {
 
         {/* form */}
         <div className="my-12">
-          <div className="grid md:flex gap-5 w-full mb-5">
+          <div className="grid lg:flex gap-5 w-full mb-5">
             <div className="grid space-y-2 w-full">
               <label>Title</label>
               <input
@@ -145,7 +259,7 @@ export default function CreateContract() {
               </p>
             </div>
           </div>
-          <div className="grid md:flex gap-5 w-full mb-5">
+          <div className="grid lg:flex gap-5 w-full mb-5">
             <div className="grid space-y-2 w-full">
               <label>Deadline</label>
               <input
@@ -177,7 +291,7 @@ export default function CreateContract() {
               </p>
             </div>
           </div>
-          <div className="grid md:flex gap-5 w-full mb-5">
+          <div className="grid lg:flex gap-5 w-full mb-5">
             <div className="block space-y-2 w-full">
               <label>Freelancer Wallet Address</label>
               <input
@@ -191,48 +305,75 @@ export default function CreateContract() {
               </p>
             </div>
             <div className="grid space-y-2 w-full">
-              <label>
-                Price (please note after creation of contract, this is not
-                editable)
-              </label>
-              <input
-                {...register("price")}
-                type="text"
-                placeholder="Please add a Base Fee. Please review terms and conditions"
-                className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
-              />
+              <div className='grid gap-2'>
+                <label>
+                  Price (12% for escrow and/or audit by the side)
+                </label>
+                <div className='grid gap-2 md:flex'>
+                  <input
+                    // {...register("price")}
+                    type="number"
+                    value={price}
+                    onChange={(e) => calculateTwelve(e.target.value)}
+                    min={1}
+                    placeholder="Please add a contract Fee"
+                    className="input input-bordered md:w-[80%] appearance-none border-[#696969] max-w-full bg-white"
+                  />
+                  <input
+                    type="number"
+                    disabled
+                    value={twelvePercent}
+                    placeholder="12% stake"
+                    className="input input-bordered md:w-[20%] disabled:bg-white disabled:text-black border-[#696969] max-w-full bg-white"
+                  />
+                </div>
+
+              </div>
               <p className="text-field-error italic text-red-500">
                 {errors.price?.message}
               </p>
             </div>
           </div>
-          <div className="grid md:flex gap-5 w-full mb-10">
-            <div className="w-full mt-2 space-y-2">
-              <label>A short description for your contract</label>
-              <textarea
-                {...register("description")}
+          <div className="grid lg:flex gap-5 w-full mb-10">
+            <div className="grid space-y-2 w-full">
+              <label>Freelancer Email</label>
+              <input
+                {...register("freelancerEmail")}
                 type="text"
-                placeholder="Short Description"
-                className="input input-bordered bg-white border-[#696969] w-full max-w-full h-full"
-                rows={4}
-                cols={4}
+                placeholder="Please Enter Your Valid Email"
+                className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
               />
               <p className="text-field-error italic text-red-500">
-                {errors.description?.message}
+                {errors.freelancerEmail?.message}
               </p>
             </div>
-            {/* <div className='block space-y-2 w-full'>
-              <label>Freelancer Wallet Address</label>
+            <div className="w-full space-y-2">
+              <label>Project Documentation (IPFS)</label>
+              {/* <div className="join w-full">
+                <input
+                  // {...register("description")}
+                  onChange={(e) => updateNewFile(e.target.files[0])}
+                  type="file"
+                  className="input pt-2 input-bordered  border-[#696969] w-full max-w-full bg-white placeholder::mt-2" />
+                <button
+                  disabled={ipfsLoading}
+                  onClick={() => uploadIPFS()}
+                  className="btn join-item rounded-r-full bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE]">
+                  {ipfsLoading ? "Uploading" : "Upload"}
+                </button>
+              </div> */}
               <input
-                {...register('freelancer')}
-                type='text'
-                placeholder='Please add a Valid Freelancer Wallet Address'
-                className='input input-bordered  border-[#696969] w-full max-w-full bg-white'
+                {...register("description")}
+                type="text"
+                placeholder="Please Enter Your Project Document Link"
+                className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
               />
-              <p className='text-field-error italic text-red-500'>
-                {errors.freelancer?.message}
-              </p>
-            </div> */}
+              {fileUrl === '' &&
+                <p className="text-field-error italic text-red-500">
+                  Please upload your document
+                </p>
+              }
+            </div>
           </div>
           <div className="grid space-y-2 pt-4 w-full">
             <button

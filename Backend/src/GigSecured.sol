@@ -85,10 +85,14 @@ contract GigSecured {
     mapping(uint256 => GigContract) private _allGigs;
     GigContract[] _contractGigs;
 
+    error DuplicateEmails();
+    error AlreadyInDispute();
+    error NotYetCompleted();
     error NotYetReviewed();
     error FreelancerSignedAlready();
     error AtLeastAnHour();
     error InvalidFreelancer(address freeLancer);
+    error ZeroAmount();
     error MaxStagesOfDevelopment();
     error NotAssignedFreeLancer();
     error NotPermitted();
@@ -96,7 +100,7 @@ contract GigSecured {
     error DeadlineInPast(uint newDeadline);
     error NotPendingStatus(Status currentStatus);
     error EmptyTitle();
-    error EmptyDescription();
+    error EmptyProjectLink();
     error EmptyCategory();
     error InvalidStatusChange();
     error ContractSettlementTimeNotActive();
@@ -230,6 +234,7 @@ contract GigSecured {
         string memory _title,
         string memory _category,
         string memory _clientEmail,
+        string memory _freelancerEmail,
         string memory _description,
         uint _deadline,
         uint _price,
@@ -238,8 +243,17 @@ contract GigSecured {
         if (_deadline < (block.timestamp + 3600)) {
             revert AtLeastAnHour();
         }
-        if (_freelancer == address(0)) {
+        if (
+            (keccak256(abi.encode(_freelancerEmail)) ==
+                keccak256(abi.encode(_clientEmail)))
+        ) {
+            revert DuplicateEmails();
+        }
+        if (_freelancer == address(0) || _freelancer == msg.sender) {
             revert InvalidFreelancer(_freelancer);
+        }
+        if (_price == 0) {
+            revert ZeroAmount();
         }
         bool success = IERC20(_usdcAddress).transferFrom(
             msg.sender,
@@ -254,6 +268,7 @@ contract GigSecured {
         _newGigContract.title = _title;
         _newGigContract.category = _category;
         _newGigContract.clientEmail = _clientEmail;
+        _newGigContract.freelancerEmail = _freelancerEmail;
         _newGigContract.description = _description;
         _newGigContract.deadline = _deadline;
         _newGigContract._status = Status.Pending;
@@ -396,7 +411,7 @@ contract GigSecured {
             revert NotPendingStatus(gig._status);
         }
         if (bytes(newDescription).length == 0) {
-            revert EmptyDescription();
+            revert EmptyProjectLink();
         }
         gig.description = newDescription;
     }
@@ -443,23 +458,26 @@ contract GigSecured {
      *
      * @param NotPendingStatus The function reverts if the gig contract is not in a pending status.
      */
-    function editGigFreelancer(
-        uint256 gigId,
-        string memory newFreelancerEmail,
-        address newFreelancerAddress
-    ) public onlyClient(gigId) {
-        GigContract storage gig = _allGigs[gigId];
-        if (gig._status != Status.Pending) {
-            revert NotPendingStatus(gig._status);
-        }
-        gig.freelancerEmail = newFreelancerEmail;
-        gig.freeLancer = newFreelancerAddress;
-        emit GigFreelancerUpdated(
-            gigId,
-            newFreelancerEmail,
-            newFreelancerAddress
-        );
-    }
+    // function editGigFreelancer(
+    //     uint256 gigId,
+    //     string memory newFreelancerEmail,
+    //     address newFreelancerAddress
+    // ) public onlyClient(gigId) {
+    //     GigContract storage gig = _allGigs[gigId];
+    //     if (gig._status != Status.Pending) {
+    //         revert NotPendingStatus(gig._status);
+    //     }
+    //     if (gig.freelancerSign.length != 0) {
+    //         revert FreelancerSignedAlready();
+    //     }
+    //     gig.freelancerEmail = newFreelancerEmail;
+    //     gig.freeLancer = newFreelancerAddress;
+    //     emit GigFreelancerUpdated(
+    //         gigId,
+    //         newFreelancerEmail,
+    //         newFreelancerAddress
+    //     );
+    // }
 
     /***
      * @dev Update the status of a gig contract.
@@ -475,18 +493,14 @@ contract GigSecured {
         uint _id,
         Status _status,
         string memory joblink_,
-        string memory ran
+        uint ran
     ) public {
         GigContract storage _newGigContract = _allGigs[_id];
-        bytes memory inputBytes = bytes(ran);
-
-        // Convert bytes to number
-        uint256 ranNum = bytesToUint(inputBytes);
         if (_newGigContract.creator == msg.sender) {
-            clientUpdateGig(_status, _id, joblink_, ranNum);
+            clientUpdateGig(_status, _id, joblink_, ran);
         }
         if (_newGigContract.freeLancer == msg.sender) {
-            freeLancerUpdateGig(_id, _status, joblink_, ranNum);
+            freeLancerUpdateGig(_id, _status, joblink_, ran);
         }
     }
 
@@ -593,7 +607,10 @@ contract GigSecured {
         uint _rand
     ) internal returns (address) {
         address selectedAuditor;
-        IAudit(_auditContract).getAuditorByCategory(category, _rand);
+        selectedAuditor = IAudit(_auditContract).getAuditorByCategory(
+            category,
+            _rand
+        );
         selectedAuditor = IAudit(_auditContract).returnSelectedAuditor();
         IAudit(_auditContract).increaseAuditorCurrentGigs(
             selectedAuditor,
@@ -642,9 +659,17 @@ contract GigSecured {
             }
             _sendPaymentClosed(gigId);
         }
+        if (newStatus == Status.UnderReview) {
+            if (gig._status != Status.Completed) {
+                revert NotYetCompleted();
+            }
+        }
         if (newStatus == Status.Dispute) {
             if (gig._status != Status.UnderReview) {
                 revert NotYetReviewed();
+            }
+            if (gig._status == Status.Dispute) {
+                revert AlreadyInDispute();
             }
             gig.isAudit = true;
             gig.joblink = _joblink;
@@ -694,6 +719,9 @@ contract GigSecured {
             block.timestamp <= gig.completedTime + 259200
         ) {
             revert TooSoonToDispute();
+        }
+        if (gig._status == Status.Dispute) {
+            revert AlreadyInDispute();
         }
         gig._status = newStatus;
         if (newStatus == Status.Completed) {
@@ -781,17 +809,5 @@ contract GigSecured {
 
     function getAllGigs() public view returns (GigContract[] memory) {
         return _contractGigs;
-    }
-
-    function bytesToUint(bytes memory b) internal pure returns (uint256) {
-        require(b.length > 0, "Empty byte array");
-
-        uint256 result = 0;
-
-        for (uint256 i = 0; i < b.length; i++) {
-            result = result * 256 + uint8(b[i]);
-        }
-
-        return result;
     }
 }
