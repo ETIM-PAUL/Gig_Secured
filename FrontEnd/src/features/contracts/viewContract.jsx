@@ -171,7 +171,6 @@ export default function ViewContract() {
       setErrorMessageLink("You selected Dispute, please include a link to a document listing information about the work. This will help the assigned auditor review the work and make settlement")
       return;
     }
-    let randomNum = "30193865";
 
     const signer = await providerWrite.getSigner();
 
@@ -190,8 +189,16 @@ export default function ViewContract() {
         // await vrfRead.requestRandomWords();
 
         let vrfNum = await vrfRead.getRandomWord();
-        let _randomNum = String(vrfNum)
-        let tx = await contractWrite.updateGig(id, status, jobLink, _randomNum.slice(0, 50));
+        // Convert the big number to a string
+        const numberString = vrfNum.toString();
+
+        // Calculate three-quarters of the length
+        const threeQuartersLength = Math.floor(numberString.length * 0.75);
+
+        // Remove three-quarters of the length from the start of the string
+        const reducedNumberString = numberString.slice(threeQuartersLength);
+        const reducedNumber = BigInt(reducedNumberString);
+        let tx = await contractWrite.updateGig(id, status, jobLink, reducedNumber);
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
             // transaction success.
@@ -204,7 +211,7 @@ export default function ViewContract() {
           }
         });
       } else {
-        let tx = await contractWrite.updateGig(id, status, jobLink, "Joe is a good boy");
+        let tx = await contractWrite.updateGig(id, status, jobLink, 76528365);
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
             // transaction success.

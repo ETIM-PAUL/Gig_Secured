@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -12,13 +12,19 @@ import { useAccount } from 'wagmi';
 import { factoryAddress, usdc } from '@/app/auth/contractAddress';
 import factoryAbi from '@/app/auth/abi/factory.json'
 import usdcAbi from '@/app/auth/abi/usdc.json'
-import { calculateGasMargin } from '@/utils';
+import axios from 'axios'
+import { create } from 'ipfs-http-client'
+import { Buffer } from 'buffer'
+// const client = create('https://ipfs.infura.io:5001/api/v0')
 
 export default function CreateContract() {
   const { address } = useAccount();
   const { providerWrite, providerRead } = Auth();
   const router = useRouter();
+  const [fileUrl, updateFileUrl] = useState('');
+  const [newFile, updateNewFile] = useState();
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [ipfsLoading, setIpfsLoading] = useState(false);
   const [twelvePercent, setTwelvePercent] = useState(0);
   const [price, setPrice] = useState(0);
   const [termModal, setTermModal] = useState(false);
@@ -31,7 +37,6 @@ export default function CreateContract() {
       category: yup.string().required(),
       description: yup.string().required(),
       freelancer: yup.string().required(),
-      deadline: yup.string().required(),
       terms: yup
         .bool()
         .oneOf([true], "You need to accept the terms and conditions"),
@@ -59,11 +64,109 @@ export default function CreateContract() {
     setTwelvePercent(num);
   }
 
+  async function uploadIPFS() {
+    const file = newFile
+    // try {
+    //   const auth = 'Basic ' + Buffer.from("84c218297c294ec39c7c5d350ee55c09" + ':' + "84c218297c294ec39c7c5d350ee55c09").toString('base64');
+    //   const client = create({
+    //     host: 'ipfs.infura.io',
+    //     port: 5001,
+    //     protocol: 'https',
+    //     headers: {
+    //       authorization: auth,
+    //     },
+    //   });
+    //   const added = await client.add(file);
+    //   console.log(added);
+    //   const url = `https://ipfs.infura.io/ipfs/${added.path}`
+    //   console.log(url);
+    //   updateFileUrl(url)
+    //   setIpfsLoading(false)
+    // } catch (error) {
+    //   console.log('Error uploading file:' + error)
+    //   setIpfsLoading(false)
+    // }
+    try {
+      if (file !== undefined) {
+        setIpfsLoading(true)
+        const formData = new FormData();
+        console.log(file)
+        formData.append('file', file);
+        const pinataBody = {
+          options: {
+            cidVersion: 1,
+          },
+          metadata: {
+            name: file.name,
+          }
+        }
+        formData.append('pinataOptions', JSON.stringify(pinataBody.options));
+        formData.append('pinataMetadata', JSON.stringify(pinataBody.metadata));
+        const url = `${pinataConfig.root}/pinning/pinFileToIPFS`;
+        const response = await axios({
+          method: 'post',
+          url: url,
+          data: formData,
+          headers: pinataConfig.headers
+        })
+        console.log(response.data)
+        queryPinataFiles();
+      } else {
+        toast.error("Please upload a document detailing the project outlines, aims and objectives");
+        return;
+        setIpfsLoading(false)
+      }
+      setIpfsLoading(false)
+    } catch (error) {
+      setIpfsLoading(false)
+      console.log(error)
+    }
+  }
+
+  const queryPinataFiles = async () => {
+    try {
+      const url = `${pinataConfig.root}/data/pinList?status=pinned`;
+      const response = await axios.get(url, pinataConfig);
+      console.log(response.data)
+      // setPinnedFiles(response.data.rows);
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
+  const pinataConfig = {
+    root: 'https://api.pinata.cloud',
+    headers: {
+      'pinata_api_key': "e98332f4fcdf7aa677fa",
+      'pinata_secret_api_key': "ddba77116b8064d68c18b734f8b2fe484b18349b8a1c7af90006689e944ff59a"
+    }
+  };
+
+  const testPinataConnection = async () => {
+    try {
+      console.log(pinataConfig)
+      const url = `${pinataConfig.root}/data/testAuthentication`
+      const res = await axios.get(url, { headers: pinataConfig.headers });
+      console.log(res.data);
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    testPinataConnection()
+  });
+
+
   const onSubmit = async (data) => {
     if (!hasOpenTermModal) {
       toast.error("Please read the terms and conditions thoroughly");
       return;
     }
+    // if (fileUrl === '') {
+    //   toast.error("Please upload a document detailing the project outlines, aims and objectives");
+    //   return;
+    // }
     const sum = Number(price) + Number(twelvePercent)
     const account = await ethereum.request({ method: 'eth_accounts' });
     const contractRead = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
@@ -244,14 +347,20 @@ export default function CreateContract() {
                 {errors.freelancerEmail?.message}
               </p>
             </div>
-            <div className="w-full mt-2 space-y-2">
-              <label>Project Documentation (IPFS upload)</label>
+            <div className="w-full space-y-2">
+              <label>Project Documentation (IPFS)</label>
               {/* <div className="join w-full">
                 <input
-                  {...register("description")}
+                  // {...register("description")}
+                  onChange={(e) => updateNewFile(e.target.files[0])}
                   type="file"
-                  className="input input-bordered  border-[#696969] w-full max-w-full bg-white placeholder::mt-2" />
-                <span className="btn join-item rounded-r-full bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE]">Upload</span>
+                  className="input pt-2 input-bordered  border-[#696969] w-full max-w-full bg-white placeholder::mt-2" />
+                <button
+                  disabled={ipfsLoading}
+                  onClick={() => uploadIPFS()}
+                  className="btn join-item rounded-r-full bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE]">
+                  {ipfsLoading ? "Uploading" : "Upload"}
+                </button>
               </div> */}
               <input
                 {...register("description")}
@@ -259,9 +368,11 @@ export default function CreateContract() {
                 placeholder="Please Enter Your Project Document Link"
                 className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
               />
-              <p className="text-field-error italic text-red-500">
-                {errors.description?.message}
-              </p>
+              {fileUrl === '' &&
+                <p className="text-field-error italic text-red-500">
+                  Please upload your document
+                </p>
+              }
             </div>
           </div>
           <div className="grid space-y-2 pt-4 w-full">

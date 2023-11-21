@@ -716,9 +716,9 @@
         "type": "string"
       },
       {
-        "internalType": "string",
+        "internalType": "uint256",
         "name": "ran",
-        "type": "string"
+        "type": "uint256"
       }
     ],
     "name": "updateGig",
