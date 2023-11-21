@@ -58,6 +58,11 @@
   },
   {
     "inputs": [],
+    "name": "DuplicateEmails",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "EmptyCategory",
     "type": "error"
   },

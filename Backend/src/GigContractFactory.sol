@@ -39,6 +39,13 @@ contract GigContractFactory {
         uint id;
     }
 
+    struct Register {
+        address creator;
+        address register;
+    }
+
+    Register[] allregisters;
+
     /**
      * @dev Error: NotOwner
      * An error to be used when an unauthorized user attempts an action that only the owner is allowed to perform.
@@ -109,6 +116,7 @@ contract GigContractFactory {
             address(this),
             _usdcContract
         );
+        allregisters.push(Register(msg.sender, address(newGigSecuredContract)));
         _haveCreated[msg.sender] = true;
         _creatorContractAddress[msg.sender] = address(newGigSecuredContract);
         _gigSecuredContracts.push(address(newGigSecuredContract));
@@ -241,6 +249,14 @@ contract GigContractFactory {
         address creator
     ) external view returns (address _gigCreatorSystem) {
         _gigCreatorSystem = _creatorContractAddress[creator];
+    }
+
+    function getAllRegisters()
+        external
+        view
+        returns (Register[] memory _allRegisters)
+    {
+        _allRegisters = allregisters;
     }
 
     function getFreelancerDetails(

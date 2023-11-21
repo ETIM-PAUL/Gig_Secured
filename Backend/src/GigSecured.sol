@@ -85,6 +85,7 @@ contract GigSecured {
     mapping(uint256 => GigContract) private _allGigs;
     GigContract[] _contractGigs;
 
+    error DuplicateEmails();
     error AlreadyInDispute();
     error NotYetCompleted();
     error NotYetReviewed();
@@ -241,6 +242,12 @@ contract GigSecured {
     ) public returns (bool gigContract) {
         if (_deadline < (block.timestamp + 3600)) {
             revert AtLeastAnHour();
+        }
+        if (
+            (keccak256(abi.encode(_freelancerEmail)) ==
+                keccak256(abi.encode(_clientEmail)))
+        ) {
+            revert DuplicateEmails();
         }
         if (_freelancer == address(0) || _freelancer == msg.sender) {
             revert InvalidFreelancer(_freelancer);

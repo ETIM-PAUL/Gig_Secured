@@ -30,6 +30,8 @@ contract Audit {
     address _governanceContract;
     address public selectedAuditor;
 
+    address[] _auditorsTobeSelected;
+
     //events
     event AuditorRemoved(address indexed removedAuditor);
     event AuditorConfirmed(address indexed confirmedAuditor);
@@ -142,9 +144,8 @@ contract Audit {
     function getAuditorByCategory(
         string memory _category,
         uint256 ranNum
-    ) external {
-        address[] memory _auditorsTobeSelected = new address[](0);
-        uint k;
+    ) external returns (address) {
+        // address[] memory _auditorsTobeSelected = new address[](0);
         for (uint256 i = 0; i < auditorsCount; ++i) {
             if (
                 (keccak256(
@@ -153,9 +154,10 @@ contract Audit {
                 (auditor_[auditors[i]._auditor].currentGigs < 3) &&
                 (auditor_[auditors[i]._auditor].isConfirmed)
             ) {
-                _auditorsTobeSelected[k] = auditor_[auditors[i]._auditor]
-                    ._auditor;
-                k++;
+                _auditorsTobeSelected.push(
+                    auditor_[auditors[i]._auditor]._auditor
+                );
+                // k++;
             }
         }
 
@@ -167,7 +169,9 @@ contract Audit {
                 selectedAuditor = _auditorsTobeSelected[indexTo];
             }
         }
+        _auditorsTobeSelected = new address[](0);
         emit AuditorSelected(selectedAuditor);
+        return selectedAuditor;
     }
 
     function returnSelectedAuditor() external view returns (address) {
