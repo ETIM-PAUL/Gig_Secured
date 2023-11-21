@@ -133,7 +133,9 @@ export default function AllContracts() {
                         <h2 className='card-title'>
                           {item[0]} - <span className='text-sm'>{item[1]}</span>
                         </h2>
-                        <p>{item[6]}</p>
+                        <a href={item[6]} target='_blank' className='underline'>
+                          {item[6]}
+                        </a>
                         <div className='card-actions justify-end'>
                           <Link href={`/contracts/view?id=${index + 1}`}>
                             <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>

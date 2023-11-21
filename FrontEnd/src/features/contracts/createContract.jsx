@@ -35,7 +35,7 @@ export default function CreateContract() {
       freelancerEmail: yup.string().email().required(),
       title: yup.string().required(),
       category: yup.string().required(),
-      description: yup.string().required(),
+      // description: yup.string().required(),
       freelancer: yup.string().required(),
       terms: yup
         .bool()
@@ -109,7 +109,7 @@ export default function CreateContract() {
           data: formData,
           headers: pinataConfig.headers
         })
-        console.log(response.data)
+        updateFileUrl(`https://tomato-main-stoat-147.mypinata.cloud/ipfs://${response.data.IpfsHash}/`)
         queryPinataFiles();
       } else {
         toast.error("Please upload a document detailing the project outlines, aims and objectives");
@@ -127,8 +127,6 @@ export default function CreateContract() {
     try {
       const url = `${pinataConfig.root}/data/pinList?status=pinned`;
       const response = await axios.get(url, pinataConfig);
-      console.log(response.data)
-      // setPinnedFiles(response.data.rows);
     } catch (error) {
       console.log(error)
     }
@@ -144,10 +142,8 @@ export default function CreateContract() {
 
   const testPinataConnection = async () => {
     try {
-      console.log(pinataConfig)
       const url = `${pinataConfig.root}/data/testAuthentication`
       const res = await axios.get(url, { headers: pinataConfig.headers });
-      console.log(res.data);
     } catch (error) {
       console.log(error)
     }
@@ -163,10 +159,10 @@ export default function CreateContract() {
       toast.error("Please read the terms and conditions thoroughly");
       return;
     }
-    // if (fileUrl === '') {
-    //   toast.error("Please upload a document detailing the project outlines, aims and objectives");
-    //   return;
-    // }
+    if (fileUrl === '') {
+      toast.error("Please upload a document detailing the project outlines, aims and objectives");
+      return;
+    }
     const sum = Number(price) + Number(twelvePercent)
     const account = await ethereum.request({ method: 'eth_accounts' });
     const contractRead = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
@@ -186,7 +182,7 @@ export default function CreateContract() {
         setSubmitLoading(true)
         // const estimatedGas = await contractWrite.addGig.estimateGas(data.title, data.category, data.email, data.description, deadlineFormat, ethers.parseUnits(String(sum), 6), data.freelancer);
         await usdtWrite.approve(gigRegister, ethers.parseUnits(String(sum), 6));
-        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.freelancerEmail, data.description, deadlineFormat, ethers.parseUnits(String(sum), 6), data.freelancer);
+        let tx = await contractWrite.addGig(data.title, data.category, data.email, data.freelancerEmail, fileUrl, deadlineFormat, ethers.parseUnits(String(sum), 6), data.freelancer);
 
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
@@ -334,7 +330,7 @@ export default function CreateContract() {
               </p>
             </div>
           </div>
-          <div className="grid lg:flex gap-5 w-full mb-10">
+          <div className="grid lg:flex gap-5 w-full mb-2">
             <div className="grid space-y-2 w-full">
               <label>Freelancer Email</label>
               <input
@@ -349,7 +345,7 @@ export default function CreateContract() {
             </div>
             <div className="w-full space-y-2">
               <label>Project Documentation (IPFS)</label>
-              {/* <div className="join w-full">
+              <div className="join w-full">
                 <input
                   // {...register("description")}
                   onChange={(e) => updateNewFile(e.target.files[0])}
@@ -361,20 +357,31 @@ export default function CreateContract() {
                   className="btn join-item rounded-r-full bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE]">
                   {ipfsLoading ? "Uploading" : "Upload"}
                 </button>
-              </div> */}
-              <input
+              </div>
+              {/* <input
                 {...register("description")}
                 type="text"
                 placeholder="Please Enter Your Project Document Link"
                 className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
-              />
-              {fileUrl === '' &&
+              /> */}
+              {(fileUrl === '' && errors.description?.message) &&
                 <p className="text-field-error italic text-red-500">
                   Please upload your document
                 </p>
               }
             </div>
           </div>
+          {fileUrl !== "" &&
+            <div className="grid space-y-2 w-full">
+              <label>Uploaded Document Link</label>
+              <input
+                value={fileUrl}
+                disabled
+                type="text"
+                className="input input-bordered text-black  border-[#696969] w-full max-w-full bg-white disabled:bg-white"
+              />
+            </div>
+          }
           <div className="grid space-y-2 pt-4 w-full">
             <button
               type="button"
@@ -390,8 +397,8 @@ export default function CreateContract() {
         </div>
 
         <button
-          disabled={submitLoading}
-          className={`${submitLoading && "cursor-not-allowed"} w-[360px] h-[58px] rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block mx-auto leading-[25.5px] tracking-[0.5%]`}
+          disabled={submitLoading || ipfsLoading}
+          className={`${(submitLoading || ipfsLoading) && "cursor-not-allowed"} w-[360px] h-[58px] rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block mx-auto leading-[25.5px] tracking-[0.5%]`}
         >
           {submitLoading ? (
             <span className="loading loading-spinner loading-lg"></span>
