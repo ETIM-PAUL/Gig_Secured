@@ -54,7 +54,6 @@ export default function CreateContract() {
   };
 
   const calculateTwelve = (value) => {
-    console.log(getValues("price"))
     setPrice(value)
     const num = value * 0.12;
     setTwelvePercent(num);
@@ -66,10 +65,10 @@ export default function CreateContract() {
       return;
     }
     const sum = Number(price) + Number(twelvePercent)
-
+    const account = await ethereum.request({ method: 'eth_accounts' });
     const contractRead = new ethers.Contract(factoryAddress, factoryAbi, providerRead);
 
-    const signer = await providerWrite.getSigner();
+    const signer = await providerWrite.getSigner(account[0]);
 
     let gigRegister = await contractRead.getCreatorSystem(address);
     if (gigRegister === "0x0000000000000000000000000000000000000000") {
@@ -246,11 +245,18 @@ export default function CreateContract() {
               </p>
             </div>
             <div className="w-full mt-2 space-y-2">
-              <label>Project Documentation</label>
+              <label>Project Documentation (IPFS upload)</label>
+              {/* <div className="join w-full">
+                <input
+                  {...register("description")}
+                  type="file"
+                  className="input input-bordered  border-[#696969] w-full max-w-full bg-white placeholder::mt-2" />
+                <span className="btn join-item rounded-r-full bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE]">Upload</span>
+              </div> */}
               <input
                 {...register("description")}
                 type="text"
-                placeholder="A link to a detailed documentation of the project"
+                placeholder="Please Enter Your Project Document Link"
                 className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
               />
               <p className="text-field-error italic text-red-500">
