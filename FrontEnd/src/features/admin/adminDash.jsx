@@ -29,9 +29,17 @@ export default function AdminDash() {
           auditAbi,
           providerRead
         );
-        const details = await contract.auditors();
 
-        setAuditorDetails(details);
+        const count = await contract.auditorsCount(); // Assuming you have a function to get the count of auditors
+        const auditorsArray = [];
+
+        for (let i = 0; i < count; i++) {
+          const auditor = await contract.auditors(i);
+          auditorsArray.push(auditor);
+        }
+
+        console.log(auditorsArray);
+        setAuditorDetails(auditorsArray);
         setLoadingPage(false);
       } catch (error) {
         console.error('Error fetching auditor details:', error);
@@ -42,7 +50,52 @@ export default function AdminDash() {
     if (isConnected) {
       getAuditorDetails();
     }
-  }, []);
+  }, [address]);
+
+  const reloadDetails = async () => {
+    setLoadingPage(true);
+    try {
+      const contract = new ethers.Contract(
+        auditorAddress,
+        auditAbi,
+        providerRead
+      );
+
+      const count = await contract.auditorsCount(); // Assuming you have a function to get the count of auditors
+      const auditorsArray = [];
+
+      for (let i = 0; i < count; i++) {
+        const auditor = await contract.auditors(i);
+        auditorsArray.push(auditor);
+      }
+
+      console.log(auditorsArray);
+      setAuditorDetails(auditorsArray);
+      setLoadingPage(false);
+    } catch (error) {
+      console.error('Error fetching auditor details:', error);
+      setLoadingPage(false);
+    }
+  };
+
+  const confirmAuditor = async (auditorAddress) => {
+    try {
+      // Call the confirmAuditor function from your contract
+      const signer = await providerWrite.getSigner();
+      const contract = new ethers.Contract(auditorAddress, auditAbi, signer);
+
+      const transaction = await contract.confirmAuditor(auditorAddress);
+      await transaction.wait();
+
+      // Reload auditor details after confirmation
+      reloadDetails();
+    } catch (error) {
+      console.error('Error confirming auditor:', error);
+      // Handle error as needed
+    }
+  };
+
+  console.log(auditorDetails);
 
   const handleTab1Click = () => {
     setActiveTab('contract');
@@ -74,14 +127,12 @@ export default function AdminDash() {
                   fill='currentFill'
                 />
               </svg>
-              <span class='sr-only'>Loading...</span>
+              <span className='sr-only'>Loading...</span>
             </div>
           </div>
         ) : (
           <div>
-            {auditorDetails &&
-            auditorDetails.category !== '' &&
-            !loadingPage ? (
+            {auditorDetails && auditorDetails.length > 0 && !loadingPage ? (
               <div className='dashboard text-black '>
                 <h1 className='text-3xl font-bold mb-8'>Admin Dashboard</h1>
                 <div className='flex flex-col justify-center items-center w-full'>
@@ -111,18 +162,42 @@ export default function AdminDash() {
                   </div>
                   <div className='tab-content mt-8 border-2 rounded-xl text-left px-4 py-4 border-[#0F4880] w-full '>
                     {activeTab === 'contract' && (
-                      // Content for Tab 1
-                      <div>test</div>
-                    )}
-                    {activeTab === 'audit' && (
                       <div className='overflow-x-auto'>
-                        <table className='table table-zebra'>
+                        <table className='table '>
                           {/* head */}
                           <thead>
                             <tr>
-                              <th>ID</th>
+                              <th>S/N</th>
+                              <th>Register</th>
+                              <th>Creator</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {/* rows */}
+                            <tr>
+                              <th>1</th>
+                              <td>Register</td>
+                              <td>Creator</td>
+                              <td>
+                                <button className='border-2 rounded-3xl border-[#0F4880] py-1 px-6'>
+                                  View
+                                </button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    {activeTab === 'audit' && (
+                      <div className='overflow-x-auto'>
+                        <table className='table '>
+                          {/* head */}
+                          <thead>
+                            <tr>
+                              <th>S/N</th>
                               <th>Category</th>
-                              <th>Addtess</th>
+                              <th>Address</th>
                               <th>Email</th>
                               <th>Status</th>
                               <th>No of Gigs</th>
@@ -131,15 +206,35 @@ export default function AdminDash() {
                           </thead>
                           <tbody>
                             {/* rows */}
-                            {auditorDetails.map((auditor) => (
-                              <tr key={auditor.id}>
-                                <th>{auditor.id}</th>
+                            {auditorDetails.map((auditor, index) => (
+                              <tr key={index + 1}>
+                                <th>{index + 1}</th>
                                 <td>{auditor.category}</td>
-                                <td>{auditor.address}</td>
+                                <td>{auditor._auditor}</td>
                                 <td>{auditor.email}</td>
-                                <td>{auditor.isConfirmed}</td>
-                                <td>{auditor.currentGigs}</td>
-                                <td>{auditor.confirmationTime}</td>
+                                <td>
+                                  {auditor.isConfirmed
+                                    ? 'Confirmed'
+                                    : 'Not Confirmed'}
+                                  {!auditor.isConfirmed && (
+                                    <button
+                                      className='border-2 rounded-3xl border-[#0F4880] py-1 px-3'
+                                      onClick={() =>
+                                        confirmAuditor(auditor._auditor)
+                                      }
+                                    >
+                                      Confirm
+                                    </button>
+                                  )}
+                                </td>
+                                <td>{Number(auditor.currentGigs)}</td>
+                                <td>
+                                  {auditor.isConfirmed
+                                    ? new Date(
+                                        Number(auditor.confirmationTime) * 1000
+                                      ).toLocaleString()
+                                    : '-'}
+                                </td>
                               </tr>
                             ))}
                           </tbody>

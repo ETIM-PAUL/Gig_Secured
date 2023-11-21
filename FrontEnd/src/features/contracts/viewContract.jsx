@@ -4,7 +4,8 @@ import { PiArrowLeftBold } from 'react-icons/pi'
 import { FiEdit } from 'react-icons/fi'
 import childAbi from '@/app/auth/abi/child.json'
 import factoryAbi from '@/app/auth/abi/factory.json'
-import { factoryAddress } from "@/app/auth/contractAddress";
+import vrfAbi from '@/app/auth/abi/vrf.json'
+import { factoryAddress, vrfAddress } from "@/app/auth/contractAddress";
 import { ethers } from "ethers";
 import Auth from "@/app/auth/Auth";
 import { useAccount } from 'wagmi'
@@ -14,7 +15,7 @@ import { toast } from 'react-toastify'
 export default function ViewContract() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
-  const { providerRead, providerWrite } = Auth();
+  const { providerRead, providerWrite, providerSepolia } = Auth();
   const [loadingPage, setLoadingPage] = useState(true)
   const [hasContract, setHasContract] = useState(false)
   const [contractDetails, setContractDetails] = useState(null)
@@ -24,10 +25,10 @@ export default function ViewContract() {
 
   const [deadline, setDeadline] = useState("");
   const [title, setTitle] = useState("");
-  const [status, setStatus] = useState(null);
+  const [jobLink, setJobLink] = useState("");
+  const [status, setStatus] = useState(3);
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [jobLink, setJobLink] = useState("");
 
   const [showUpdateModal, setUpdateModal] = useState(false);
   const [forceCloseModal, setForceCloseModal] = useState(false);
@@ -131,9 +132,14 @@ export default function ViewContract() {
       setErrorMessageLink("You selected Dispute, please include a link to a document listing information about the work. This will help the assigned auditor review the work and make settlement")
       return;
     }
+    let randomNum = "30193865";
+
     const signer = await providerWrite.getSigner();
 
+    const vrfSigner = new ethers.Wallet(process.env.NEXT_PUBLIC_WALLET_PRIVATE_KEY, providerSepolia);
+
     const contractWrite = new ethers.Contract(gigContract, childAbi, signer);
+    const vrfRead = new ethers.Contract(vrfAddress, vrfAbi, vrfSigner);
 
     if (status === "null" || status === null) {
       setErrorMessage("Please select a status")
@@ -141,19 +147,38 @@ export default function ViewContract() {
     }
     setSubmitLoading(true);
     try {
-      // const estimatedGas = await contractWrite.updateGig.estimateGas(id, status);
-      let tx = await contractWrite.updateGig(id, status);
-      tx.wait().then(async (receipt) => {
-        if (receipt && receipt.status == 1) {
-          // transaction success.
-          toast.success("Secured Contract status updated successfully")
-          setSubmitLoading(false)
-          setUpdateModal(false)
-          const newArray = contractDetails;
-          newArray[9] = status;
-          setContractDetails(newArray)
-        }
-      });
+      if (status === 4 || status === "4") {
+        // await vrfRead.requestRandomWords();
+
+        let vrfNum = await vrfRead.getRandomWord();
+        let _randomNum = String(vrfNum)
+        let tx = await contractWrite.updateGig(id, status, jobLink, _randomNum.slice(0, 50));
+        tx.wait().then(async (receipt) => {
+          if (receipt && receipt.status == 1) {
+            // transaction success.
+            toast.success("Secured Contract will now be settled by an external auditor")
+            setSubmitLoading(false)
+            setUpdateModal(false)
+            const newArray = contractDetails;
+            newArray[9] = status;
+            setContractDetails(newArray)
+          }
+        });
+      } else {
+        let tx = await contractWrite.updateGig(id, status, jobLink, "Joe is a good boy");
+        tx.wait().then(async (receipt) => {
+          if (receipt && receipt.status == 1) {
+            // transaction success.
+            toast.success("Secured Contract status updated successfully")
+            setSubmitLoading(false)
+            setUpdateModal(false)
+            const newArray = contractDetails;
+            newArray[9] = status;
+            setContractDetails(newArray)
+          }
+        });
+      }
+
     } catch (e) {
       if (e.data && contractWrite) {
         const decodedError = contractWrite.interface.parseError(e.data);
@@ -343,12 +368,14 @@ export default function ViewContract() {
                   <span className='py-1 rounded-md bg-white px-2 block w-fit'>
                     {formatStatus(contractDetails[9])}
                   </span>
-                  <button
-                    onClick={() => updateModalStatus()}
-                    className='w-fit p-2 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]'
-                  >
-                    Update Status
-                  </button>
+                  {Number(contractDetails[9]) < 4 &&
+                    <button
+                      onClick={() => updateModalStatus()}
+                      className='w-fit p-2 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]'
+                    >
+                      Update Status
+                    </button>
+                  }
                   {Number(contractDetails[9]) === 0 &&
                     <button
                       onClick={() => setForceCloseModal(true)}
@@ -451,7 +478,7 @@ export default function ViewContract() {
               <div className='modal bg-white'>
                 <div className='modal-box bg-white'>
                   <h3 className='font-bold text-xl'>Force close the project!</h3>
-                  <p className='font-bold text-base text-red-500 py-2'>Note that you will be closing this project since the freelancer hasn't signed | completed after deadline</p>
+                  <p className='font-bold text-base text-red-500 py-2'>Note that you will be closing this project since the freelancer hasn't signed yet OR completed after deadline</p>
                   <div className='grid space-y-2 w-full mt-1'>
                     <div className='flex gap-3 items-center'>
                       <div className='grid space-y-2 w-full'>

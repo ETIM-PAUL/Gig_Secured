@@ -1,12 +1,6 @@
 [
     {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "routerAddress",
-                "type": "address"
-            }
-        ],
+        "inputs": [],
         "stateMutability": "nonpayable",
         "type": "constructor"
     },
@@ -112,6 +106,19 @@
         "type": "event"
     },
     {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "selectedAuditor",
+                "type": "address"
+            }
+        ],
+        "name": "AuditorSelected",
+        "type": "event"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -173,9 +180,9 @@
                 "type": "bool"
             },
             {
-                "internalType": "uint32",
+                "internalType": "uint256",
                 "name": "confirmationTime",
-                "type": "uint32"
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",
@@ -217,9 +224,9 @@
                 "type": "bool"
             },
             {
-                "internalType": "uint32",
+                "internalType": "uint256",
                 "name": "confirmationTime",
-                "type": "uint32"
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",
@@ -266,9 +273,9 @@
                 "type": "bool"
             },
             {
-                "internalType": "uint32",
+                "internalType": "uint256",
                 "name": "confirmationTime",
-                "type": "uint32"
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",
@@ -388,9 +395,9 @@
                         "type": "bool"
                     },
                     {
-                        "internalType": "uint32",
+                        "internalType": "uint256",
                         "name": "confirmationTime",
-                        "type": "uint32"
+                        "type": "uint256"
                     },
                     {
                         "components": [
@@ -424,6 +431,11 @@
                 "internalType": "string",
                 "name": "_category",
                 "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "ranNum",
+                "type": "uint256"
             }
         ],
         "name": "getAuditorByCategory",
@@ -480,21 +492,23 @@
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "nonce",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256[]",
-                "name": "rngList",
-                "type": "uint256[]"
-            }
-        ],
-        "name": "myCallback",
+        "inputs": [],
+        "name": "makeGovernanceAuditor",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "returnSelectedAuditor",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {

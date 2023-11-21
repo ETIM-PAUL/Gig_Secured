@@ -22,6 +22,9 @@ interface IAudit {
     function decreaseAuditorCurrentGigs(address _auditor) external;
 
     function getAuditorByCategory(
-        string memory category
-    ) external view returns (address);
+        string memory category,
+        uint ranD
+    ) external returns (address);
+
+    function returnSelectedAuditor() external view returns (address);
 }

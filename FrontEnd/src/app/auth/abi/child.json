@@ -281,6 +281,16 @@
         "internalType": "uint256",
         "name": "gigId",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_joblink",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ranD",
+        "type": "uint256"
       }
     ],
     "name": "clientUpdateGig",
@@ -442,6 +452,16 @@
         "internalType": "enum GigSecured.Status",
         "name": "newStatus",
         "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "_joblink",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ranD",
+        "type": "uint256"
       }
     ],
     "name": "freeLancerUpdateGig",
@@ -524,6 +544,16 @@
             "internalType": "address",
             "name": "creator",
             "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creationDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "joblink",
+            "type": "string"
           }
         ],
         "internalType": "struct GigSecured.GigContract[]",
@@ -615,6 +645,16 @@
             "internalType": "address",
             "name": "creator",
             "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creationDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "joblink",
+            "type": "string"
           }
         ],
         "internalType": "struct GigSecured.GigContract",
@@ -667,6 +707,16 @@
         "internalType": "enum GigSecured.Status",
         "name": "_status",
         "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "joblink_",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "ran",
+        "type": "string"
       }
     ],
     "name": "updateGig",
