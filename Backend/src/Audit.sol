@@ -145,19 +145,18 @@ contract Audit {
         string memory _category,
         uint256 ranNum
     ) external returns (address) {
-        // address[] memory _auditorsTobeSelected = new address[](0);
+        selectedAuditor = _governanceContract;
         for (uint256 i = 0; i < auditorsCount; ++i) {
             if (
                 (keccak256(
-                    abi.encode(auditor_[auditors[i]._auditor].category)
-                ) == keccak256(abi.encode(_category))) &&
-                (auditor_[auditors[i]._auditor].currentGigs < 3) &&
+                    abi.encodePacked(auditor_[auditors[i]._auditor].category)
+                ) == keccak256(abi.encodePacked(_category))) &&
+                (auditor_[auditors[i]._auditor].currentGigs < 2) &&
                 (auditor_[auditors[i]._auditor].isConfirmed)
             ) {
                 _auditorsTobeSelected.push(
                     auditor_[auditors[i]._auditor]._auditor
                 );
-                // k++;
             }
         }
 

@@ -493,18 +493,14 @@ contract GigSecured {
         uint _id,
         Status _status,
         string memory joblink_,
-        string memory ran
+        uint ran
     ) public {
         GigContract storage _newGigContract = _allGigs[_id];
-        bytes memory inputBytes = bytes(ran);
-
-        // Convert bytes to number
-        uint256 ranNum = bytesToUint(inputBytes);
         if (_newGigContract.creator == msg.sender) {
-            clientUpdateGig(_status, _id, joblink_, ranNum);
+            clientUpdateGig(_status, _id, joblink_, ran);
         }
         if (_newGigContract.freeLancer == msg.sender) {
-            freeLancerUpdateGig(_id, _status, joblink_, ranNum);
+            freeLancerUpdateGig(_id, _status, joblink_, ran);
         }
     }
 
@@ -611,7 +607,10 @@ contract GigSecured {
         uint _rand
     ) internal returns (address) {
         address selectedAuditor;
-        IAudit(_auditContract).getAuditorByCategory(category, _rand);
+        selectedAuditor = IAudit(_auditContract).getAuditorByCategory(
+            category,
+            _rand
+        );
         selectedAuditor = IAudit(_auditContract).returnSelectedAuditor();
         IAudit(_auditContract).increaseAuditorCurrentGigs(
             selectedAuditor,
@@ -810,17 +809,5 @@ contract GigSecured {
 
     function getAllGigs() public view returns (GigContract[] memory) {
         return _contractGigs;
-    }
-
-    function bytesToUint(bytes memory b) internal pure returns (uint256) {
-        require(b.length > 0, "Empty byte array");
-
-        uint256 result = 0;
-
-        for (uint256 i = 0; i < b.length; i++) {
-            result = result * 256 + uint8(b[i]);
-        }
-
-        return result;
     }
 }

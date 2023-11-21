@@ -77,9 +77,30 @@ contract CounterTest is Test {
         audit.confirmAuditor(_auditorAddr4);
 
         audit.getAuditorByCategory(
-            "free",
+            "writing",
             25209736735244536545235326535323438424
         );
-        audit.selectedAuditor();
+        // address s = audit.selectedAuditor();
+        // audit.increaseAuditorCurrentGigs(s, address(0x233), 1);
+
+        // audit.getAuditorByCategory(
+        //     "writing",
+        //     25209736735244536545235326535323438424
+        // );
+        // address l = audit.selectedAuditor();
+        // audit.increaseAuditorCurrentGigs(l, address(0x234), 1);
+
+        // audit.getAuditorByCategory(
+        //     "free",
+        //     25209736735244536545235326535323438424
+        // );
+        // address h = audit.selectedAuditor();
+        // audit.increaseAuditorCurrentGigs(h, address(0x235), 1);
+        // audit.getAuditorByCategory(
+        //     "free",
+        //     25209736735244536545235326535323438424
+        // );
+        // address p = audit.selectedAuditor();
+        // audit.increaseAuditorCurrentGigs(p, address(0x236), 1);
     }
 }
