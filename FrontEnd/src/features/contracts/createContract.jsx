@@ -109,7 +109,7 @@ export default function CreateContract() {
           data: formData,
           headers: pinataConfig.headers
         })
-        updateFileUrl(`https://tomato-main-stoat-147.mypinata.cloud/ipfs://${response.data.IpfsHash}/`)
+        updateFileUrl(`ipfs://${response.data.IpfsHash}/`)
         queryPinataFiles();
       } else {
         toast.error("Please upload a document detailing the project outlines, aims and objectives");

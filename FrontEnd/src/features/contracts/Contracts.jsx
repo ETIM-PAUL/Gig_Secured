@@ -135,6 +135,8 @@ export default function AllContracts() {
                         </h2>
                         <a href={item[6]} target='_blank' className='underline'>
                           {item[6]}
+                          <br />
+                          https://tomato-main-stoat-147.mypinata.cloud/ipfs/bafkreigswrw7lxn4nxykedtci6xxyvuphqa4oltdb2myevzjhqewveklky
                         </a>
                         <div className='card-actions justify-end'>
                           <Link href={`/contracts/view?id=${index + 1}`}>
