@@ -11,6 +11,7 @@ import { formatBlockchainTimestamp, formatStatus, isTimestampGreaterThanCurrent,
 import { toast } from 'react-toastify';
 import { vrfAddress } from '@/app/auth/contractAddress';
 import vrfAbi from '@/app/auth/abi/vrf.json'
+import axios from 'axios'
 
 export default function ViewFreelance() {
   const router = useRouter();
@@ -22,6 +23,9 @@ export default function ViewFreelance() {
   const searchParams = useSearchParams()
   const [status, setStatus] = useState(1);
   const [jobLink, setJobLink] = useState("");
+  const [disputeFile, setDisputeFile] = useState("");
+  const [newFile, updateNewFile] = useState();
+  const [ipfsLoading, setIpfsLoading] = useState(false);
 
   const [errorMessageLink, setErrorMessageLink] = useState("")
 
@@ -102,6 +106,75 @@ export default function ViewFreelance() {
       setSignLoading(false)
     }
   }
+
+  async function uploadIPFS() {
+    const file = newFile
+    try {
+      if (file !== undefined) {
+        setIpfsLoading(true)
+        const formData = new FormData();
+        console.log(file)
+        formData.append('file', file);
+        const pinataBody = {
+          options: {
+            cidVersion: 1,
+          },
+          metadata: {
+            name: file.name,
+          }
+        }
+        formData.append('pinataOptions', JSON.stringify(pinataBody.options));
+        formData.append('pinataMetadata', JSON.stringify(pinataBody.metadata));
+        const url = `${pinataConfig.root}/pinning/pinFileToIPFS`;
+        const response = await axios({
+          method: 'post',
+          url: url,
+          data: formData,
+          headers: pinataConfig.headers
+        })
+        setDisputeFile(`ipfs://${response.data.IpfsHash}/`)
+        queryPinataFiles();
+      } else {
+        toast.error("Please upload a document detailing the project outlines, aims and objectives");
+        return;
+        setIpfsLoading(false)
+      }
+      setIpfsLoading(false)
+    } catch (error) {
+      setIpfsLoading(false)
+      console.log(error)
+    }
+  }
+
+  const queryPinataFiles = async () => {
+    try {
+      const url = `${pinataConfig.root}/data/pinList?status=pinned`;
+      const response = await axios.get(url, pinataConfig);
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
+  const pinataConfig = {
+    root: 'https://api.pinata.cloud',
+    headers: {
+      'pinata_api_key': "e98332f4fcdf7aa677fa",
+      'pinata_secret_api_key': "ddba77116b8064d68c18b734f8b2fe484b18349b8a1c7af90006689e944ff59a"
+    }
+  };
+
+  const testPinataConnection = async () => {
+    try {
+      const url = `${pinataConfig.root}/data/testAuthentication`
+      const res = await axios.get(url, { headers: pinataConfig.headers });
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    testPinataConnection()
+  });
 
   useEffect(() => {
     const getContractDetail = async () => {
@@ -366,16 +439,36 @@ export default function ViewFreelance() {
                   </div>
                 </div>
                 {status === "4" &&
-                  <>
-                    <input
-                      value={jobLink}
-                      onChange={(e) => setJobLink(e.target.value)}
-                      type='text'
-                      placeholder='Please Enter A Document Link that contains working links and other necessary links'
-                      className='input input-bordered  border-[#696969] w-full max-w-full bg-white' /><p className='text-field-error italic text-red-500'>
-                      {errorMessageLink.length > 0 && errorMessageLink}
-                    </p>
-                  </>
+                  <div>
+                    <div className="join w-full">
+                      <input
+                        onChange={(e) => updateNewFile(e.target.files[0])}
+                        type="file"
+                        className="input pt-2 input-bordered  border-[#696969] w-full max-w-full bg-white placeholder::mt-2" />
+                      <button
+                        disabled={ipfsLoading}
+                        onClick={() => uploadIPFS()}
+                        className="btn join-item rounded-r-full bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE]">
+                        {ipfsLoading ? "Uploading" : "Upload"}
+                      </button>
+                    </div>
+                    {disputeFile !== "" &&
+                      <div className="block space-y-2 mt-3 w-full">
+                        <label>Uploaded Document Link</label>
+                        <input
+                          value={disputeFile}
+                          disabled
+                          type="text"
+                          className="input input-bordered text-black  border-[#696969] w-full max-w-full bg-white disabled:bg-white"
+                        />
+                      </div>
+                    }
+                    {disputeFile === '' &&
+                      <p className='text-field-error italic text-red-500'>
+                        {errorMessage.length > 0 && errorMessage}
+                      </p>
+                    }
+                  </div>
                 }
               </div>
               <div className='w-full flex gap-3 items-center justify-end mt-3'>
