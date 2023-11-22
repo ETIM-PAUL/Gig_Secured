@@ -1041,7 +1041,7 @@ export default function ViewContract() {
                             />
                           </div>
                         }
-                        {fileUrl === '' &&
+                        {disputeFile === '' &&
                           <p className='text-field-error italic text-red-500'>
                             {errorMessage.length > 0 && errorMessage}
                           </p>

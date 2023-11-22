@@ -11,14 +11,16 @@ import { AiOutlineSecurityScan } from 'react-icons/ai';
 import { IoIosArrowDropright, IoIosArrowDropleft } from 'react-icons/io';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { RxDashboard } from 'react-icons/rx';
+import { useAccount } from 'wagmi';
 
 export default function SideBar() {
+  const { address, isConnected } = useAccount();
+
   const pathname = usePathname();
   // const [sidebar, setSideBar] = useState(true)
-  const { address } = Auth();
   const { sidebar, setSideBar } = useAppContext();
 
-  const menu = [
+  const menu = address === "0x1b6e16403b06a51C42Ba339E356a64fE67348e92" ? [
     {
       name: 'Home',
       icon: BiHomeAlt,
@@ -44,7 +46,30 @@ export default function SideBar() {
       icon: RxDashboard,
       href: '/admin',
     },
-  ];
+  ] :
+    [
+      {
+        name: 'Home',
+        icon: BiHomeAlt,
+        href: '/home',
+      },
+      {
+        name: 'Contracts',
+        icon: LiaFileContractSolid,
+        href: '/contracts',
+      },
+      {
+        name: 'Freelances',
+        icon: MdWorkOutline,
+        href: '/freelances',
+      },
+      {
+        name: 'Audits',
+        icon: AiOutlineSecurityScan,
+        href: '/audits',
+      },
+    ]
+    ;
   return (
     <main>
       <section

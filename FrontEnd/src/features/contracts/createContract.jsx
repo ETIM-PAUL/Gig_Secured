@@ -150,12 +150,14 @@ export default function CreateContract() {
 
     let gigRegister = await contractRead.getCreatorSystem(address);
     if (gigRegister === "0x0000000000000000000000000000000000000000") {
-      toast.success("Create a Register to add secured contracts")
+      toast.success("Create a Register to add secured contracts");
       return;
     } else {
       const contractWrite = new ethers.Contract(gigRegister, childAbi, signer);
       const usdtWrite = new ethers.Contract(usdc, usdcAbi, signer);
-      const deadlineFormat = Math.floor(new Date(data.deadline).getTime() / 1000)
+      const deadlineFormat = Math.floor(
+        new Date(data.deadline).getTime() / 1000
+      );
 
       try {
         setSubmitLoading(true)
@@ -166,16 +168,15 @@ export default function CreateContract() {
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
             // transaction success.
-            setSubmitLoading(false)
-            toast.success("Secured Contract created successfully")
-            router.push("/contracts")
+            setSubmitLoading(false);
+            toast.success("Secured Contract created successfully");
+            router.push("/contracts");
           }
         });
-
       } catch (e) {
         if (e.data && contractWrite) {
           const decodedError = contractWrite.interface.parseError(e.data);
-          toast.error(`Transaction failed: ${decodedError?.name}`)
+          toast.error(`Transaction failed: ${decodedError?.name}`);
         } else {
           console.log(`Error in contract:`, e);
         }
@@ -535,16 +536,27 @@ export default function CreateContract() {
                   finalised.
                 </p>
                 <p>
+                  At the creation point, you will upload a link to a document
+                  containing the terms, requirements and milestones of the gig
+                  as you agreed with the freelancer, this would come handy if
+                  there is a dispute between you and the freelancer.
+                </p>
+                <p>
                   After creating your contract, you will invite the freelancer
                   you negotiated with to sign the contract and commence your gig
                   based on the terms stated by you. After creating your contract
                   and while its status is <strong>"Pending"</strong>, you will
                   be able to edit the deadline, the title, the description
-                  (terms, requirements and milestones) and the freelancer. Once
-                  the freelancer you appointed signs the contract and moves it
-                  from<strong>"Pending"</strong> status to{" "}
+                  (terms, requirements and milestones). Once the freelancer you
+                  appointed signs the contract and moves it from
+                  <strong>"Pending"</strong> status to{" "}
                   <strong>"Building,"</strong>you will be unable to make changes
                   to the gig.
+                </p>
+                <p className="font-bold text-red-500 text-lg pt-2">
+                  Do note, that you cannot change the freelancer after creating
+                  a contract, in such situation, you will need to force close
+                  the contract and create a new one.
                 </p>
                 <h4 className="mt-2 text-lg font-bold">Deadlines</h4>
                 <p>

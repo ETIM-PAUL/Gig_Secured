@@ -292,7 +292,7 @@ export default function HomeFeatures() {
 
                   {/* Video_Opportunities */}
                   <div className='block md:flex gap-10 my-8 text-white'>
-                    <div className='block md:w-[50%] w-full border rounded-2xl bg-gray-500 pb-2'>
+                    {/* <div className='block md:w-[50%] w-full border rounded-2xl bg-gray-500 pb-2'>
                       <video
                         controls={true}
                         playsInline
@@ -308,7 +308,7 @@ export default function HomeFeatures() {
                       <span className='text-black w-full px-4 py-2 mt-2 block'>
                         Watch our goal getter video
                       </span>
-                    </div>
+                    </div> */}
                     <div className='md:w-[50%] w-full'>
                       <span className='text-lg font-bold text-[#000]'>
                         Opportunities For you
