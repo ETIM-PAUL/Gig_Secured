@@ -101,13 +101,20 @@ export default function Freelances() {
                   {contractDetails.length > 0 && contractDetails.map((item, index) => (
                     <div
                       key={index}
-                      className='card w-96 bg-white border shadow-md border-black flex-grow text-black'
+                      className='card w-fit bg-white border shadow-md border-black flex-grow text-black'
                     >
                       <div className='card-body'>
-                        <h2 className='card-title'>{item[0]}</h2>
-                        <p>
-                          {item[6]}
-                        </p>
+                        <h2 className='card-title'>
+                          {item[0]} - <span className='text-sm'>{item[1]}</span>
+                        </h2>
+                        <div className='flex gap-2'>
+                          <span className='font-bold'>
+                            Project Documentation:
+                          </span>
+                          <a href={item[6]} target='_blank' className='underline'>
+                            {item[6]}
+                          </a>
+                        </div>
                         <div className='card-actions justify-end'>
                           <Link href={`/freelances/view?id=${gigId[index]}&contract=${gigSecureAddress[index]}`}>
                             <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>

@@ -170,7 +170,7 @@ export default function SideBar() {
                       }
 
                       return (
-                        <div className='grid md:flex gap-3'>
+                        <div className='grid gap-3'>
                           <button
                             onClick={openChainModal}
                             style={{ alignItems: 'center' }}
@@ -181,8 +181,8 @@ export default function SideBar() {
                               <div
                                 style={{
                                   background: chain.iconBackground,
-                                  width: 12,
-                                  height: 12,
+                                  width: 24,
+                                  height: 24,
                                   borderRadius: 999,
                                   overflow: 'hidden',
                                   marginRight: 4,
@@ -192,12 +192,12 @@ export default function SideBar() {
                                   <img
                                     alt={chain.name ?? 'Chain icon'}
                                     src={chain.iconUrl}
-                                    style={{ width: 12, height: 12 }}
+                                    style={{ width: 24, height: 24 }}
                                   />
                                 )}
                               </div>
                             )}
-                            {chain.name}
+                            {sidebar && chain.name}
                           </button>
                           {sidebar && (
                             <button onClick={openAccountModal} type='button'>

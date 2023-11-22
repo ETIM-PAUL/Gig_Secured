@@ -11,14 +11,20 @@ import Auth from "@/app/auth/Auth";
 import { useAccount } from 'wagmi'
 import { calculateGasMargin, formatBlockchainTimestamp, formatStatus, shortenAccount } from '@/utils'
 import { toast } from 'react-toastify'
+import axios from 'axios'
 
 export default function ViewContract() {
   const router = useRouter();
+  const [contractDetails, setContractDetails] = useState(null)
+  const [fileUrl, updateFileUrl] = useState(contractDetails ? contractDetails[6] : "");
+  const [disputeFile, setDisputeFile] = useState("");
+  const [newFile, updateNewFile] = useState();
+  const [ipfsLoading, setIpfsLoading] = useState(false);
+
   const { address, isConnected } = useAccount();
   const { providerRead, providerWrite, providerSepolia } = Auth();
   const [loadingPage, setLoadingPage] = useState(true)
   const [hasContract, setHasContract] = useState(false)
-  const [contractDetails, setContractDetails] = useState(null)
   const [gigContract, setGigContract] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
   const [errorMessageLink, setErrorMessageLink] = useState("")
@@ -91,44 +97,118 @@ export default function ViewContract() {
     }
   }, [])
 
-  const updateFreelancer = async () => {
-    const signer = await providerWrite.getSigner();
+  // const updateFreelancer = async () => {
+  //   const signer = await providerWrite.getSigner();
 
-    const contractWrite = new ethers.Contract(gigContract, childAbi, signer);
+  //   const contractWrite = new ethers.Contract(gigContract, childAbi, signer);
 
-    if (title === "") {
-      setErrorMessage("Please enter a title")
-      return;
-    }
-    setUpdateContractTitleLoading(true);
+  //   if (title === "") {
+  //     setErrorMessage("Please enter a title")
+  //     return;
+  //   }
+  //   setUpdateContractTitleLoading(true);
+  //   try {
+  //     const estimatedGas = await contractWrite.editGigTitle.estimateGas(
+  //       id, title
+  //     );
+  //     let tx = await contractWrite.editGigTitle(id, title, { gasLimit: calculateGasMargin(estimatedGas) });
+
+  //     tx.wait().then(async (receipt) => {
+  //       if (receipt && receipt.status == 1) {
+  //         // transaction success.
+  //         toast.success("Secured Contract title updated successfully")
+  //         setUpdateContractTitleLoading(false)
+  //         setShowTitleModal(false)
+  //         const newArray = contractDetails;
+  //         newArray[0] = title;
+  //         setContractDetails(newArray)
+  //       }
+  //     });
+  //   } catch (e) {
+  //     if (e.data && contractWrite) {
+  //       const decodedError = contractWrite.interface.parseError(e.data);
+  //       toast.error(`Transaction failed: ${decodedError?.name}`)
+  //     } else {
+  //       console.log(`Error in contract:`, e);
+  //     }
+  //     setUpdateContractTitleLoading(false)
+  //     setShowTitleModal(false)
+  //   }
+  // }
+
+  async function uploadIPFS() {
+    const file = newFile
     try {
-      const estimatedGas = await contractWrite.editGigTitle.estimateGas(
-        id, title
-      );
-      let tx = await contractWrite.editGigTitle(id, title, { gasLimit: calculateGasMargin(estimatedGas) });
-
-      tx.wait().then(async (receipt) => {
-        if (receipt && receipt.status == 1) {
-          // transaction success.
-          toast.success("Secured Contract title updated successfully")
-          setUpdateContractTitleLoading(false)
-          setShowTitleModal(false)
-          const newArray = contractDetails;
-          newArray[0] = title;
-          setContractDetails(newArray)
+      if (file !== undefined) {
+        setIpfsLoading(true)
+        const formData = new FormData();
+        console.log(file)
+        formData.append('file', file);
+        const pinataBody = {
+          options: {
+            cidVersion: 1,
+          },
+          metadata: {
+            name: file.name,
+          }
         }
-      });
-    } catch (e) {
-      if (e.data && contractWrite) {
-        const decodedError = contractWrite.interface.parseError(e.data);
-        toast.error(`Transaction failed: ${decodedError?.name}`)
+        formData.append('pinataOptions', JSON.stringify(pinataBody.options));
+        formData.append('pinataMetadata', JSON.stringify(pinataBody.metadata));
+        const url = `${pinataConfig.root}/pinning/pinFileToIPFS`;
+        const response = await axios({
+          method: 'post',
+          url: url,
+          data: formData,
+          headers: pinataConfig.headers
+        })
+        {
+          (status === "4" || status === 4) ?
+            setDisputeFile(`ipfs://${response.data.IpfsHash}/`)
+            :
+            updateFileUrl(`ipfs://${response.data.IpfsHash}/`)
+        }
+        queryPinataFiles();
       } else {
-        console.log(`Error in contract:`, e);
+        toast.error("Please upload a document detailing the project outlines, aims and objectives");
+        return;
+        setIpfsLoading(false)
       }
-      setUpdateContractTitleLoading(false)
-      setShowTitleModal(false)
+      setIpfsLoading(false)
+    } catch (error) {
+      setIpfsLoading(false)
+      console.log(error)
     }
   }
+
+  const queryPinataFiles = async () => {
+    try {
+      const url = `${pinataConfig.root}/data/pinList?status=pinned`;
+      const response = await axios.get(url, pinataConfig);
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
+  const pinataConfig = {
+    root: 'https://api.pinata.cloud',
+    headers: {
+      'pinata_api_key': "e98332f4fcdf7aa677fa",
+      'pinata_secret_api_key': "ddba77116b8064d68c18b734f8b2fe484b18349b8a1c7af90006689e944ff59a"
+    }
+  };
+
+  const testPinataConnection = async () => {
+    try {
+      const url = `${pinataConfig.root}/data/testAuthentication`
+      const res = await axios.get(url, { headers: pinataConfig.headers });
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    testPinataConnection()
+  });
 
   const forceCloseContract = async () => {
     const signer = await providerWrite.getSigner();
@@ -162,6 +242,7 @@ export default function ViewContract() {
       setForceCloseModal(false)
     }
   }
+
   const updateStatus = async () => {
     if (contractDetails[5] === "0x") {
       toast.error("Freelancer hasn't started building yet")
@@ -198,7 +279,7 @@ export default function ViewContract() {
         // Remove three-quarters of the length from the start of the string
         const reducedNumberString = numberString.slice(threeQuartersLength);
         const reducedNumber = BigInt(reducedNumberString);
-        let tx = await contractWrite.updateGig(id, status, jobLink, reducedNumber);
+        let tx = await contractWrite.updateGig(id, status, disputeFile, reducedNumber);
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
             // transaction success.
@@ -211,7 +292,7 @@ export default function ViewContract() {
           }
         });
       } else {
-        let tx = await contractWrite.updateGig(id, status, jobLink, 76528365);
+        let tx = await contractWrite.updateGig(id, status, disputeFile, 76528365);
         tx.wait().then(async (receipt) => {
           if (receipt && receipt.status == 1) {
             // transaction success.
@@ -279,25 +360,25 @@ export default function ViewContract() {
 
     const contractWrite = new ethers.Contract(gigContract, childAbi, signer);
 
-    if (title === "") {
-      setErrorMessage("Please enter a documentation link")
+    if (fileUrl === "") {
+      setErrorMessage("Please upload your new document")
       return;
     }
     setDescriptionLoading(true);
     try {
-      const estimatedGas = await contractWrite.editGigTitle.estimateGas(
-        id, title
+      const estimatedGas = await contractWrite.editGigDescription.estimateGas(
+        id, fileUrl
       );
-      let tx = await contractWrite.editGigDescription(id, description, { gasLimit: calculateGasMargin(estimatedGas) });
+      let tx = await contractWrite.editGigDescription(id, fileUrl, { gasLimit: calculateGasMargin(estimatedGas) });
 
       tx.wait().then(async (receipt) => {
         if (receipt && receipt.status == 1) {
           // transaction success.
-          toast.success("Secured Contract project link updated successfully")
+          toast.success("Secured Contract project documentation updated successfully")
           setDescriptionLoading(false)
           setDescriptionModal(false)
           const newArray = contractDetails;
-          newArray[6] = description;
+          newArray[6] = fileUrl;
           setContractDetails(newArray)
         }
       });
@@ -537,11 +618,13 @@ export default function ViewContract() {
             </div>
             <div className='w-full items-center'>
               <div>
-                <h3 className="font-bold mt-5 text-2xl">
-                  Price: ${contractDetails[12] && ethers.formatUnits(contractDetails[12], 6)}0
-                </h3>
+                {Number(contractDetails[9]) !== 5 &&
+                  <h3 className="font-bold mt-5 text-xl">
+                    Price: ${contractDetails[12] && ethers.formatUnits(contractDetails[12], 6)}0
+                  </h3>
+                }
                 <div className='flex gap-2 mt-5'>
-                  <h3 className='font-bold text-2xl'>Project Documentation Link</h3>
+                  <h3 className='font-bold text-xl'>Project Documentation Link</h3>
                   {formatStatus(contractDetails[9]) === "pending" &&
                     <button onClick={() => setDescriptionModal(true)}>
                       <FiEdit />
@@ -788,29 +871,39 @@ export default function ViewContract() {
               />
               <div className='modal bg-white'>
                 <div className='modal-box bg-white'>
-                  <h3 className='font-bold text-lg'>Change Contract Project Documentation Link!</h3>
+                  <h3 className='font-bold text-lg'>Change Contract Project Documentation Link(only when freelancer hasn't signed)!</h3>
                   {/* <p className='font-bold text-xs text-red-500 py-2'>You can't change when freelancer has began work!</p> */}
-                  <div className='grid space-y-2 w-full mt-1'>
+                  <div className='grid space-y-2 w-full mt-3'>
                     <div className='flex gap-3 items-center'>
                       <div className='grid space-y-2 w-full'>
-
-                        {/* <textarea
-                          type='text'
-                          placeholder='Short Description'
-                          className='input input-bordered bg-white placeholder:pt-2 border-[#696969] w-full max-w-full h-full'
-                          rows={4}
-                          cols={4}
-                        /> */}
-                        <input
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          type="text"
-                          placeholder="A link to a detailed documentation of the project"
-                          className="input input-bordered  border-[#696969] w-full max-w-full bg-white"
-                        />
-                        <p className='text-field-error italic text-red-500'>
-                          {errorMessage.length > 0 && errorMessage}
-                        </p>
+                        <div className="join w-full">
+                          <input
+                            onChange={(e) => updateNewFile(e.target.files[0])}
+                            type="file"
+                            className="input pt-2 input-bordered  border-[#696969] w-full max-w-full bg-white placeholder::mt-2" />
+                          <button
+                            disabled={ipfsLoading}
+                            onClick={() => uploadIPFS()}
+                            className="btn join-item rounded-r-full bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE]">
+                            {ipfsLoading ? "Uploading" : "Upload"}
+                          </button>
+                        </div>
+                        {fileUrl !== "" &&
+                          <div className="grid space-y-2 mt-2 w-full">
+                            <label>Uploaded Document Link</label>
+                            <input
+                              value={fileUrl}
+                              disabled
+                              type="text"
+                              className="input input-bordered text-black  border-[#696969] w-full max-w-full bg-white disabled:bg-white"
+                            />
+                          </div>
+                        }
+                        {fileUrl === '' &&
+                          <p className='text-field-error italic text-red-500'>
+                            {errorMessage.length > 0 && errorMessage}
+                          </p>
+                        }
                       </div>
                     </div>
                   </div>
@@ -826,8 +919,8 @@ export default function ViewContract() {
                     </div>
                     <button
                       onClick={updateDesc}
-                      disabled={updateDescriptionLoading}
-                      className='w-full h-full py-3 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]'
+                      disabled={updateDescriptionLoading || fileUrl === ""}
+                      className={`${fileUrl === "" ? "cursor-not-allowed opacity-10" : "hover:bg-[#684df0]"} w-full h-full py-3 rounded-lg bg-[#2A0FB1] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]`}
                     >
                       {updateDescriptionLoading ? (
                         <span className='loading loading-spinner loading-md'></span>
@@ -924,18 +1017,39 @@ export default function ViewContract() {
                       </div>
                     </div>
                     {status === "4" &&
-                      <>
-                        <input
-                          value={jobLink}
-                          onChange={(e) => setJobLink(e.target.value)}
-                          type='text'
-                          placeholder='Please Enter A Document Link that contains working links and other necessary links'
-                          className='input input-bordered  border-[#696969] w-full max-w-full bg-white' /><p className='text-field-error italic text-red-500'>
-                          {errorMessageLink.length > 0 && errorMessageLink}
-                        </p>
-                      </>
+                      <div>
+                        <div className="join w-full">
+                          <input
+                            onChange={(e) => updateNewFile(e.target.files[0])}
+                            type="file"
+                            className="input pt-2 input-bordered  border-[#696969] w-full max-w-full bg-white placeholder::mt-2" />
+                          <button
+                            disabled={ipfsLoading}
+                            onClick={() => uploadIPFS()}
+                            className="btn join-item rounded-r-full bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE]">
+                            {ipfsLoading ? "Uploading" : "Upload"}
+                          </button>
+                        </div>
+                        {disputeFile !== "" &&
+                          <div className="block space-y-2 mt-3 w-full">
+                            <label>Uploaded Document Link</label>
+                            <input
+                              value={disputeFile}
+                              disabled
+                              type="text"
+                              className="input input-bordered text-black  border-[#696969] w-full max-w-full bg-white disabled:bg-white"
+                            />
+                          </div>
+                        }
+                        {fileUrl === '' &&
+                          <p className='text-field-error italic text-red-500'>
+                            {errorMessage.length > 0 && errorMessage}
+                          </p>
+                        }
+                      </div>
                     }
                   </div>
+
                   <div className='w-full flex gap-3 items-center justify-end mt-3'>
                     <div className='w-full' onClick={() => { setUpdateModal(false); setStatus(3) }}>
                       <label

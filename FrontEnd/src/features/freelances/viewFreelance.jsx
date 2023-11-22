@@ -293,17 +293,19 @@ export default function ViewFreelance() {
           className={`mb-0 flex justify-center flex-col-reverse md:flex-row items-start pt-10 w-full h-full mx-0 p-0`}
         >
             <div className='w-full mx-10'>
+              {Number(contractDetails[9]) !== 5 &&
+                <div>
+                  <h2 className='text-xl my-4'>Price: ${contractDetails[12] && ethers.formatUnits(contractDetails[12], 6)}0</h2>
+                </div>
+              }
               <div>
-                <h2 className='text-xl my-4'>Price: ${contractDetails[12] && ethers.formatUnits(contractDetails[12], 6)}0</h2>
+                <h2 className='text-xl font-bold my-4'>Deadline: {formatBlockchainTimestamp(Number(contractDetails[7]))}</h2>
               </div>
               <div>
-                <h2 className='text-xl my-4'>Deadline: {formatBlockchainTimestamp(Number(contractDetails[7]))}</h2>
-              </div>
-              <div>
-                <h2 className='text-xl mt-4'>Description</h2>
-                <p className='text-base'>
+                <h2 className='font-bold text-xl'>Project Documentation Link</h2>
+                <a href={contractDetails[6]} target='_blank' className="max-w-[300px] text-lg mb-4 underline">
                   {contractDetails[6]}
-                </p>
+                </a>
               </div>
 
               {(contractDetails[5] === "0x" && Number(contractDetails[9]) < 5) &&

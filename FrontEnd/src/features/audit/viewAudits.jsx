@@ -33,132 +33,6 @@ export default function ViewAudit() {
     setInputValue(20 + index * 20);
   };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  const updateModal = () => {
-    setUpdateModal(true);
-  };
-
-  const updateStatus = async () => {
-    if (contractDetails[5] === '0x') {
-      setUpdateModal(false);
-      toast.error('You need to sign before you can update status');
-      return;
-    }
-
-    const signer = await providerWrite.getSigner();
-
-    const contractWrite = new ethers.Contract(contract, childAbi, signer);
-
-    if (status === 'null' || status === null) {
-      setErrorMessage('Please select a status');
-      return;
-    }
-    setSubmitLoading(true);
-    try {
-      // sendEmail();
-      const estimatedGas = await contractWrite.updateGig.estimateGas(
-        id,
-        status
-      );
-      let tx = await contractWrite.updateGig(id, status);
-      tx.wait().then(async (receipt) => {
-        if (receipt && receipt.status == 1) {
-          // transaction success.
-          toast.success('Secured Contract status updated successfully');
-          setSubmitLoading(false);
-          setUpdateModal(false);
-          const newArray = contractDetails;
-          newArray[9] = status;
-          setContractDetails(newArray);
-        }
-      });
-    } catch (e) {
-      if (e.data && contractWrite) {
-        const decodedError = contractWrite.interface.parseError(e.data);
-        toast.error(`Transaction failed: ${decodedError?.name}`);
-      } else {
-        console.log(`Error in contract:`, e);
-      }
-      setSubmitLoading(false);
-      setUpdateModal(false);
-    }
-    setErrorMessage('');
-  };
-
-  return (
-    <div className='w-[96%] text-black'>
-      <div className='flex gap-4 items-center pt-16'>
-        <PiArrowLeftBold
-          size={28}
-          className='font-bold cursor-pointer text-4xl mt-2'
-          onClick={() => router.back()}
-        />
-        <div className='funda_bg flex items-center justify-between w-full p-4'>
-          <div>
-            <h2 className='font-normal text-[32px] leading-10 head2'>
-              Contract Writing
-            </h2>
-            <span className='text-base pt-2 block'>
-              Category: freelance writing
-            </span>
-          </div>
-          <div>
-            <button
-              onClick={() => updateModal()}
-              className='w-fit p-2 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-base block leading-[25.5px] tracking-[0.5%]'
-            >
-              Update Status
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={`mb-0 flex justify-center gap-4 flex-col-reverse md:flex-row items-start pt-10 w-full h-full mx-0 p-0`}
-      >
-        <div className='w-full'>
-          <div>
-            <h2 className='max-w-[300px] text-2xl my-4'>Description</h2>
-            <p className='text-sm'>
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Consectetur nemo, earum quae error et odio, dolorum esse vero
-              mollitia natus aperiam aliquam voluptatum neque itaque! Laboriosam
-              corrupti nostrum suscipit inventore. Neque aspernatur facere
-              excepturi sequi rerum minima id at magnam officia tempora,
-              doloremque quaerat natus odio similique quas! Fugiat natus fuga
-              soluta? Laudantium totam distinctio, impedit mollitia nostrum
-              adipisci aperiam?
-            </p>
-          </div>
-          <div className='flex items-center mt-4'>
-            {progress.map((percentage, index) => (
-              <div
-                key={index}
-                className='w-1/4 p-2 cursor-pointer'
-                onClick={() => handleBoxClick(index)}
-              >
-                <div className='relative h-10 bg-gray-200 flex justify-center items-center'>
-                  <div
-                    className='absolute h-full bg-blue-500 flex justify-center items-center'
-                    style={{ width: `${percentage}%` }}
-                  >
-                    <div className='text-center text-white z-10'>
-                      {20 + index * 20}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <input
-              type='number'
-              className='h-10 bg-gray-200 px-4'
-              placeholder='1'
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-=======
-=======
->>>>>>> 5ecad38d3e69d988ca3e4bc5bb69aa709229e217
   useEffect(() => {
     const getContractDetail = async () => {
       setLoadingPage(true)
@@ -233,10 +107,6 @@ export default function ViewAudit() {
             <path
               d='M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z'
               fill='currentColor'
-<<<<<<< HEAD
->>>>>>> 8dc193b7d0b6dcd75418ca783b6d6885c35d7101
-=======
->>>>>>> 5ecad38d3e69d988ca3e4bc5bb69aa709229e217
             />
             <path
               d='M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z'
@@ -245,68 +115,6 @@ export default function ViewAudit() {
           </svg>
           <span className='sr-only'>Loading...</span>
         </div>
-<<<<<<< HEAD
-<<<<<<< HEAD
-      </div>
-
-      {showUpdateModal && (
-        <div>
-          <input
-            type='checkbox'
-            checked
-            onChange={() => null}
-            id='my_modal_6'
-            className='modal-toggle'
-          />
-          <div className='modal bg-white'>
-            <div className='modal-box bg-white'>
-              <h3 className='font-bold text-lg'>Change Contract Status!</h3>
-
-              <div className='grid space-y-2 w-full'>
-                <div className='flex gap-3 items-center'>
-                  <div className='grid space-y-2 w-full'>
-                    <select
-                      onChange={(e) => setStatus(e.target.value)}
-                      className='select select-bordered mt-6 border-[#696969] w-full max-w-full bg-white'
-                    >
-                      <option value={1}>Building</option>
-                      <option value={2}>Completed</option>
-                      <option value={4}>Dispute</option>
-                    </select>
-                    <p className='text-field-error italic text-red-500'>
-                      {errorMessage.length > 0 && errorMessage}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className='w-full flex gap-3 items-center justify-end mt-3'>
-                <div className='w-full' onClick={() => setUpdateModal(false)}>
-                  <label
-                    htmlFor='my_modal_6'
-                    className='btn btn-error w-full text-white'
-                  >
-                    Close!
-                  </label>
-                </div>
-                <button
-                  disabled={submitLoading}
-                  onClick={() => updateStatus()}
-                  className='w-full h-full py-3 rounded-lg bg-[#2A0FB1] hover:bg-[#684df0] text-[#FEFEFE] text-[17px] block leading-[25.5px] tracking-[0.5%]'
-                >
-                  {submitLoading ? (
-                    <span className='loading loading-spinner loading-base'></span>
-                  ) : (
-                    'Update'
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-=======
-=======
->>>>>>> 5ecad38d3e69d988ca3e4bc5bb69aa709229e217
       }
       {(!loadingPage && contract && !!contractDetails) &&
         <><div className='flex gap-4 items-center pt-16'>
@@ -332,16 +140,15 @@ export default function ViewAudit() {
         >
             <div className='w-full'>
               <div>
-                <h2 className='max-w-full text-2xl mt-4'>Description</h2>
-                <p className='text-sm'>
+                <h2 className='max-w-full text-xl mt-4'>Project Documentation Link</h2>
+                <a href={contractDetails[6]} target='_blank' className="max-w-[300px] text-lg mb-4 underline">
                   {contractDetails[6]}
-                </p>
+                </a>
               </div>
               <div>
-                <h2 className='max-w-full text-2xl mt-4'>Document Link <span className='text-xs font-bold text-red-500'>(this is a link to the work executed, please review and select a value that shows the percentage of work done)</span></h2>
-                <a href="https://google.com" target='_blank' className='text-base underline font-bold'>
-                  {/* {contractDetails[15]} */}
-                  google
+                <h2 className='max-w-full text-xl mt-4'>Job Documentation Link <span className='text-xs font-bold text-red-500'>(this is a link to the work executed, please review and select a value that shows the percentage of work done)</span></h2>
+                <a href={contractDetails[15]} target='_blank' className='max-w-[300px] text-lg mb-4 underline'>
+                  {contractDetails[15]}
                 </a>
               </div>
               {Number(contractDetails[9]) !== 5 &&
@@ -387,10 +194,6 @@ export default function ViewAudit() {
             </div>
           </div></>
       }
-<<<<<<< HEAD
->>>>>>> 8dc193b7d0b6dcd75418ca783b6d6885c35d7101
-=======
->>>>>>> 5ecad38d3e69d988ca3e4bc5bb69aa709229e217
     </div>
   );
 }

@@ -13,8 +13,7 @@ import { factoryAddress, usdc } from '@/app/auth/contractAddress';
 import factoryAbi from '@/app/auth/abi/factory.json'
 import usdcAbi from '@/app/auth/abi/usdc.json'
 import axios from 'axios'
-import { create } from 'ipfs-http-client'
-import { Buffer } from 'buffer'
+
 // const client = create('https://ipfs.infura.io:5001/api/v0')
 
 export default function CreateContract() {
@@ -23,8 +22,8 @@ export default function CreateContract() {
   const router = useRouter();
   const [fileUrl, updateFileUrl] = useState('');
   const [newFile, updateNewFile] = useState();
-  const [submitLoading, setSubmitLoading] = useState(false);
   const [ipfsLoading, setIpfsLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [twelvePercent, setTwelvePercent] = useState(0);
   const [price, setPrice] = useState(0);
   const [termModal, setTermModal] = useState(false);
@@ -66,26 +65,6 @@ export default function CreateContract() {
 
   async function uploadIPFS() {
     const file = newFile
-    // try {
-    //   const auth = 'Basic ' + Buffer.from("84c218297c294ec39c7c5d350ee55c09" + ':' + "84c218297c294ec39c7c5d350ee55c09").toString('base64');
-    //   const client = create({
-    //     host: 'ipfs.infura.io',
-    //     port: 5001,
-    //     protocol: 'https',
-    //     headers: {
-    //       authorization: auth,
-    //     },
-    //   });
-    //   const added = await client.add(file);
-    //   console.log(added);
-    //   const url = `https://ipfs.infura.io/ipfs/${added.path}`
-    //   console.log(url);
-    //   updateFileUrl(url)
-    //   setIpfsLoading(false)
-    // } catch (error) {
-    //   console.log('Error uploading file:' + error)
-    //   setIpfsLoading(false)
-    // }
     try {
       if (file !== undefined) {
         setIpfsLoading(true)
@@ -347,7 +326,6 @@ export default function CreateContract() {
               <label>Project Documentation (IPFS)</label>
               <div className="join w-full">
                 <input
-                  // {...register("description")}
                   onChange={(e) => updateNewFile(e.target.files[0])}
                   type="file"
                   className="input pt-2 input-bordered  border-[#696969] w-full max-w-full bg-white placeholder::mt-2" />

@@ -135,7 +135,7 @@ export default function AllContracts() {
                         </h2>
                         <div className='flex gap-2'>
                           <span className='font-bold'>
-                            Project Documentation
+                            Project Documentation:
                           </span>
                           <a href={item[6]} target='_blank' className='underline'>
                             {item[6]}
