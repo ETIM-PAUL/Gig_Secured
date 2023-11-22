@@ -76,7 +76,7 @@ export default function ViewAudit() {
           toast.success("Contract Audit Finalized and Payment sent out");
           setSubmitLoading(false)
           const newArray = contractDetails;
-          newArray[9] = 5;
+          newArray[9] == 5;
           setContractDetails(newArray)
         }
       });
