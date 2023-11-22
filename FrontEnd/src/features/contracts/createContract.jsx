@@ -283,7 +283,7 @@ export default function CreateContract() {
             <div className="grid space-y-2 w-full">
               <div className='grid gap-2'>
                 <label>
-                  Price (12% for escrow and/or audit by the side)
+                  Price + 12% for possible audit and platform fees
                 </label>
                 <div className='grid gap-2 md:flex'>
                   <input

@@ -309,7 +309,7 @@ export default function HomeFeatures() {
                         Watch our goal getter video
                       </span>
                     </div> */}
-                    <div className='md:w-[50%] w-full'>
+                    <div className='flex w-full'>
                       <span className='text-lg font-bold text-[#000]'>
                         Opportunities For you
                       </span>
