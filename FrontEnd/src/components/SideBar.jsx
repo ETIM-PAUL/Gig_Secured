@@ -58,11 +58,11 @@ export default function SideBar() {
               className='w-[221px] pt-[40px] flex items-center gap-1 mx-auto'
             >
               <div className='flex gap-2 items-center justify-center w-full'>
-                <img
+                {/* <img
                   src='/Group 1.svg'
                   alt='logo'
                   className='w-[40.5px] h-[39px]'
-                />
+                /> */}
                 {sidebar && (
                   <h1 className='text-[28px] leading-6 text-[#0F4880] orbitron_font font-semibold '>
                     GigSecured

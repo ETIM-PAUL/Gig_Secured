@@ -65,7 +65,7 @@ export default function ViewContract() {
 
     const signer = await providerWrite.getSigner();
     const contractRead = new ethers.Contract(registerAddress, childAbi, signer);
-    let tx = await contractRead.getGig(id);
+    let tx = await contractRead.getGig(Number(id));
 
     const tr = Object.values(tx)
     setContractDetails(tr)
