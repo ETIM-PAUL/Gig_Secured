@@ -6,19 +6,46 @@ import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
-import { auditorAddress } from '@/app/auth/contractAddress';
+import { auditorAddress, factoryAddress } from '@/app/auth/contractAddress';
 import auditAbi from '@/app/auth/abi/audit.json';
+import factoryAbi from '@/app/auth/abi/factory.json';
+import childAbi from '@/app/auth/abi/child.json';
 import { SlDocs } from 'react-icons/sl';
 import { FiUsers } from 'react-icons/fi';
 import { RiArrowDropDownLine } from 'react-icons/ri';
+import { useRouter } from 'next/navigation';
 
 export default function AdminDash() {
+  const router = useRouter();
+
   const { providerRead, providerWrite } = Auth();
   const { address, isConnected } = useAccount();
   const [auditorDetails, setAuditorDetails] = useState([]);
   const [loadingPage, setLoadingPage] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('audit');
+  const [activeTab, setActiveTab] = useState('contract');
+  const [registersDetails, setRegistersDetails] = useState([]);
+  const [selectedRegister, setSelectedRegister] = useState(null);
+  const [gigsForSelectedRegister, setGigsForSelectedRegister] = useState([]);
+
+  const handleRegisterView = (registerAddress) => {
+    setSelectedRegister(registerAddress);
+    router.push(`/admin/register/${registerAddress}`);
+  };
+
+  const getAddressContractsCount = async (registerAddress) => {
+    if (registerAddress === '') {
+      return;
+    }
+    const contractRead = new ethers.Contract(
+      registerAddress,
+      childAbi,
+      providerRead
+    );
+    let tx = await contractRead.getAllGigs();
+    const tr = Object.values(tx);
+    setFetchedContracts(tr);
+  };
 
   useEffect(() => {
     const getAuditorDetails = async () => {
@@ -51,6 +78,34 @@ export default function AdminDash() {
       getAuditorDetails();
     }
   }, [address]);
+
+  useEffect(() => {
+    const getAllRegistersDetails = async () => {
+      setLoadingPage(true);
+      try {
+        const contract = new ethers.Contract(
+          factoryAddress,
+          factoryAbi,
+          providerRead
+        );
+
+        const registersArray = await contract.getAllRegisters(); // Assuming this function returns an array of Register objects
+        console.log(registersArray);
+
+        // Set the registersArray state
+        setRegistersDetails(registersArray);
+
+        setLoadingPage(false);
+      } catch (error) {
+        console.error('Error fetching register details:', error);
+        setLoadingPage(false);
+      }
+    };
+
+    if (isConnected) {
+      getAllRegistersDetails();
+    }
+  }, [isConnected]);
 
   const reloadDetails = async () => {
     setLoadingPage(true);
@@ -104,6 +159,8 @@ export default function AdminDash() {
   const handleTab2Click = () => {
     setActiveTab('audit');
   };
+
+  // Function to get all gigs for a specific register
 
   return (
     <main>
@@ -175,16 +232,24 @@ export default function AdminDash() {
                           </thead>
                           <tbody>
                             {/* rows */}
-                            <tr>
-                              <th>1</th>
-                              <td>Register</td>
-                              <td>Creator</td>
-                              <td>
-                                <button className='border-2 rounded-3xl border-[#0F4880] py-1 px-6'>
-                                  View
-                                </button>
-                              </td>
-                            </tr>
+                            {registersDetails.map((register, index) => (
+                              <tr key={index + 1}>
+                                <th>{index + 1}</th>
+                                <td>{register.register}</td>
+                                <td>{register.creator}</td>
+                                <td>
+                                  <Link
+                                    href={`/admin/allContracts?register=${register.register}`}
+                                    className='border-2 rounded-3xl border-[#0F4880] py-1 px-6'
+                                    // onClick={() =>
+                                    //   handleRegisterView(register.register)
+                                    // }
+                                  >
+                                    View
+                                  </Link>
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
