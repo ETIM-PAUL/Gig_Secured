@@ -320,7 +320,7 @@ export default function HomeFeatures() {
                               Become an Auditor and settle disputes
                             </span>
                             <Link
-                              href={`/app?source=`}
+                              href={`/audits`}
                               className='w-fit pt-3 block'
                             >
                               <button className='py-1 px-4 rounded-lg text-[white] text-[17px] bg-[#0F4880]'>
@@ -345,7 +345,7 @@ export default function HomeFeatures() {
                           <div className='py-4 w-[80%] flex flex-col justify-between'>
                             <span>Explore all the gigs you are working on</span>
                             <Link
-                              href={'services//overdraft'}
+                              href={'freelance'}
                               className='w-fit pt-3 block'
                             >
                               <button className='py-1 px-4 rounded-lg text-[white] text-[17px] bg-[#0F4880]'>
