@@ -309,13 +309,13 @@ export default function HomeFeatures() {
                         Watch our goal getter video
                       </span>
                     </div> */}
-                    <div className='flex w-full'>
-                      <span className='text-lg font-bold text-[#000]'>
+                    <div className='w-full'>
+                      <span className='text-lg text-center block font-bold text-[#000]'>
                         Opportunities For you
                       </span>
                       <div className='text-black mt-6'>
-                        <div className='border flex px-4 rounded-md h-[130px] w-full'>
-                          <div className='py-4 w-[80%] flex flex-col justify-between'>
+                        <div className='border flex justify-between px-4 rounded-md h-[130px] w-full'>
+                          <div className='py-4 flex flex-col justify-between'>
                             <span className='w-[70%]'>
                               Become an Auditor and settle disputes
                             </span>
@@ -341,8 +341,8 @@ export default function HomeFeatures() {
                         </div>
                       </div>
                       <div className='text-black mt-3'>
-                        <div className='border flex px-4 rounded-md h-[130px] w-full'>
-                          <div className='py-4 w-[80%] flex flex-col justify-between'>
+                        <div className='border flex justify-between px-4 rounded-md h-[130px] w-full'>
+                          <div className='py-4 flex flex-col justify-between'>
                             <span>Explore all the gigs you are working on</span>
                             <Link
                               href={'freelance'}
