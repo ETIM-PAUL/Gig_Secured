@@ -548,9 +548,9 @@ export default function ViewContract() {
                     </button>
                   }
                 </div>
-                <p className="max-w-[300px] text-lg mb-4">
+                <a href={contractDetails[6]} target='_blank' className="max-w-[300px] text-lg mb-4 underline">
                   {contractDetails[6]}
-                </p>
+                </a>
               </div>
             </div>
           </div>

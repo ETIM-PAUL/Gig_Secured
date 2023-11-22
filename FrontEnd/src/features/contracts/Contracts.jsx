@@ -127,13 +127,20 @@ export default function AllContracts() {
                   fetchedContracts.map((item, index) => (
                     <div
                       key={index}
-                      className='card w-96 bg-white border shadow-md border-black flex-grow text-black'
+                      className='card w-fit bg-white border shadow-md border-black flex-grow text-black'
                     >
                       <div className='card-body'>
                         <h2 className='card-title'>
                           {item[0]} - <span className='text-sm'>{item[1]}</span>
                         </h2>
-                        <p>{item[6]}</p>
+                        <div className='flex gap-2'>
+                          <span className='font-bold'>
+                            Project Documentation
+                          </span>
+                          <a href={item[6]} target='_blank' className='underline'>
+                            {item[6]}
+                          </a>
+                        </div>
                         <div className='card-actions justify-end'>
                           <Link href={`/contracts/view?id=${index + 1}`}>
                             <button className='btn bg-[#D2E9FF] hover:bg-[#76bbff] text-black border-[#D2E9FF'>
