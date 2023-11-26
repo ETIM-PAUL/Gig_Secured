@@ -6,6 +6,10 @@ _Our Secure Escrow and Talent Management Platform for Freelancers_
 
 ### Our Website: <a href="https://gig-secured.vercel.app">Gigsecured.com</a>
 
+##contract addresses
+**1\. Auditor address - 0xDDDB31543fBA3c93fD2e27e53320FC88495daa32
+**2\. GigSecured Factory - 0x4E6350F09783DeB19DcCA9f85F09014F1a8EF644
+
 ## About Our Product
 
 ### What problems is Gig Secured solving?
